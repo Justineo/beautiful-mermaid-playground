@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExternalLink, Twitter } from "lucide-vue-next";
+import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 </script>
 
 <template>
@@ -25,6 +25,17 @@ import { ExternalLink, Twitter } from "lucide-vue-next";
             >
               <span>Justineo</span>
               <Twitter class="external-icon" :size="10" :stroke-width="1.35" />
+            </a>
+            <span class="credit-separator" aria-hidden="true">&middot;</span>
+            <a
+              class="credit-link"
+              href="https://github.com/Justineo/beautiful-mermaid-playground"
+              target="_blank"
+              rel="noreferrer noopener"
+              title="GitHub repository"
+            >
+              <span>GitHub</span>
+              <Github class="external-icon" :size="10" :stroke-width="1.35" />
             </a>
             <span class="credit-separator" aria-hidden="true">&middot;</span>
             <a
