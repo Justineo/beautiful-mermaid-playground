@@ -1,7 +1,13 @@
 {
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/",
+      "has": [{ "type": "host", "value": "beautiful-mermaid.dev" }],
+      "destination": "https://agents.craft.do/mermaid",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "beautiful-mermaid.dev" }],
       "destination": "https://agents.craft.do/mermaid",
       "permanent": true
