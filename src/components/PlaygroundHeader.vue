@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExternalLink, Twitter } from 'lucide-vue-next'
+import { ExternalLink, Twitter } from "lucide-vue-next";
 </script>
 
 <template>
@@ -15,26 +15,7 @@ import { ExternalLink, Twitter } from 'lucide-vue-next'
       <div class="toolbar-actions">
         <div class="action-group">
           <nav class="credit-links" aria-label="Links">
-            <a
-              class="credit-link"
-              href="https://github.com/mermaid-js/mermaid"
-              target="_blank"
-              rel="noreferrer noopener"
-              title="Mermaid project"
-            >
-              <span>Mermaid</span>
-              <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
-            </a>
-            <a
-              class="credit-link"
-              href="https://github.com/lukilabs/beautiful-mermaid"
-              target="_blank"
-              rel="noreferrer noopener"
-              title="Beautiful Mermaid project"
-            >
-              <span>Beautiful Mermaid</span>
-              <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
-            </a>
+            <span class="credit-prefix">Made by</span>
             <a
               class="credit-link"
               href="https://x.com/_justineo"
@@ -44,6 +25,28 @@ import { ExternalLink, Twitter } from 'lucide-vue-next'
             >
               <span>Justineo</span>
               <Twitter class="external-icon" :size="10" :stroke-width="1.35" />
+            </a>
+            <span class="credit-separator" aria-hidden="true">&middot;</span>
+            <a
+              class="credit-link"
+              href="https://mermaid.ai/open-source/"
+              target="_blank"
+              rel="noreferrer noopener"
+              title="Mermaid open source"
+            >
+              <span>Mermaid</span>
+              <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
+            </a>
+            <span class="credit-separator" aria-hidden="true">&middot;</span>
+            <a
+              class="credit-link"
+              href="https://agents.craft.do/mermaid"
+              target="_blank"
+              rel="noreferrer noopener"
+              title="Beautiful Mermaid project"
+            >
+              <span>Beautiful Mermaid</span>
+              <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
             </a>
           </nav>
         </div>
@@ -83,7 +86,7 @@ import { ExternalLink, Twitter } from 'lucide-vue-next'
   gap: 0.3rem;
   padding: 0.02rem 0;
   font-family:
-    'Geist',
+    "Geist",
     system-ui,
     -apple-system,
     sans-serif;
@@ -124,16 +127,21 @@ import { ExternalLink, Twitter } from 'lucide-vue-next'
 .credit-links {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
+  gap: 0.28rem;
+  font-size: var(--fs-meta);
+  color: var(--text-tertiary);
+}
+
+.credit-prefix {
+  white-space: nowrap;
 }
 
 .credit-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.14rem;
+  gap: 0.12rem;
   padding: 0;
   color: var(--text-secondary);
-  font-size: var(--fs-meta);
   white-space: nowrap;
   text-decoration: none;
   transition:
@@ -142,7 +150,12 @@ import { ExternalLink, Twitter } from 'lucide-vue-next'
 }
 
 .external-icon {
-  opacity: 0.9;
+  opacity: 0.82;
+}
+
+.credit-separator {
+  color: var(--text-muted);
+  line-height: 1;
 }
 
 .credit-link:hover {

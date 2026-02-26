@@ -1,70 +1,80 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import BaseSegmentedControl from '@/components/BaseSegmentedControl.vue'
-import BaseSelect from '@/components/BaseSelect.vue'
-import { DIAGRAM_THEME_OPTIONS } from '@/types/playground'
-import type { ActiveMobilePane, DesktopPaneKey, DiagramTheme } from '@/types/playground'
+import { computed } from "vue";
+import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
+import BaseSelect from "@/components/BaseSelect.vue";
+import { DIAGRAM_THEME_OPTIONS } from "@/types/playground";
+import type { ActiveMobilePane, DesktopPaneKey, DiagramTheme } from "@/types/playground";
 
 const PANEL_ITEMS: Array<{ key: DesktopPaneKey; label: string }> = [
-  { key: 'options', label: 'Options' },
-  { key: 'editor', label: 'Editor' },
-  { key: 'preview', label: 'Preview' },
-]
+  { key: "options", label: "Options" },
+  { key: "editor", label: "Editor" },
+  { key: "preview", label: "Preview" },
+];
 
 const props = defineProps<{
-  diagramTheme: DiagramTheme
-  isMobile: boolean
-  mobilePane: ActiveMobilePane
-  desktopPanes: Record<DesktopPaneKey, boolean>
-  selectedSampleId: number | null
-  samples: Array<{ id: number; title: string; category: string }>
-}>()
+  diagramTheme: DiagramTheme;
+  isMobile: boolean;
+  mobilePane: ActiveMobilePane;
+  desktopPanes: Record<DesktopPaneKey, boolean>;
+  selectedSampleId: number | null;
+  samples: Array<{ id: number; title: string; category: string }>;
+}>();
 
 const emit = defineEmits<{
-  'update:diagramTheme': [value: DiagramTheme]
-  'update:mobilePane': [value: ActiveMobilePane]
-  'toggle:desktop-pane': [pane: DesktopPaneKey]
-  'apply:sample': [sampleId: number]
-}>()
+  "update:diagramTheme": [value: DiagramTheme];
+  "update:mobilePane": [value: ActiveMobilePane];
+  "toggle:desktop-pane": [pane: DesktopPaneKey];
+  "apply:sample": [sampleId: number];
+}>();
 
 const groupedSamples = computed(() => {
-  const groups = new Map<string, Array<{ id: number; title: string }>>()
+  const groups = new Map<string, Array<{ id: number; title: string }>>();
 
   for (const sample of props.samples) {
-    const bucket = groups.get(sample.category)
+    if (sample.category === "Basic") {
+      continue;
+    }
+
+    const bucket = groups.get(sample.category);
     if (bucket) {
-      bucket.push({ id: sample.id, title: sample.title })
+      bucket.push({ id: sample.id, title: sample.title });
     } else {
-      groups.set(sample.category, [{ id: sample.id, title: sample.title }])
+      groups.set(sample.category, [{ id: sample.id, title: sample.title }]);
     }
   }
 
-  return [...groups.entries()].map(([category, items]) => ({ category, items }))
-})
+  return [...groups.entries()].map(([category, items]) => ({ category, items }));
+});
+
+const ungroupedSamples = computed(() =>
+  props.samples
+    .filter((sample) => sample.category === "Basic")
+    .map((sample) => ({ id: sample.id, title: sample.title })),
+);
 const desktopActivePaneKeys = computed(() =>
   PANEL_ITEMS.filter((pane) => props.desktopPanes[pane.key]).map((pane) => pane.key),
-)
+);
 
 function getSelectValue(event: Event): string {
-  return (event.target as HTMLSelectElement).value
+  return (event.target as HTMLSelectElement).value;
 }
 
 function onSampleSelect(event: Event): void {
-  const value = Number.parseInt(getSelectValue(event), 10)
+  const value = Number.parseInt(getSelectValue(event), 10);
   if (!Number.isFinite(value)) {
-    return
+    return;
   }
 
-  emit('apply:sample', value)
+  emit("apply:sample", value);
 }
 
 function onPanelSelect(key: string): void {
   if (props.isMobile) {
-    emit('update:mobilePane', key as ActiveMobilePane)
-    return
+    emit("update:mobilePane", key as ActiveMobilePane);
+    return;
   }
 
-  emit('toggle:desktop-pane', key as DesktopPaneKey)
+  emit("toggle:desktop-pane", key as DesktopPaneKey);
 }
 </script>
 
@@ -79,6 +89,9 @@ function onPanelSelect(key: string): void {
             placeholder="Choose an example"
             @change="onSampleSelect"
           >
+            <option v-for="sample in ungroupedSamples" :key="sample.id" :value="sample.id">
+              {{ sample.title }}
+            </option>
             <optgroup v-for="group in groupedSamples" :key="group.category" :label="group.category">
               <option v-for="sample in group.items" :key="sample.id" :value="sample.id">
                 {{ sample.title }}
