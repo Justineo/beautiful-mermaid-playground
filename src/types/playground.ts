@@ -1,6 +1,22 @@
 import type { ThemeName } from "beautiful-mermaid";
 
-export type DiagramTheme = ThemeName;
+export const UNOFFICIAL_DIAGRAM_THEME_VALUES = [
+  "ayu-light",
+  "ayu-dark",
+  "everforest-light",
+  "everforest-dark",
+  "gruvbox-light-medium",
+  "gruvbox-dark-medium",
+  "material-theme-lighter",
+  "material-theme",
+  "night-owl-light",
+  "night-owl",
+  "rose-pine-dawn",
+  "rose-pine-moon",
+] as const;
+
+export type UnofficialDiagramTheme = (typeof UNOFFICIAL_DIAGRAM_THEME_VALUES)[number];
+export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
 
 export type ActiveMobilePane = "options" | "editor" | "preview";
@@ -199,7 +215,7 @@ export const RENDER_OUTPUT_MODE_OPTIONS: Array<{ label: string; value: RenderOut
   { label: "ASCII", value: "ascii" },
 ];
 
-export const DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: DiagramTheme }> = [
+export const OFFICIAL_DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: ThemeName }> = [
   { label: "Zinc Light", value: "zinc-light" },
   { label: "Zinc Dark", value: "zinc-dark" },
   { label: "GitHub Light", value: "github-light" },
@@ -215,6 +231,29 @@ export const DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: DiagramTheme }
   { label: "Nord Light", value: "nord-light" },
   { label: "Catppuccin Mocha", value: "catppuccin-mocha" },
   { label: "Catppuccin Latte", value: "catppuccin-latte" },
+];
+
+export const UNOFFICIAL_DIAGRAM_THEME_OPTIONS: Array<{
+  label: string;
+  value: UnofficialDiagramTheme;
+}> = [
+  { label: "Ayu Light", value: "ayu-light" },
+  { label: "Ayu Dark", value: "ayu-dark" },
+  { label: "Everforest Light", value: "everforest-light" },
+  { label: "Everforest Dark", value: "everforest-dark" },
+  { label: "Gruvbox Light", value: "gruvbox-light-medium" },
+  { label: "Gruvbox Dark", value: "gruvbox-dark-medium" },
+  { label: "Material Light", value: "material-theme-lighter" },
+  { label: "Material Dark", value: "material-theme" },
+  { label: "Night Owl Light", value: "night-owl-light" },
+  { label: "Night Owl Dark", value: "night-owl" },
+  { label: "Rose Pine Dawn", value: "rose-pine-dawn" },
+  { label: "Rose Pine Moon", value: "rose-pine-moon" },
+];
+
+export const DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: DiagramTheme }> = [
+  ...OFFICIAL_DIAGRAM_THEME_OPTIONS,
+  ...UNOFFICIAL_DIAGRAM_THEME_OPTIONS,
 ];
 
 export const DIRECTION_OPTIONS: Array<{ label: string; value: DirectionOverride }> = [

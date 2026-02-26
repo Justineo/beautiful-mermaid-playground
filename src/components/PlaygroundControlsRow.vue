@@ -2,7 +2,10 @@
 import { computed } from "vue";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
 import BaseSelect from "@/components/BaseSelect.vue";
-import { DIAGRAM_THEME_OPTIONS } from "@/types/playground";
+import {
+  OFFICIAL_DIAGRAM_THEME_OPTIONS,
+  UNOFFICIAL_DIAGRAM_THEME_OPTIONS,
+} from "@/types/playground";
 import type { ActiveMobilePane, DesktopPaneKey, DiagramTheme } from "@/types/playground";
 
 const PANEL_ITEMS: Array<{ key: DesktopPaneKey; label: string }> = [
@@ -106,9 +109,24 @@ function onPanelSelect(key: string): void {
             :value="props.diagramTheme"
             @change="emit('update:diagramTheme', getSelectValue($event) as DiagramTheme)"
           >
-            <option v-for="item in DIAGRAM_THEME_OPTIONS" :key="item.value" :value="item.value">
-              {{ item.label }}
-            </option>
+            <optgroup label="Official">
+              <option
+                v-for="item in OFFICIAL_DIAGRAM_THEME_OPTIONS"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </optgroup>
+            <optgroup label="Unofficial">
+              <option
+                v-for="item in UNOFFICIAL_DIAGRAM_THEME_OPTIONS"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </optgroup>
           </BaseSelect>
         </label>
       </div>
