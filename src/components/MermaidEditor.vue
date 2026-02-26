@@ -2,6 +2,13 @@
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import BasePanel from "@/components/BasePanel.vue";
 import BaseSkeleton from "@/components/BaseSkeleton.vue";
+import {
+  DEFAULT_MONACO_THEME_BY_SCHEME,
+  MONACO_THEME_BY_DIAGRAM_THEME,
+  SHIKI_MONACO_THEMES,
+  type MonacoShikiTheme,
+} from "@/constants/monacoThemes";
+import type { DiagramTheme } from "@/types/playground";
 
 import type { editor as MonacoEditorNs } from "monaco-editor";
 
@@ -10,6 +17,7 @@ const props = defineProps<{
   fontSize: number;
   fontFamily: string;
   colorScheme: "light" | "dark";
+  diagramTheme: DiagramTheme;
   surfaceColor: string;
   focusToEndToken: number;
 }>();
@@ -19,10 +27,6 @@ const emit = defineEmits<{
 }>();
 
 const MERMAID_LANGUAGE_ID = "mermaid";
-const MONACO_THEME_BY_SCHEME = {
-  light: "one-light",
-  dark: "one-dark-pro",
-} as const;
 
 type MonacoModule = typeof import("monaco-editor");
 type MonacoEditor = MonacoEditorNs.IStandaloneCodeEditor;
@@ -33,9 +37,11 @@ let shikiHighlighter: ShikiHighlighter | null = null;
 let isMermaidLanguageConfigured = false;
 
 function getMonacoTheme(
+  diagramTheme: DiagramTheme,
   colorScheme: "light" | "dark",
-): (typeof MONACO_THEME_BY_SCHEME)[keyof typeof MONACO_THEME_BY_SCHEME] {
-  return MONACO_THEME_BY_SCHEME[colorScheme];
+): MonacoShikiTheme {
+  const mappedTheme = MONACO_THEME_BY_DIAGRAM_THEME[diagramTheme];
+  return mappedTheme ?? DEFAULT_MONACO_THEME_BY_SCHEME[colorScheme];
 }
 
 function ensureMermaidLanguageConfigured(monacoModule: MonacoModule): void {
@@ -95,7 +101,7 @@ async function ensureMonacoRuntime(): Promise<MonacoModule> {
       };
 
       shikiHighlighter = await createHighlighter({
-        themes: [MONACO_THEME_BY_SCHEME.light, MONACO_THEME_BY_SCHEME.dark],
+        themes: SHIKI_MONACO_THEMES,
         langs: [customMermaidLanguage as never],
       });
       shikiToMonaco(shikiHighlighter, monacoInstance);
@@ -201,7 +207,7 @@ onMounted(async () => {
     const editor = monacoInstance.editor.create(rootRef.value, {
       value: props.modelValue,
       language: MERMAID_LANGUAGE_ID,
-      theme: getMonacoTheme(props.colorScheme),
+      theme: getMonacoTheme(props.diagramTheme, props.colorScheme),
       automaticLayout: true,
       editContext: false,
       detectIndentation: false,
@@ -305,14 +311,14 @@ watch(
 );
 
 watch(
-  () => props.colorScheme,
-  (nextScheme) => {
+  () => [props.diagramTheme, props.colorScheme] as const,
+  ([nextTheme, nextScheme]) => {
     const monacoInstance = monacoModule.value;
     if (!monacoInstance) {
       return;
     }
 
-    monacoInstance.editor.setTheme(getMonacoTheme(nextScheme));
+    monacoInstance.editor.setTheme(getMonacoTheme(nextTheme, nextScheme));
   },
 );
 

@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import monacoPlugin from "@kong-ui-public/monaco-editor/vite-plugin";
+import { SHIKI_MONACO_THEMES } from "./src/constants/monacoThemes";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,7 +13,8 @@ export default defineConfig({
       features: [],
       shiki: {
         langs: ["mermaid"],
-        themes: ["one-light", "one-dark-pro"],
+        // Keep plugin-side bundled themes aligned with runtime theme switching.
+        themes: [...SHIKI_MONACO_THEMES],
       },
     }),
     vue(),
