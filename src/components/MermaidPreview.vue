@@ -19,12 +19,20 @@ type ContentSize = {
   height: number;
 };
 
+type ColoredAsciiSegment = {
+  text: string;
+  color: string | null;
+};
+
+type ColoredAsciiLine = ColoredAsciiSegment[];
+
 const props = defineProps<{
   outputMode: RenderOutputMode;
   fitRequestId: number;
   monoFontFamily: string;
   svg: string | null;
   ascii: string | null;
+  asciiHtml: string | null;
   error: string | null;
   durationMs: number | null;
   isRendering: boolean;
@@ -128,6 +136,81 @@ const outputModeItems: Array<{ key: string; label: string }> = RENDER_OUTPUT_MOD
     label: item.label,
   }),
 );
+
+function appendColoredText(
+  lines: ColoredAsciiLine[],
+  rawText: string,
+  color: string | null,
+): ColoredAsciiLine[] {
+  let nextLines = lines;
+  const parts = rawText.split("\n");
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = parts[index] ?? "";
+    if (part.length > 0) {
+      const lineIndex = nextLines.length - 1;
+      const currentLine = nextLines[lineIndex];
+      if (currentLine) {
+        currentLine.push({ text: part, color });
+      }
+    }
+
+    if (index < parts.length - 1) {
+      nextLines = [...nextLines, []];
+    }
+  }
+
+  return nextLines;
+}
+
+function parseAsciiHtmlToLines(html: string): ColoredAsciiLine[] {
+  const parser = new DOMParser();
+  const document = parser.parseFromString(`<pre>${html}</pre>`, "text/html");
+  const root = document.body.querySelector("pre");
+  if (!root) {
+    return [];
+  }
+
+  let lines: ColoredAsciiLine[] = [[]];
+
+  function walk(node: Node, inheritedColor: string | null): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.nodeValue ?? "";
+      lines = appendColoredText(lines, text, inheritedColor);
+      return;
+    }
+
+    if (!(node instanceof Element)) {
+      return;
+    }
+
+    const color = node
+      .getAttribute("style")
+      ?.match(/color:\s*([^;]+)/u)?.[1]
+      ?.trim();
+    const resolvedColor = color && color.length > 0 ? color : inheritedColor;
+    for (const child of Array.from(node.childNodes)) {
+      walk(child, resolvedColor);
+    }
+  }
+
+  for (const child of Array.from(root.childNodes)) {
+    walk(child, null);
+  }
+
+  return lines;
+}
+
+const coloredAsciiLines = computed<ColoredAsciiLine[]>(() => {
+  if (props.asciiHtml && props.asciiHtml.length > 0) {
+    const parsed = parseAsciiHtmlToLines(props.asciiHtml);
+    if (parsed.length > 0) {
+      return parsed;
+    }
+  }
+
+  const fallback = props.ascii ?? "";
+  return fallback.split("\n").map((line) => [{ text: line, color: null }]);
+});
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -664,8 +747,15 @@ useResizeObserver(textCanvasRef, () => {
             ref="textCanvasRef"
             class="ascii-canvas"
             :style="{ fontFamily: props.monoFontFamily }"
-            v-text="props.ascii ?? ''"
-          />
+          >
+            <template v-for="(line, lineIndex) in coloredAsciiLines" :key="lineIndex">
+              <template v-for="(segment, segmentIndex) in line" :key="`${lineIndex}-${segmentIndex}`">
+                <span v-if="segment.color" :style="{ color: segment.color }">{{ segment.text }}</span>
+                <template v-else>{{ segment.text }}</template>
+              </template>
+              <br v-if="lineIndex < coloredAsciiLines.length - 1" />
+            </template>
+          </pre>
         </div>
 
         <p v-if="!hasCurrentOutput && !props.error && !props.isRendering" class="placeholder">

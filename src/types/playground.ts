@@ -187,6 +187,7 @@ export interface PlaygroundState {
 export interface RenderState {
   svg: string | null;
   ascii: string | null;
+  asciiHtml: string | null;
   error: string | null;
   durationMs: number | null;
   renderId: number;

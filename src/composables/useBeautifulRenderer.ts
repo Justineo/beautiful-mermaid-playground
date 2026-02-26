@@ -1133,6 +1133,7 @@ export function useBeautifulRenderer(
   const renderState = ref<RenderState>({
     svg: null,
     ascii: null,
+    asciiHtml: null,
     error: null,
     durationMs: null,
     renderId: 0,
@@ -1160,6 +1161,7 @@ export function useBeautifulRenderer(
       renderState.value = {
         svg: null,
         ascii: null,
+        asciiHtml: null,
         error: null,
         durationMs: Math.round(performance.now() - startedAt),
         renderId: renderToken,
@@ -1169,6 +1171,7 @@ export function useBeautifulRenderer(
 
     const previousSvg = renderState.value.svg;
     const previousAscii = renderState.value.ascii;
+    const previousAsciiHtml = renderState.value.asciiHtml;
 
     try {
       isRendering.value = true;
@@ -1192,21 +1195,39 @@ export function useBeautifulRenderer(
         renderState.value = {
           svg: styledSvg,
           ascii: previousAscii,
+          asciiHtml: previousAsciiHtml,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
           renderId: renderToken,
         };
       } else {
+        const asciiTheme = {
+          fg: renderOptions.fg ?? "#27272A",
+          border: renderOptions.border ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
+          line: renderOptions.line ?? renderOptions.fg ?? "#27272A",
+          arrow: renderOptions.accent ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
+          accent: renderOptions.accent,
+          bg: renderOptions.bg,
+          corner: renderOptions.line ?? renderOptions.fg ?? "#27272A",
+          junction: renderOptions.border ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
+        };
         const ascii = stripCommonLeadingIndent(
           runtime.renderMermaidASCII(source, {
             useAscii: config.value.outputMode === "ascii",
             colorMode: "none",
+            theme: asciiTheme,
           }),
         );
+        const asciiHtml = runtime.renderMermaidASCII(source, {
+          useAscii: config.value.outputMode === "ascii",
+          colorMode: "html",
+          theme: asciiTheme,
+        });
 
         renderState.value = {
           svg: previousSvg,
           ascii,
+          asciiHtml,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
           renderId: renderToken,
@@ -1223,6 +1244,7 @@ export function useBeautifulRenderer(
       renderState.value = {
         svg: previousSvg,
         ascii: previousAscii,
+        asciiHtml: previousAsciiHtml,
         error: errorMessage,
         durationMs: Math.round(performance.now() - startedAt),
         renderId: renderToken,
