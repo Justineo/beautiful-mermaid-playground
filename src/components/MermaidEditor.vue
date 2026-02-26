@@ -1,110 +1,110 @@
 <script setup lang="ts">
-import { init } from 'modern-monaco'
-import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import BasePanel from '@/components/BasePanel.vue'
+import { init } from "modern-monaco";
+import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import BasePanel from "@/components/BasePanel.vue";
 
 const props = defineProps<{
-  modelValue: string
-  fontSize: number
-  fontFamily: string
-  colorScheme: 'light' | 'dark'
-  surfaceColor: string
-}>()
+  modelValue: string;
+  fontSize: number;
+  fontFamily: string;
+  colorScheme: "light" | "dark";
+  surfaceColor: string;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  "update:modelValue": [value: string];
+}>();
 
-type MonacoModule = Awaited<ReturnType<typeof init>>
-type MonacoEditor = ReturnType<MonacoModule['editor']['create']>
+type MonacoModule = Awaited<ReturnType<typeof init>>;
+type MonacoEditor = ReturnType<MonacoModule["editor"]["create"]>;
 
-const rootRef = ref<HTMLElement | null>(null)
-const isReady = ref(false)
-const initError = ref<string | null>(null)
-const monacoModule = shallowRef<MonacoModule | null>(null)
-const editorInstance = shallowRef<MonacoEditor | null>(null)
-let modelDisposable: { dispose: () => void } | null = null
-let unmounted = false
-let fontLoadingDoneHandler: (() => void) | null = null
-let pendingFocusToEnd = false
+const rootRef = ref<HTMLElement | null>(null);
+const isReady = ref(false);
+const initError = ref<string | null>(null);
+const monacoModule = shallowRef<MonacoModule | null>(null);
+const editorInstance = shallowRef<MonacoEditor | null>(null);
+let modelDisposable: { dispose: () => void } | null = null;
+let unmounted = false;
+let fontLoadingDoneHandler: (() => void) | null = null;
+let pendingFocusToEnd = false;
 
-function getMonacoTheme(colorScheme: 'light' | 'dark'): 'one-light' | 'one-dark-pro' {
-  return colorScheme === 'dark' ? 'one-dark-pro' : 'one-light'
+function getMonacoTheme(colorScheme: "light" | "dark"): "one-light" | "one-dark-pro" {
+  return colorScheme === "dark" ? "one-dark-pro" : "one-light";
 }
 
 function focusEditor(): void {
-  editorInstance.value?.focus()
+  editorInstance.value?.focus();
 }
 
 function focusEditorToEnd(): void {
-  const editor = editorInstance.value
+  const editor = editorInstance.value;
   if (!editor) {
-    pendingFocusToEnd = true
-    return
+    pendingFocusToEnd = true;
+    return;
   }
-  pendingFocusToEnd = false
+  pendingFocusToEnd = false;
 
-  const model = editor.getModel()
+  const model = editor.getModel();
   if (!model) {
-    focusEditor()
-    return
+    focusEditor();
+    return;
   }
 
-  const lineNumber = model.getLineCount()
-  const column = model.getLineMaxColumn(lineNumber)
-  editor.focus()
-  editor.setPosition({ lineNumber, column })
-  editor.revealPositionInCenterIfOutsideViewport({ lineNumber, column })
+  const lineNumber = model.getLineCount();
+  const column = model.getLineMaxColumn(lineNumber);
+  editor.focus();
+  editor.setPosition({ lineNumber, column });
+  editor.revealPositionInCenterIfOutsideViewport({ lineNumber, column });
 }
 
 function remeasureEditor(): void {
   if (unmounted) {
-    return
+    return;
   }
 
-  const monaco = monacoModule.value
-  const editor = editorInstance.value
+  const monaco = monacoModule.value;
+  const editor = editorInstance.value;
   if (!monaco || !editor) {
-    return
+    return;
   }
 
-  monaco.editor.remeasureFonts()
-  editor.layout()
+  monaco.editor.remeasureFonts();
+  editor.layout();
 }
 
 function scheduleRemeasure(): void {
-  requestAnimationFrame(remeasureEditor)
+  requestAnimationFrame(remeasureEditor);
 }
 
 function handleRootPointerDown(event: PointerEvent): void {
   if (event.button !== 0) {
-    return
+    return;
   }
 
   // Ensure Monaco gets keyboard focus on first interaction.
-  requestAnimationFrame(focusEditor)
+  requestAnimationFrame(focusEditor);
 }
 
 onMounted(async () => {
   if (!rootRef.value) {
-    return
+    return;
   }
 
   try {
     const monaco = await init({
-      themes: ['one-light', 'one-dark-pro'],
-      langs: ['markdown'],
+      themes: ["one-light", "one-dark-pro"],
+      langs: ["mermaid"],
       defaultTheme: getMonacoTheme(props.colorScheme),
-    })
+    });
 
     if (unmounted || !rootRef.value) {
-      return
+      return;
     }
 
-    monacoModule.value = monaco
+    monacoModule.value = monaco;
     const editor = monaco.editor.create(rootRef.value, {
       value: props.modelValue,
-      language: 'markdown',
+      language: "mermaid",
       theme: getMonacoTheme(props.colorScheme),
       automaticLayout: true,
       editContext: false,
@@ -113,7 +113,7 @@ onMounted(async () => {
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       lineNumbersMinChars: 3,
-      wordWrap: 'on',
+      wordWrap: "on",
       scrollbar: {
         verticalScrollbarSize: 8,
         horizontalScrollbarSize: 8,
@@ -122,106 +122,106 @@ onMounted(async () => {
         top: 14,
         bottom: 14,
       },
-    })
+    });
 
-    editorInstance.value = editor
+    editorInstance.value = editor;
     modelDisposable = editor.onDidChangeModelContent(() => {
-      emit('update:modelValue', editor.getValue())
-    })
-    isReady.value = true
-    scheduleRemeasure()
+      emit("update:modelValue", editor.getValue());
+    });
+    isReady.value = true;
+    scheduleRemeasure();
 
-    const fontSet = document.fonts
+    const fontSet = document.fonts;
     fontLoadingDoneHandler = () => {
-      scheduleRemeasure()
-    }
-    fontSet.addEventListener('loadingdone', fontLoadingDoneHandler)
+      scheduleRemeasure();
+    };
+    fontSet.addEventListener("loadingdone", fontLoadingDoneHandler);
     void fontSet.ready.then(() => {
-      scheduleRemeasure()
-    })
+      scheduleRemeasure();
+    });
 
     nextTick(() => {
       if (pendingFocusToEnd) {
-        focusEditorToEnd()
-        return
+        focusEditorToEnd();
+        return;
       }
 
-      focusEditorToEnd()
-    })
+      focusEditorToEnd();
+    });
   } catch (error) {
-    initError.value = error instanceof Error ? error.message : String(error)
+    initError.value = error instanceof Error ? error.message : String(error);
   }
-})
+});
 
 watch(
   () => props.modelValue,
   (nextValue) => {
-    const editor = editorInstance.value
+    const editor = editorInstance.value;
     if (!editor) {
-      return
+      return;
     }
 
     if (editor.getValue() !== nextValue) {
-      editor.setValue(nextValue)
+      editor.setValue(nextValue);
     }
   },
-)
+);
 
 watch(
   () => props.fontSize,
   (nextSize) => {
-    const editor = editorInstance.value
+    const editor = editorInstance.value;
     if (!editor) {
-      return
+      return;
     }
 
-    editor.updateOptions({ fontSize: nextSize })
-    scheduleRemeasure()
+    editor.updateOptions({ fontSize: nextSize });
+    scheduleRemeasure();
   },
-)
+);
 
 watch(
   () => props.fontFamily,
   (nextFamily) => {
-    const editor = editorInstance.value
+    const editor = editorInstance.value;
     if (!editor) {
-      return
+      return;
     }
 
-    editor.updateOptions({ fontFamily: nextFamily })
-    scheduleRemeasure()
+    editor.updateOptions({ fontFamily: nextFamily });
+    scheduleRemeasure();
   },
-)
+);
 
 watch(
   () => props.colorScheme,
   (nextScheme) => {
-    const monaco = monacoModule.value
+    const monaco = monacoModule.value;
     if (!monaco) {
-      return
+      return;
     }
 
-    monaco.editor.setTheme(getMonacoTheme(nextScheme))
+    monaco.editor.setTheme(getMonacoTheme(nextScheme));
   },
-)
+);
 
 onBeforeUnmount(() => {
-  unmounted = true
+  unmounted = true;
   if (fontLoadingDoneHandler) {
-    document.fonts.removeEventListener('loadingdone', fontLoadingDoneHandler)
-    fontLoadingDoneHandler = null
+    document.fonts.removeEventListener("loadingdone", fontLoadingDoneHandler);
+    fontLoadingDoneHandler = null;
   }
 
-  modelDisposable?.dispose()
-  modelDisposable = null
-  editorInstance.value?.dispose()
-  editorInstance.value = null
-})
+  modelDisposable?.dispose();
+  modelDisposable = null;
+  editorInstance.value?.dispose();
+  editorInstance.value = null;
+});
 
 defineExpose<{ focus: () => void; focusToEnd: () => void }>({
   focus: focusEditor,
   focusToEnd: focusEditorToEnd,
-})
+});
 </script>
 
 <template>
