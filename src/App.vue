@@ -4,11 +4,11 @@ import PanelSkeleton from "@/components/PanelSkeleton.vue";
 import PlaygroundControlsRow from "@/components/PlaygroundControlsRow.vue";
 import PlaygroundHeader from "@/components/PlaygroundHeader.vue";
 import { preloadRenderer, useBeautifulRenderer } from "@/composables/useBeautifulRenderer";
-import { BEAUTIFUL_THEME_TOKENS, DEFAULT_THEME_TOKENS } from "@/generated/beautifulThemes";
 import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
 import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
 import { BASE_FONT_OPTIONS } from "@/types/playground";
+import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
 import type {
   ActiveMobilePane,
@@ -284,7 +284,7 @@ type UiPalette = {
 };
 
 function resolveUiPalette(config = state.value.config): UiPalette {
-  const theme = BEAUTIFUL_THEME_TOKENS[config.diagramTheme] ?? DEFAULT_THEME_TOKENS;
+  const theme = resolveDiagramThemeTokens(config.diagramTheme);
   const accentCandidate = (theme as { accent?: unknown }).accent;
   const themeAccent = typeof accentCandidate === "string" ? accentCandidate : "#3b82f6";
 

@@ -1,8 +1,8 @@
 import { computed, onUnmounted, ref } from "vue";
-import { BEAUTIFUL_THEME_TOKENS, DEFAULT_THEME_TOKENS } from "@/generated/beautifulThemes";
 import type { RenderOptions as BeautifulRenderOptions } from "beautiful-mermaid";
 import type { Ref } from "vue";
 import { ELEMENT_COLOR_ROLES } from "@/types/playground";
+import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import type {
   BeautifulRenderConfig,
   ElementColorRole,
@@ -239,7 +239,7 @@ function toThemeTokenValues(theme: ThemeChannels): ThemeTokenValues {
 }
 
 function resolveThemeTokenValues(config: BeautifulRenderConfig): ThemeTokenValues {
-  const baseTheme = BEAUTIFUL_THEME_TOKENS[config.diagramTheme] ?? DEFAULT_THEME_TOKENS;
+  const baseTheme = resolveDiagramThemeTokens(config.diagramTheme);
   const normalizedBaseTheme = normalizeThemeChannels({
     ...baseTheme,
     bg: config.useCustomBg ? config.customBg : baseTheme.bg,

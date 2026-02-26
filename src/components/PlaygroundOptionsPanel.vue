@@ -10,7 +10,7 @@ import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
 import BaseSelect from "@/components/BaseSelect.vue";
 import TokenColorSelect from "@/components/TokenColorSelect.vue";
 import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
-import { BEAUTIFUL_THEME_TOKENS, DEFAULT_THEME_TOKENS } from "@/generated/beautifulThemes";
+import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
 import {
   BASE_FONT_OPTIONS,
@@ -643,7 +643,7 @@ function normalizeThemeChannels(base: ThemeChannels): ThemeChannels {
 }
 
 const resolvedRolePalette = computed(() => {
-  const theme = BEAUTIFUL_THEME_TOKENS[props.diagramTheme] ?? DEFAULT_THEME_TOKENS;
+  const theme = resolveDiagramThemeTokens(props.diagramTheme);
   const effectiveTheme: ThemeChannels = {
     ...theme,
     bg: props.useCustomBg ? props.customBg : theme.bg,
