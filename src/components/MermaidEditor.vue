@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { init } from "modern-monaco";
+import shikiMermaidGrammars from "@shikijs/langs/mermaid";
+import { shikiToMonaco } from "@shikijs/monaco";
+import monaco from "monaco-editor";
+import { createHighlighter } from "shiki";
 import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import BasePanel from "@/components/BasePanel.vue";
+
+import type { editor as MonacoEditorNs } from "monaco-editor";
 
 const props = defineProps<{
   modelValue: string;
@@ -15,22 +20,99 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-type MonacoModule = Awaited<ReturnType<typeof init>>;
-type MonacoEditor = ReturnType<MonacoModule["editor"]["create"]>;
+const MERMAID_LANGUAGE_ID = "mermaid";
+const MONACO_THEME_BY_SCHEME = {
+  light: "one-light",
+  dark: "one-dark-pro",
+} as const;
+
+type MonacoModule = typeof monaco;
+type MonacoEditor = MonacoEditorNs.IStandaloneCodeEditor;
+type ShikiHighlighter = Awaited<ReturnType<typeof createHighlighter>>;
+
+let monacoRuntimePromise: Promise<MonacoModule> | null = null;
+let shikiHighlighter: ShikiHighlighter | null = null;
+let isMermaidLanguageConfigured = false;
+
+const shikiMermaidGrammar = shikiMermaidGrammars[0];
+const customMermaidLanguage = {
+  ...shikiMermaidGrammar,
+  scopeName: "source.mermaid",
+  injectionSelector: undefined,
+  patterns: [{ include: "#mermaid" }],
+};
+
+function getMonacoTheme(
+  colorScheme: "light" | "dark",
+): (typeof MONACO_THEME_BY_SCHEME)[keyof typeof MONACO_THEME_BY_SCHEME] {
+  return MONACO_THEME_BY_SCHEME[colorScheme];
+}
+
+function ensureMermaidLanguageConfigured(monacoModule: MonacoModule): void {
+  if (!isMermaidLanguageConfigured) {
+    if (!monacoModule.languages.getLanguages().some(({ id }) => id === MERMAID_LANGUAGE_ID)) {
+      monacoModule.languages.register({ id: MERMAID_LANGUAGE_ID });
+    }
+
+    monacoModule.languages.setLanguageConfiguration(MERMAID_LANGUAGE_ID, {
+      comments: { lineComment: "%%" },
+      brackets: [
+        ["[", "]"],
+        ["(", ")"],
+        ["{", "}"],
+      ],
+      autoClosingPairs: [
+        { open: "[", close: "]" },
+        { open: "(", close: ")" },
+        { open: "{", close: "}" },
+        { open: '"', close: '"' },
+      ],
+      surroundingPairs: [
+        { open: "[", close: "]" },
+        { open: "(", close: ")" },
+        { open: "{", close: "}" },
+        { open: '"', close: '"' },
+      ],
+    });
+
+    isMermaidLanguageConfigured = true;
+  }
+}
+
+async function ensureMonacoRuntime(): Promise<MonacoModule> {
+  if (monacoRuntimePromise) {
+    return monacoRuntimePromise;
+  }
+
+  monacoRuntimePromise = (async () => {
+    ensureMermaidLanguageConfigured(monaco);
+
+    if (!shikiHighlighter) {
+      shikiHighlighter = await createHighlighter({
+        themes: [MONACO_THEME_BY_SCHEME.light, MONACO_THEME_BY_SCHEME.dark],
+        langs: [customMermaidLanguage as never],
+      });
+      shikiToMonaco(shikiHighlighter, monaco);
+    }
+
+    return monaco;
+  })().catch((error) => {
+    monacoRuntimePromise = null;
+    throw error;
+  });
+
+  return monacoRuntimePromise;
+}
 
 const rootRef = ref<HTMLElement | null>(null);
 const isReady = ref(false);
 const initError = ref<string | null>(null);
 const monacoModule = shallowRef<MonacoModule | null>(null);
 const editorInstance = shallowRef<MonacoEditor | null>(null);
+
 let modelDisposable: { dispose: () => void } | null = null;
 let unmounted = false;
 let fontLoadingDoneHandler: (() => void) | null = null;
-let pendingFocusToEnd = false;
-
-function getMonacoTheme(colorScheme: "light" | "dark"): "one-light" | "one-dark-pro" {
-  return colorScheme === "dark" ? "one-dark-pro" : "one-light";
-}
 
 function focusEditor(): void {
   editorInstance.value?.focus();
@@ -39,10 +121,8 @@ function focusEditor(): void {
 function focusEditorToEnd(): void {
   const editor = editorInstance.value;
   if (!editor) {
-    pendingFocusToEnd = true;
     return;
   }
-  pendingFocusToEnd = false;
 
   const model = editor.getModel();
   if (!model) {
@@ -62,13 +142,13 @@ function remeasureEditor(): void {
     return;
   }
 
-  const monaco = monacoModule.value;
+  const monacoInstance = monacoModule.value;
   const editor = editorInstance.value;
-  if (!monaco || !editor) {
+  if (!monacoInstance || !editor) {
     return;
   }
 
-  monaco.editor.remeasureFonts();
+  monacoInstance.editor.remeasureFonts();
   editor.layout();
 }
 
@@ -91,20 +171,16 @@ onMounted(async () => {
   }
 
   try {
-    const monaco = await init({
-      themes: ["one-light", "one-dark-pro"],
-      langs: ["mermaid"],
-      defaultTheme: getMonacoTheme(props.colorScheme),
-    });
+    const monacoInstance = await ensureMonacoRuntime();
 
     if (unmounted || !rootRef.value) {
       return;
     }
 
-    monacoModule.value = monaco;
-    const editor = monaco.editor.create(rootRef.value, {
+    monacoModule.value = monacoInstance;
+    const editor = monacoInstance.editor.create(rootRef.value, {
       value: props.modelValue,
-      language: "mermaid",
+      language: MERMAID_LANGUAGE_ID,
       theme: getMonacoTheme(props.colorScheme),
       automaticLayout: true,
       editContext: false,
@@ -124,10 +200,16 @@ onMounted(async () => {
       },
     });
 
+    const model = editor.getModel();
+    if (model) {
+      monacoInstance.editor.setModelLanguage(model, MERMAID_LANGUAGE_ID);
+    }
+
     editorInstance.value = editor;
     modelDisposable = editor.onDidChangeModelContent(() => {
       emit("update:modelValue", editor.getValue());
     });
+
     isReady.value = true;
     scheduleRemeasure();
 
@@ -141,11 +223,6 @@ onMounted(async () => {
     });
 
     nextTick(() => {
-      if (pendingFocusToEnd) {
-        focusEditorToEnd();
-        return;
-      }
-
       focusEditorToEnd();
     });
   } catch (error) {
@@ -196,17 +273,18 @@ watch(
 watch(
   () => props.colorScheme,
   (nextScheme) => {
-    const monaco = monacoModule.value;
-    if (!monaco) {
+    const monacoInstance = monacoModule.value;
+    if (!monacoInstance) {
       return;
     }
 
-    monaco.editor.setTheme(getMonacoTheme(nextScheme));
+    monacoInstance.editor.setTheme(getMonacoTheme(nextScheme));
   },
 );
 
 onBeforeUnmount(() => {
   unmounted = true;
+
   if (fontLoadingDoneHandler) {
     document.fonts.removeEventListener("loadingdone", fontLoadingDoneHandler);
     fontLoadingDoneHandler = null;

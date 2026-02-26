@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { DEFAULTS, THEMES } from 'beautiful-mermaid'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import MermaidEditor from '@/components/MermaidEditor.vue'
-import MermaidPreview from '@/components/MermaidPreview.vue'
-import PlaygroundControlsRow from '@/components/PlaygroundControlsRow.vue'
-import PlaygroundHeader from '@/components/PlaygroundHeader.vue'
-import PlaygroundOptionsPanel from '@/components/PlaygroundOptionsPanel.vue'
-import { useBeautifulRenderer } from '@/composables/useBeautifulRenderer'
-import { usePlaygroundState } from '@/composables/usePlaygroundState'
-import { useSplitPane } from '@/composables/useSplitPane'
-import { OFFICIAL_SAMPLES } from '@/data/officialSamples'
-import { BASE_FONT_OPTIONS } from '@/types/playground'
-import { parseGoogleFontsInput } from '@/utils/googleFonts'
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import PanelSkeleton from "@/components/PanelSkeleton.vue";
+import PlaygroundControlsRow from "@/components/PlaygroundControlsRow.vue";
+import PlaygroundHeader from "@/components/PlaygroundHeader.vue";
+import { preloadRenderer, useBeautifulRenderer } from "@/composables/useBeautifulRenderer";
+import { BEAUTIFUL_THEME_TOKENS, DEFAULT_THEME_TOKENS } from "@/generated/beautifulThemes";
+import { usePlaygroundState } from "@/composables/usePlaygroundState";
+import { useSplitPane } from "@/composables/useSplitPane";
+import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
+import { BASE_FONT_OPTIONS } from "@/types/playground";
+import { parseGoogleFontsInput } from "@/utils/googleFonts";
 import type {
   ActiveMobilePane,
   BorderPattern,
@@ -31,63 +29,95 @@ import type {
   SubgraphStylePreset,
   MonoFont,
   ThemeToken,
-} from '@/types/playground'
+} from "@/types/playground";
 
-type NoticeTone = 'info' | 'success' | 'warning' | 'error'
+type NoticeTone = "info" | "success" | "warning" | "error";
 type NoticeState = {
-  message: string
-  tone: NoticeTone
-}
+  message: string;
+  tone: NoticeTone;
+};
 
-const { state, defaultState } = usePlaygroundState()
-const notice = ref<NoticeState | null>(null)
-let noticeTimer: ReturnType<typeof setTimeout> | null = null
+const loadMermaidEditorPanel = () => import("@/components/MermaidEditor.vue");
+const loadMermaidPreviewPanel = () => import("@/components/MermaidPreview.vue");
+const loadPlaygroundOptionsPanel = () => import("@/components/PlaygroundOptionsPanel.vue");
 
-const mobileMedia = window.matchMedia('(max-width: 959px)')
-const isMobile = ref(mobileMedia.matches)
+const MermaidEditor = defineAsyncComponent({
+  loader: loadMermaidEditorPanel,
+  suspensible: true,
+});
+const MermaidPreview = defineAsyncComponent({
+  loader: loadMermaidPreviewPanel,
+  suspensible: true,
+});
+const PlaygroundOptionsPanel = defineAsyncComponent({
+  loader: loadPlaygroundOptionsPanel,
+  suspensible: true,
+});
+
+type NetworkInformationLike = {
+  saveData?: boolean;
+};
+
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkInformationLike;
+};
+
+type IdleCallback = (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void;
+type IdleRequestOptions = { timeout?: number };
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?: (callback: IdleCallback, options?: IdleRequestOptions) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+const { state, defaultState } = usePlaygroundState();
+const notice = ref<NoticeState | null>(null);
+let noticeTimer: ReturnType<typeof setTimeout> | null = null;
+
+const mobileMedia = window.matchMedia("(max-width: 959px)");
+const isMobile = ref(mobileMedia.matches);
 const selectedSampleId = ref<number | null>(
   OFFICIAL_SAMPLES.find((sample) => sample.source === state.value.code)?.id ?? null,
-)
+);
 
 function formatSampleOptionTitle(title: string): string {
-  const trimmed = title.trim()
-  const withoutPrefix = trimmed.includes(':')
-    ? trimmed.split(':').slice(1).join(':').trim()
-    : trimmed
-  const base = withoutPrefix || trimmed
+  const trimmed = title.trim();
+  const withoutPrefix = trimmed.includes(":")
+    ? trimmed.split(":").slice(1).join(":").trim()
+    : trimmed;
+  const base = withoutPrefix || trimmed;
 
   return base.replace(/\b([A-Z][a-z]+)\b/g, (word, _capture, offset) =>
     offset === 0 ? word : word.toLowerCase(),
-  )
+  );
 }
 
 const officialSampleItems = OFFICIAL_SAMPLES.map((sample) => ({
   id: sample.id,
   title: formatSampleOptionTitle(sample.title),
   category: sample.category,
-}))
+}));
 
 function syncIsMobile(event: MediaQueryListEvent): void {
-  isMobile.value = event.matches
+  isMobile.value = event.matches;
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const normalized = hex.trim().replace('#', '')
+  const normalized = hex.trim().replace("#", "");
   if (!/^[\da-f]{3,8}$/i.test(normalized)) {
-    return null
+    return null;
   }
 
   if (normalized.length === 3) {
-    const [r, g, b] = normalized.split('')
+    const [r, g, b] = normalized.split("");
     if (!r || !g || !b) {
-      return null
+      return null;
     }
 
     return {
       r: Number.parseInt(r + r, 16),
       g: Number.parseInt(g + g, 16),
       b: Number.parseInt(b + b, 16),
-    }
+    };
   }
 
   if (normalized.length === 6 || normalized.length === 8) {
@@ -95,129 +125,129 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
       r: Number.parseInt(normalized.slice(0, 2), 16),
       g: Number.parseInt(normalized.slice(2, 4), 16),
       b: Number.parseInt(normalized.slice(4, 6), 16),
-    }
+    };
   }
 
-  return null
+  return null;
 }
 
 function isDarkHex(hex: string): boolean {
-  const rgb = hexToRgb(hex)
+  const rgb = hexToRgb(hex);
   if (!rgb) {
-    return false
+    return false;
   }
 
-  const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255
-  return luminance < 0.53
+  const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+  return luminance < 0.53;
 }
 
-type PresetBaseFont = Exclude<BaseFont, 'Custom'>
-type PresetMonoFont = Exclude<MonoFont, 'Custom'>
+type PresetBaseFont = Exclude<BaseFont, "Custom">;
+type PresetMonoFont = Exclude<MonoFont, "Custom">;
 
 const BASE_FONT_GOOGLE_FAMILY: Record<PresetBaseFont, string> = {
-  Inter: 'Inter:wght@400;500;600;700',
-  Geist: 'Geist:wght@400;500;600;700',
-  'Geist Mono': 'Geist+Mono:wght@400;500;700',
-  'IBM Plex Sans': 'IBM+Plex+Sans:wght@400;500;600;700',
-  'IBM Plex Mono': 'IBM+Plex+Mono:wght@400;500;700',
-  Roboto: 'Roboto:wght@400;500;700',
-  'Roboto Mono': 'Roboto+Mono:wght@400;500;700',
-  'Google Sans': 'Google+Sans:wght@400;500;700',
-  'Google Sans Code': 'Google+Sans+Code:wght@400;500;700',
-  Lato: 'Lato:wght@400;700',
-  'JetBrains Mono': 'JetBrains+Mono:wght@400;500;700',
-}
+  Inter: "Inter:wght@400;500;600;700",
+  Geist: "Geist:wght@400;500;600;700",
+  "Geist Mono": "Geist+Mono:wght@400;500;700",
+  "IBM Plex Sans": "IBM+Plex+Sans:wght@400;500;600;700",
+  "IBM Plex Mono": "IBM+Plex+Mono:wght@400;500;700",
+  Roboto: "Roboto:wght@400;500;700",
+  "Roboto Mono": "Roboto+Mono:wght@400;500;700",
+  "Google Sans": "Google+Sans:wght@400;500;700",
+  "Google Sans Code": "Google+Sans+Code:wght@400;500;700",
+  Lato: "Lato:wght@400;700",
+  "JetBrains Mono": "JetBrains+Mono:wght@400;500;700",
+};
 const MONO_FONT_FAMILY: Record<PresetMonoFont, string> = {
-  'JetBrains Mono': '"JetBrains Mono", monospace',
-  'Geist Mono': '"Geist Mono", monospace',
-  'IBM Plex Mono': '"IBM Plex Mono", monospace',
-  'Roboto Mono': '"Roboto Mono", monospace',
-  'Google Sans Code': '"Google Sans Code", monospace',
-}
+  "JetBrains Mono": '"JetBrains Mono", monospace',
+  "Geist Mono": '"Geist Mono", monospace',
+  "IBM Plex Mono": '"IBM Plex Mono", monospace',
+  "Roboto Mono": '"Roboto Mono", monospace',
+  "Google Sans Code": '"Google Sans Code", monospace',
+};
 const BASE_PRESET_FONT_SET = new Set<PresetBaseFont>(
   BASE_FONT_OPTIONS.map((option) => option.value).filter(
-    (value): value is PresetBaseFont => value !== 'Custom',
+    (value): value is PresetBaseFont => value !== "Custom",
   ),
-)
+);
 const BASE_FONT_GOOGLE_QUERY = Object.values(BASE_FONT_GOOGLE_FAMILY)
   .map((fontQuery) => `family=${fontQuery}`)
-  .join('&')
-let hasScheduledBaseFontWarmup = false
-const EDITOR_FONT_FAMILY = '"Geist Mono"'
-const EDITOR_FONT_SIZE = 11
-const EDITOR_FONT_GOOGLE_FAMILY = 'Geist+Mono:wght@400;500;700'
+  .join("&");
+let hasScheduledBaseFontWarmup = false;
+const EDITOR_FONT_FAMILY = '"Geist Mono"';
+const EDITOR_FONT_SIZE = 11;
+const EDITOR_FONT_GOOGLE_FAMILY = "Geist+Mono:wght@400;500;700";
 
 function warmupBaseFontsInBackground(): void {
   if (hasScheduledBaseFontWarmup) {
-    return
+    return;
   }
 
-  hasScheduledBaseFontWarmup = true
+  hasScheduledBaseFontWarmup = true;
 
   const warmup = (): void => {
     for (const fontName of Object.keys(BASE_FONT_GOOGLE_FAMILY) as PresetBaseFont[]) {
-      void document.fonts.load(`12px "${fontName}"`)
+      void document.fonts.load(`12px "${fontName}"`);
     }
-  }
+  };
 
   const requestIdle = (
     globalThis as {
-      requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number
+      requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
     }
-  ).requestIdleCallback
+  ).requestIdleCallback;
   if (requestIdle) {
-    requestIdle(warmup, { timeout: 1200 })
-    return
+    requestIdle(warmup, { timeout: 1200 });
+    return;
   }
 
-  setTimeout(warmup, 0)
+  setTimeout(warmup, 0);
 }
 
 function ensureStylesheetLoaded(dataAttribute: string, href: string): void {
-  const selector = `link[${dataAttribute}]`
-  let linkElement = document.head.querySelector<HTMLLinkElement>(selector)
+  const selector = `link[${dataAttribute}]`;
+  let linkElement = document.head.querySelector<HTMLLinkElement>(selector);
 
   if (!linkElement) {
-    linkElement = document.createElement('link')
-    linkElement.rel = 'stylesheet'
-    linkElement.setAttribute(dataAttribute, 'true')
-    document.head.append(linkElement)
+    linkElement = document.createElement("link");
+    linkElement.rel = "stylesheet";
+    linkElement.setAttribute(dataAttribute, "true");
+    document.head.append(linkElement);
   }
 
   if (linkElement.href !== href) {
-    linkElement.href = href
+    linkElement.href = href;
   }
 }
 
 function ensureAdditionalStylesheetLoaded(dataAttribute: string, href: string): void {
-  const absoluteHref = new URL(href, window.location.href).href
+  const absoluteHref = new URL(href, window.location.href).href;
   const existingStylesheet = Array.from(
     document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
-  ).find((stylesheet) => stylesheet.href === absoluteHref)
+  ).find((stylesheet) => stylesheet.href === absoluteHref);
 
   if (existingStylesheet) {
-    existingStylesheet.setAttribute(dataAttribute, 'true')
-    return
+    existingStylesheet.setAttribute(dataAttribute, "true");
+    return;
   }
 
-  const linkElement = document.createElement('link')
-  linkElement.rel = 'stylesheet'
-  linkElement.setAttribute(dataAttribute, 'true')
-  linkElement.href = href
-  document.head.append(linkElement)
+  const linkElement = document.createElement("link");
+  linkElement.rel = "stylesheet";
+  linkElement.setAttribute(dataAttribute, "true");
+  linkElement.href = href;
+  document.head.append(linkElement);
 }
 
 function ensurePresetBaseFontLoaded(font: PresetBaseFont): void {
-  const href = `https://fonts.googleapis.com/css2?${BASE_FONT_GOOGLE_QUERY}&display=swap`
-  ensureStylesheetLoaded('data-base-font-loader', href)
-  warmupBaseFontsInBackground()
-  void document.fonts.load(`12px "${font}"`)
+  const href = `https://fonts.googleapis.com/css2?${BASE_FONT_GOOGLE_QUERY}&display=swap`;
+  ensureStylesheetLoaded("data-base-font-loader", href);
+  warmupBaseFontsInBackground();
+  void document.fonts.load(`12px "${font}"`);
 }
 
 function ensureEditorFontLoaded(): void {
-  const href = `https://fonts.googleapis.com/css2?family=${EDITOR_FONT_GOOGLE_FAMILY}&display=swap`
-  ensureStylesheetLoaded('data-editor-font-loader', href)
-  void document.fonts.load('12px "Geist Mono"')
+  const href = `https://fonts.googleapis.com/css2?family=${EDITOR_FONT_GOOGLE_FAMILY}&display=swap`;
+  ensureStylesheetLoaded("data-editor-font-loader", href);
+  void document.fonts.load('12px "Geist Mono"');
 }
 
 async function ensureCustomFontLoaded(
@@ -225,108 +255,207 @@ async function ensureCustomFontLoaded(
   urlValue: string,
   family: string,
 ): Promise<boolean> {
-  const parsed = parseGoogleFontsInput(urlValue)
+  const parsed = parseGoogleFontsInput(urlValue);
   if (!parsed) {
-    return false
+    return false;
   }
 
-  ensureAdditionalStylesheetLoaded(dataAttribute, parsed.cssUrl)
+  ensureAdditionalStylesheetLoaded(dataAttribute, parsed.cssUrl);
   if (family.trim().length > 0) {
-    await document.fonts.load(`12px "${family}"`)
+    await document.fonts.load(`12px "${family}"`);
   }
 
-  return true
+  return true;
 }
 
 function resolveMonoFontFamily(font: MonoFont, customFamily: string): string {
-  if (font !== 'Custom') {
-    return MONO_FONT_FAMILY[font]
+  if (font !== "Custom") {
+    return MONO_FONT_FAMILY[font];
   }
 
-  const trimmed = customFamily.trim().replace(/"/g, '')
-  return trimmed.length > 0 ? `"${trimmed}", monospace` : 'monospace'
+  const trimmed = customFamily.trim().replace(/"/g, "");
+  return trimmed.length > 0 ? `"${trimmed}", monospace` : "monospace";
 }
 
 type UiPalette = {
-  bg: string
-  fg: string
-  accent: string
-}
+  bg: string;
+  fg: string;
+  accent: string;
+};
 
 function resolveUiPalette(config = state.value.config): UiPalette {
-  const theme = THEMES[config.diagramTheme] ?? DEFAULTS
-  const accentCandidate = (theme as { accent?: unknown }).accent
-  const themeAccent = typeof accentCandidate === 'string' ? accentCandidate : '#3b82f6'
+  const theme = BEAUTIFUL_THEME_TOKENS[config.diagramTheme] ?? DEFAULT_THEME_TOKENS;
+  const accentCandidate = (theme as { accent?: unknown }).accent;
+  const themeAccent = typeof accentCandidate === "string" ? accentCandidate : "#3b82f6";
 
   return {
     bg: config.useCustomBg ? config.customBg : theme.bg,
     fg: config.useCustomFg ? config.customFg : theme.fg,
     accent: config.useCustomAccent ? config.customAccent : themeAccent,
-  }
+  };
 }
 
-const appliedUiPalette = ref<UiPalette>(resolveUiPalette())
+const appliedUiPalette = ref<UiPalette>(resolveUiPalette());
 
-const resolvedColorScheme = computed<'light' | 'dark'>(() =>
-  isDarkHex(appliedUiPalette.value.bg) ? 'dark' : 'light',
-)
-const editorFontFamily = EDITOR_FONT_FAMILY
+const resolvedColorScheme = computed<"light" | "dark">(() =>
+  isDarkHex(appliedUiPalette.value.bg) ? "dark" : "light",
+);
+const editorFontFamily = EDITOR_FONT_FAMILY;
 const monoFontFamily = computed(() =>
   resolveMonoFontFamily(state.value.config.monoFont, state.value.config.customMonoFontFamily),
-)
+);
 
 const codeRef = computed({
   get: () => state.value.code,
   set: (value: string) => {
-    state.value.code = value
+    state.value.code = value;
   },
-})
+});
 
 const configRef = computed({
   get: () => state.value.config,
   set: (value) => {
-    state.value.config = value
+    state.value.config = value;
   },
-})
+});
 
 const splitRatio = computed({
   get: () => state.value.splitRatio,
   set: (value: number) => {
-    state.value.splitRatio = value
+    state.value.splitRatio = value;
   },
-})
+});
 
-const splitPaneRef = ref<HTMLElement | null>(null)
-type MermaidEditorExpose = { focus: () => void; focusToEnd: () => void }
-const editorRef = ref<MermaidEditorExpose | null>(null)
-const shouldFitPreviewAfterRender = ref(false)
-const previewFitRequestId = ref(0)
-const isBaseCustomFontLoading = ref(false)
-const isMonoCustomFontLoading = ref(false)
-let baseCustomFontLoadToken = 0
-let monoCustomFontLoadToken = 0
-const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, splitRatio)
+const splitPaneRef = ref<HTMLElement | null>(null);
+type MermaidEditorExpose = { focus: () => void; focusToEnd: () => void };
+const editorRef = ref<MermaidEditorExpose | null>(null);
+const shouldFitPreviewAfterRender = ref(false);
+const previewFitRequestId = ref(0);
+const isBaseCustomFontLoading = ref(false);
+const isMonoCustomFontLoading = ref(false);
+let baseCustomFontLoadToken = 0;
+let monoCustomFontLoadToken = 0;
+const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, splitRatio);
 const { isRendering, renderState, renderNow, scheduleRender } = useBeautifulRenderer(
   codeRef,
   configRef,
   300,
-)
+);
+type EditorFocusMode = "focus" | "focusToEnd";
+const pendingEditorFocusMode = ref<EditorFocusMode | null>(null);
+
+let idlePrefetchHandle: number | null = null;
+let idlePrefetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flushPendingEditorFocus(): void {
+  const mode = pendingEditorFocusMode.value;
+  const editor = editorRef.value;
+  if (!mode || !editor) {
+    return;
+  }
+
+  if (mode === "focusToEnd") {
+    editor.focusToEnd();
+  } else {
+    editor.focus();
+  }
+  pendingEditorFocusMode.value = null;
+}
+
+function queueEditorFocus(mode: EditorFocusMode): void {
+  pendingEditorFocusMode.value = mode;
+  nextTick(flushPendingEditorFocus);
+}
+
+function prefetchComponent(loader: () => Promise<unknown>): void {
+  void loader().catch(() => {});
+}
+
+function shouldSkipIdlePrefetch(): boolean {
+  return Boolean((navigator as NavigatorWithConnection).connection?.saveData);
+}
+
+function runIdlePrefetch(): void {
+  if (shouldSkipIdlePrefetch()) {
+    return;
+  }
+
+  if (isMobile.value) {
+    if (state.value.mobilePane !== "options") {
+      prefetchComponent(loadPlaygroundOptionsPanel);
+    }
+    if (state.value.mobilePane !== "editor") {
+      prefetchComponent(loadMermaidEditorPanel);
+    }
+    if (state.value.mobilePane !== "preview") {
+      prefetchComponent(loadMermaidPreviewPanel);
+    }
+  } else {
+    if (!state.value.desktopPanes.options) {
+      prefetchComponent(loadPlaygroundOptionsPanel);
+    }
+    if (!state.value.desktopPanes.editor) {
+      prefetchComponent(loadMermaidEditorPanel);
+    }
+    if (!state.value.desktopPanes.preview) {
+      prefetchComponent(loadMermaidPreviewPanel);
+    }
+  }
+
+  void preloadRenderer().catch(() => {});
+}
+
+function scheduleIdlePrefetch(): void {
+  if (shouldSkipIdlePrefetch()) {
+    return;
+  }
+
+  const windowWithIdle = window as WindowWithIdleCallback;
+  if (windowWithIdle.requestIdleCallback) {
+    idlePrefetchHandle = windowWithIdle.requestIdleCallback(
+      () => {
+        idlePrefetchHandle = null;
+        runIdlePrefetch();
+      },
+      { timeout: 1500 },
+    );
+    return;
+  }
+
+  idlePrefetchTimer = setTimeout(() => {
+    idlePrefetchTimer = null;
+    runIdlePrefetch();
+  }, 280);
+}
+
+function clearIdlePrefetchSchedule(): void {
+  const windowWithIdle = window as WindowWithIdleCallback;
+  if (idlePrefetchHandle !== null && windowWithIdle.cancelIdleCallback) {
+    windowWithIdle.cancelIdleCallback(idlePrefetchHandle);
+    idlePrefetchHandle = null;
+  }
+
+  if (idlePrefetchTimer) {
+    clearTimeout(idlePrefetchTimer);
+    idlePrefetchTimer = null;
+  }
+}
 
 function applyUiPalette(palette: UiPalette): void {
-  const root = document.documentElement
-  root.style.setProperty('--t-bg', palette.bg)
-  root.style.setProperty('--t-fg', palette.fg)
-  root.style.setProperty('--t-accent', palette.accent)
-  root.dataset.theme = isDarkHex(palette.bg) ? 'dark' : 'light'
+  const root = document.documentElement;
+  root.style.setProperty("--t-bg", palette.bg);
+  root.style.setProperty("--t-fg", palette.fg);
+  root.style.setProperty("--t-accent", palette.accent);
+  root.dataset.theme = isDarkHex(palette.bg) ? "dark" : "light";
 }
 
 watch(
   () => appliedUiPalette.value,
   (palette) => {
-    applyUiPalette(palette)
+    applyUiPalette(palette);
   },
   { immediate: true },
-)
+);
 
 watch(
   () => ({
@@ -335,32 +464,32 @@ watch(
     customFontFamily: state.value.config.customBaseFontFamily,
   }),
   ({ font, customFontUrl, customFontFamily }) => {
-    baseCustomFontLoadToken += 1
-    const currentToken = baseCustomFontLoadToken
+    baseCustomFontLoadToken += 1;
+    const currentToken = baseCustomFontLoadToken;
 
-    if (font === 'Custom') {
-      isBaseCustomFontLoading.value = true
+    if (font === "Custom") {
+      isBaseCustomFontLoading.value = true;
       void ensureCustomFontLoaded(
-        'data-base-custom-font-loader',
+        "data-base-custom-font-loader",
         customFontUrl,
         customFontFamily,
       ).finally(() => {
         if (currentToken !== baseCustomFontLoadToken) {
-          return
+          return;
         }
 
-        isBaseCustomFontLoading.value = false
-      })
-      return
+        isBaseCustomFontLoading.value = false;
+      });
+      return;
     }
 
-    isBaseCustomFontLoading.value = false
+    isBaseCustomFontLoading.value = false;
     if (BASE_PRESET_FONT_SET.has(font)) {
-      ensurePresetBaseFontLoaded(font)
+      ensurePresetBaseFontLoaded(font);
     }
   },
   { immediate: true },
-)
+);
 
 watch(
   () => ({
@@ -369,206 +498,214 @@ watch(
     customFontFamily: state.value.config.customMonoFontFamily,
   }),
   ({ font, customFontUrl, customFontFamily }) => {
-    monoCustomFontLoadToken += 1
-    const currentToken = monoCustomFontLoadToken
+    monoCustomFontLoadToken += 1;
+    const currentToken = monoCustomFontLoadToken;
 
-    if (font !== 'Custom') {
-      isMonoCustomFontLoading.value = false
-      return
+    if (font !== "Custom") {
+      isMonoCustomFontLoading.value = false;
+      return;
     }
 
-    isMonoCustomFontLoading.value = true
+    isMonoCustomFontLoading.value = true;
     void ensureCustomFontLoaded(
-      'data-mono-custom-font-loader',
+      "data-mono-custom-font-loader",
       customFontUrl,
       customFontFamily,
     ).finally(() => {
       if (currentToken !== monoCustomFontLoadToken) {
-        return
+        return;
       }
 
-      isMonoCustomFontLoading.value = false
-    })
+      isMonoCustomFontLoading.value = false;
+    });
   },
   { immediate: true },
-)
+);
 
 watch(
   () => renderState.value.renderId,
   () => {
     if (renderState.value.error) {
-      return
+      return;
     }
 
-    appliedUiPalette.value = resolveUiPalette()
+    appliedUiPalette.value = resolveUiPalette();
 
     if (!shouldFitPreviewAfterRender.value) {
-      return
+      return;
     }
-    previewFitRequestId.value += 1
-    shouldFitPreviewAfterRender.value = false
+    previewFitRequestId.value += 1;
+    shouldFitPreviewAfterRender.value = false;
   },
-)
+);
 
 const canExportCurrentOutput = computed(() =>
-  state.value.config.outputMode === 'svg'
+  state.value.config.outputMode === "svg"
     ? Boolean(renderState.value.svg)
     : Boolean(renderState.value.ascii),
-)
+);
 const isEditorVisible = computed(() =>
-  isMobile.value ? state.value.mobilePane === 'editor' : state.value.desktopPanes.editor,
-)
+  isMobile.value ? state.value.mobilePane === "editor" : state.value.desktopPanes.editor,
+);
 const isPreviewVisible = computed(() =>
-  isMobile.value ? state.value.mobilePane === 'preview' : state.value.desktopPanes.preview,
-)
+  isMobile.value ? state.value.mobilePane === "preview" : state.value.desktopPanes.preview,
+);
 const hasDesktopEditorPreview = computed(
   () => state.value.desktopPanes.editor || state.value.desktopPanes.preview,
-)
+);
 const showDesktopDivider = computed(
   () => state.value.desktopPanes.editor && state.value.desktopPanes.preview,
-)
+);
 const editorSplitStyle = computed(() =>
   showDesktopDivider.value
     ? { flex: `0 0 ${(state.value.splitRatio * 100).toFixed(2)}%` }
     : undefined,
-)
+);
 
 const optionsPanelListeners = {
-  'update:useCustomBg': updateUseCustomBg,
-  'update:customBg': updateCustomBg,
-  'update:useCustomFg': updateUseCustomFg,
-  'update:customFg': updateCustomFg,
-  'update:useCustomLine': updateUseCustomLine,
-  'update:customLine': updateCustomLine,
-  'update:useCustomAccent': updateUseCustomAccent,
-  'update:customAccent': updateCustomAccent,
-  'update:useCustomMuted': updateUseCustomMuted,
-  'update:customMuted': updateCustomMuted,
-  'update:useCustomSurface': updateUseCustomSurface,
-  'update:customSurface': updateCustomSurface,
-  'update:useCustomBorder': updateUseCustomBorder,
-  'update:customBorder': updateCustomBorder,
-  'update:baseFont': updateBaseFont,
-  'update:customBaseFontUrl': updateCustomBaseFontUrl,
-  'update:monoFont': updateMonoFont,
-  'update:customMonoFontUrl': updateCustomMonoFontUrl,
-  'update:directionOverride': updateDirectionOverride,
-  'update:subgraphStyle': updateSubgraphStyle,
-  'update:lineGeometry': updateLineGeometry,
-  'update:cornerStyle': updateCornerStyle,
-  'update:elementColorSource': updateElementColorSource,
-  'update:elementColorToken': updateElementColorToken,
-  'update:elementColorCustom': updateElementColorCustom,
-  'update:edgeLabelStyle': updateEdgeLabelStyle,
-  'update:edgePattern': updateEdgePattern,
-  'update:edgeWeight': updateEdgeWeight,
-  'update:borderPattern': updateBorderPattern,
-  'update:borderWeight': updateBorderWeight,
-  'update:transparent': updateTransparent,
-  'update:padding': updatePadding,
-  'update:nodeSpacing': updateNodeSpacing,
-  'update:layerSpacing': updateLayerSpacing,
-  'update:componentSpacing': updateComponentSpacing,
-  'reset:all': resetAllOptions,
-  'reset:palette': resetPaletteOptions,
-  'reset:layout': resetLayoutOptions,
-  'reset:nodes': resetNodeOptions,
-  'reset:edges': resetEdgeOptions,
-  'reset:system': resetSystemOptions,
-  'invalid:google-font-url': notifyInvalidGoogleFontsUrl,
-} as const
+  "update:useCustomBg": updateUseCustomBg,
+  "update:customBg": updateCustomBg,
+  "update:useCustomFg": updateUseCustomFg,
+  "update:customFg": updateCustomFg,
+  "update:useCustomLine": updateUseCustomLine,
+  "update:customLine": updateCustomLine,
+  "update:useCustomAccent": updateUseCustomAccent,
+  "update:customAccent": updateCustomAccent,
+  "update:useCustomMuted": updateUseCustomMuted,
+  "update:customMuted": updateCustomMuted,
+  "update:useCustomSurface": updateUseCustomSurface,
+  "update:customSurface": updateCustomSurface,
+  "update:useCustomBorder": updateUseCustomBorder,
+  "update:customBorder": updateCustomBorder,
+  "update:baseFont": updateBaseFont,
+  "update:customBaseFontUrl": updateCustomBaseFontUrl,
+  "update:monoFont": updateMonoFont,
+  "update:customMonoFontUrl": updateCustomMonoFontUrl,
+  "update:directionOverride": updateDirectionOverride,
+  "update:subgraphStyle": updateSubgraphStyle,
+  "update:lineGeometry": updateLineGeometry,
+  "update:cornerStyle": updateCornerStyle,
+  "update:elementColorSource": updateElementColorSource,
+  "update:elementColorToken": updateElementColorToken,
+  "update:elementColorCustom": updateElementColorCustom,
+  "update:edgeLabelStyle": updateEdgeLabelStyle,
+  "update:edgePattern": updateEdgePattern,
+  "update:edgeWeight": updateEdgeWeight,
+  "update:borderPattern": updateBorderPattern,
+  "update:borderWeight": updateBorderWeight,
+  "update:transparent": updateTransparent,
+  "update:padding": updatePadding,
+  "update:nodeSpacing": updateNodeSpacing,
+  "update:layerSpacing": updateLayerSpacing,
+  "update:componentSpacing": updateComponentSpacing,
+  "reset:all": resetAllOptions,
+  "reset:palette": resetPaletteOptions,
+  "reset:layout": resetLayoutOptions,
+  "reset:nodes": resetNodeOptions,
+  "reset:edges": resetEdgeOptions,
+  "reset:system": resetSystemOptions,
+  "invalid:google-font-url": notifyInvalidGoogleFontsUrl,
+} as const;
 
 watch(
   () => [state.value.code, state.value.config],
   () => {
-    scheduleRender()
+    scheduleRender();
   },
   { deep: true },
-)
+);
 
 watch(isPreviewVisible, (visible, previous) => {
   if (visible && !previous) {
-    nextTick(renderNow)
+    nextTick(() => {
+      void renderNow();
+    });
   }
-})
+});
 
 watch(isMobile, () => {
   if (isPreviewVisible.value) {
-    nextTick(renderNow)
+    nextTick(() => {
+      void renderNow();
+    });
   }
-})
+});
 
 watch(isEditorVisible, (visible, previous) => {
   if (visible && !previous) {
-    nextTick(() => editorRef.value?.focus())
+    queueEditorFocus("focus");
   }
-})
+});
+
+watch(editorRef, () => {
+  flushPendingEditorFocus();
+});
 
 watch(
   () => state.value.code,
   (nextCode) => {
     if (selectedSampleId.value === null) {
-      return
+      return;
     }
 
-    const selected = OFFICIAL_SAMPLES.find((sample) => sample.id === selectedSampleId.value)
+    const selected = OFFICIAL_SAMPLES.find((sample) => sample.id === selectedSampleId.value);
     if (!selected || selected.source !== nextCode) {
-      selectedSampleId.value = null
+      selectedSampleId.value = null;
     }
   },
-)
+);
 
-function setNotice(message: string, tone: NoticeTone = 'info', durationMs = 2200): void {
-  notice.value = { message, tone }
+function setNotice(message: string, tone: NoticeTone = "info", durationMs = 2200): void {
+  notice.value = { message, tone };
   if (noticeTimer) {
-    clearTimeout(noticeTimer)
+    clearTimeout(noticeTimer);
   }
 
   noticeTimer = setTimeout(() => {
-    notice.value = null
-    noticeTimer = null
-  }, durationMs)
+    notice.value = null;
+    noticeTimer = null;
+  }, durationMs);
 }
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, Math.round(value)))
+  return Math.max(min, Math.min(max, Math.round(value)));
 }
 
 function downloadBlob(filename: string, blob: Blob): void {
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 function getSvgSize(svg: string): { width: number; height: number } {
-  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
-  const node = doc.querySelector('svg')
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+  const node = doc.querySelector("svg");
 
   if (!node) {
-    return { width: 1200, height: 800 }
+    return { width: 1200, height: 800 };
   }
 
-  const width = Number.parseFloat(node.getAttribute('width') ?? '')
-  const height = Number.parseFloat(node.getAttribute('height') ?? '')
+  const width = Number.parseFloat(node.getAttribute("width") ?? "");
+  const height = Number.parseFloat(node.getAttribute("height") ?? "");
   if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-    return { width, height }
+    return { width, height };
   }
 
-  const viewBox = node.getAttribute('viewBox')
+  const viewBox = node.getAttribute("viewBox");
   if (!viewBox) {
-    return { width: 1200, height: 800 }
+    return { width: 1200, height: 800 };
   }
 
   const parts = viewBox
     .trim()
     .split(/\s+/)
-    .map((part) => Number.parseFloat(part))
+    .map((part) => Number.parseFloat(part));
 
-  const widthFromViewBox = parts[2]
-  const heightFromViewBox = parts[3]
+  const widthFromViewBox = parts[2];
+  const heightFromViewBox = parts[3];
   if (
     parts.length === 4 &&
     widthFromViewBox !== undefined &&
@@ -578,463 +715,465 @@ function getSvgSize(svg: string): { width: number; height: number } {
     widthFromViewBox > 0 &&
     heightFromViewBox > 0
   ) {
-    return { width: widthFromViewBox, height: heightFromViewBox }
+    return { width: widthFromViewBox, height: heightFromViewBox };
   }
 
-  return { width: 1200, height: 800 }
+  return { width: 1200, height: 800 };
 }
 
 function exportSvg(): void {
-  const svg = renderState.value.svg
+  const svg = renderState.value.svg;
   if (!svg) {
-    return
+    return;
   }
 
-  downloadBlob('diagram.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }))
-  setNotice('SVG exported', 'success')
+  downloadBlob("diagram.svg", new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  setNotice("SVG exported", "success");
 }
 
 async function exportPng(): Promise<void> {
-  const svg = renderState.value.svg
+  const svg = renderState.value.svg;
   if (!svg) {
-    return
+    return;
   }
 
   try {
-    const pngBlob = await renderSvgToPngBlob(svg)
-    downloadBlob('diagram.png', pngBlob)
-    setNotice('PNG exported', 'success')
+    const pngBlob = await renderSvgToPngBlob(svg);
+    downloadBlob("diagram.png", pngBlob);
+    setNotice("PNG exported", "success");
   } catch (error) {
-    setNotice(error instanceof Error ? error.message : 'PNG export failed', 'error')
+    setNotice(error instanceof Error ? error.message : "PNG export failed", "error");
   }
 }
 
 async function copyPng(): Promise<void> {
-  const svg = renderState.value.svg
+  const svg = renderState.value.svg;
   if (!svg) {
-    return
+    return;
   }
 
   try {
-    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
-      throw new Error('Clipboard image copy is unavailable in this browser')
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+      throw new Error("Clipboard image copy is unavailable in this browser");
     }
 
-    const pngBlob = await renderSvgToPngBlob(svg)
+    const pngBlob = await renderSvgToPngBlob(svg);
     await navigator.clipboard.write([
       new ClipboardItem({
-        'image/png': pngBlob,
+        "image/png": pngBlob,
       }),
-    ])
-    setNotice('PNG copied to clipboard', 'success')
+    ]);
+    setNotice("PNG copied to clipboard", "success");
   } catch (error) {
-    setNotice(error instanceof Error ? error.message : 'Copy failed', 'error')
+    setNotice(error instanceof Error ? error.message : "Copy failed", "error");
   }
 }
 
 async function copySvg(): Promise<void> {
-  const svg = renderState.value.svg
+  const svg = renderState.value.svg;
   if (!svg) {
-    return
+    return;
   }
 
   try {
     if (!navigator.clipboard?.writeText) {
-      throw new Error('Clipboard API unavailable in this browser')
+      throw new Error("Clipboard API unavailable in this browser");
     }
 
-    await navigator.clipboard.writeText(svg)
-    setNotice('SVG copied to clipboard', 'success')
+    await navigator.clipboard.writeText(svg);
+    setNotice("SVG copied to clipboard", "success");
   } catch (error) {
-    setNotice(error instanceof Error ? error.message : 'Copy failed', 'error')
+    setNotice(error instanceof Error ? error.message : "Copy failed", "error");
   }
 }
 
 async function renderSvgToPngBlob(svg: string): Promise<Blob> {
-  const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-  const url = URL.createObjectURL(svgBlob)
+  const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
 
   try {
-    const image = new Image()
+    const image = new Image();
     await new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve()
-      image.onerror = () => reject(new Error('Failed to decode SVG image'))
-      image.src = url
-    })
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("Failed to decode SVG image"));
+      image.src = url;
+    });
 
-    const fallbackSize = getSvgSize(svg)
-    const width = Math.max(1, Math.round(image.naturalWidth || fallbackSize.width))
-    const height = Math.max(1, Math.round(image.naturalHeight || fallbackSize.height))
+    const fallbackSize = getSvgSize(svg);
+    const width = Math.max(1, Math.round(image.naturalWidth || fallbackSize.width));
+    const height = Math.max(1, Math.round(image.naturalHeight || fallbackSize.height));
 
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
 
-    const context = canvas.getContext('2d')
+    const context = canvas.getContext("2d");
     if (!context) {
-      throw new Error('Failed to create canvas context')
+      throw new Error("Failed to create canvas context");
     }
 
-    context.clearRect(0, 0, width, height)
-    context.drawImage(image, 0, 0, width, height)
+    context.clearRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
 
     const pngBlob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/png')
-    })
+      canvas.toBlob(resolve, "image/png");
+    });
 
     if (!pngBlob) {
-      throw new Error('Failed to convert image to PNG')
+      throw new Error("Failed to convert image to PNG");
     }
 
-    return pngBlob
+    return pngBlob;
   } finally {
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(url);
   }
 }
 
-function getTextOutput(outputMode: Exclude<RenderOutputMode, 'svg'>): string | null {
-  const text = renderState.value.ascii?.trim() ?? ''
+function getTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): string | null {
+  const text = renderState.value.ascii?.trim() ?? "";
   if (!text) {
-    return null
+    return null;
   }
 
-  return outputMode === 'unicode' || outputMode === 'ascii' ? text : null
+  return outputMode === "unicode" || outputMode === "ascii" ? text : null;
 }
 
-async function copyTextOutput(outputMode: Exclude<RenderOutputMode, 'svg'>): Promise<void> {
-  const text = getTextOutput(outputMode)
+async function copyTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): Promise<void> {
+  const text = getTextOutput(outputMode);
   if (!text) {
-    return
+    return;
   }
 
   try {
     if (!navigator.clipboard?.writeText) {
-      throw new Error('Clipboard API unavailable in this browser')
+      throw new Error("Clipboard API unavailable in this browser");
     }
 
-    await navigator.clipboard.writeText(text)
-    setNotice(outputMode === 'unicode' ? 'Unicode text copied' : 'ASCII text copied', 'success')
+    await navigator.clipboard.writeText(text);
+    setNotice(outputMode === "unicode" ? "Unicode text copied" : "ASCII text copied", "success");
   } catch (error) {
-    setNotice(error instanceof Error ? error.message : 'Copy failed', 'error')
+    setNotice(error instanceof Error ? error.message : "Copy failed", "error");
   }
 }
 
-function downloadTextOutput(outputMode: Exclude<RenderOutputMode, 'svg'>): void {
-  const text = getTextOutput(outputMode)
+function downloadTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): void {
+  const text = getTextOutput(outputMode);
   if (!text) {
-    return
+    return;
   }
 
-  const filename = outputMode === 'unicode' ? 'diagram-unicode.txt' : 'diagram-ascii.txt'
-  downloadBlob(filename, new Blob([text], { type: 'text/plain;charset=utf-8' }))
-  setNotice(outputMode === 'unicode' ? 'Unicode text exported' : 'ASCII text exported', 'success')
+  const filename = outputMode === "unicode" ? "diagram-unicode.txt" : "diagram-ascii.txt";
+  downloadBlob(filename, new Blob([text], { type: "text/plain;charset=utf-8" }));
+  setNotice(outputMode === "unicode" ? "Unicode text exported" : "ASCII text exported", "success");
 }
 
 function notifyInvalidGoogleFontsUrl(): void {
-  setNotice('Invalid Google Fonts URL', 'error')
+  setNotice("Invalid Google Fonts URL", "error");
 }
 
 function updateCode(value: string): void {
-  codeRef.value = value
+  codeRef.value = value;
 }
 
 function updateOutputMode(value: RenderOutputMode): void {
-  state.value.config.outputMode = value
+  state.value.config.outputMode = value;
 }
 
 function applySample(sampleId: number): void {
-  const sample = OFFICIAL_SAMPLES.find((item) => item.id === sampleId)
+  const sample = OFFICIAL_SAMPLES.find((item) => item.id === sampleId);
   if (!sample) {
-    return
+    return;
   }
 
-  state.value.code = sample.source
-  selectedSampleId.value = sampleId
+  state.value.code = sample.source;
+  selectedSampleId.value = sampleId;
 
-  const transparentOption = sample.options.transparent
-  if (typeof transparentOption === 'boolean') {
-    state.value.config.transparent = transparentOption
+  const transparentOption = sample.options.transparent;
+  if (typeof transparentOption === "boolean") {
+    state.value.config.transparent = transparentOption;
   }
 
-  requestPreviewFitAfterRender()
-  nextTick(() => editorRef.value?.focusToEnd())
-  renderNow()
+  requestPreviewFitAfterRender();
+  queueEditorFocus("focusToEnd");
+  void renderNow();
 }
 
 function updateDiagramTheme(value: DiagramTheme): void {
-  state.value.config.diagramTheme = value
-  resetAllColorSections()
+  state.value.config.diagramTheme = value;
+  resetAllColorSections();
 }
 
 function updateUseCustomBg(value: boolean): void {
-  state.value.config.useCustomBg = value
+  state.value.config.useCustomBg = value;
 }
 
 function updateCustomBg(value: string): void {
-  state.value.config.customBg = value
+  state.value.config.customBg = value;
 }
 
 function updateUseCustomFg(value: boolean): void {
-  state.value.config.useCustomFg = value
+  state.value.config.useCustomFg = value;
 }
 
 function updateCustomFg(value: string): void {
-  state.value.config.customFg = value
+  state.value.config.customFg = value;
 }
 
 function updateUseCustomLine(value: boolean): void {
-  state.value.config.useCustomLine = value
+  state.value.config.useCustomLine = value;
 }
 
 function updateCustomLine(value: string): void {
-  state.value.config.customLine = value
+  state.value.config.customLine = value;
 }
 
 function updateUseCustomAccent(value: boolean): void {
-  state.value.config.useCustomAccent = value
+  state.value.config.useCustomAccent = value;
 }
 
 function updateCustomAccent(value: string): void {
-  state.value.config.customAccent = value
+  state.value.config.customAccent = value;
 }
 
 function updateUseCustomMuted(value: boolean): void {
-  state.value.config.useCustomMuted = value
+  state.value.config.useCustomMuted = value;
 }
 
 function updateCustomMuted(value: string): void {
-  state.value.config.customMuted = value
+  state.value.config.customMuted = value;
 }
 
 function updateUseCustomSurface(value: boolean): void {
-  state.value.config.useCustomSurface = value
+  state.value.config.useCustomSurface = value;
 }
 
 function updateCustomSurface(value: string): void {
-  state.value.config.customSurface = value
+  state.value.config.customSurface = value;
 }
 
 function updateUseCustomBorder(value: boolean): void {
-  state.value.config.useCustomBorder = value
+  state.value.config.useCustomBorder = value;
 }
 
 function updateCustomBorder(value: string): void {
-  state.value.config.customBorder = value
+  state.value.config.customBorder = value;
 }
 
 function updateBaseFont(value: BaseFont): void {
-  state.value.config.baseFont = value
+  state.value.config.baseFont = value;
 }
 
 function updateCustomBaseFontUrl(value: string): void {
-  const parsed = parseGoogleFontsInput(value)
-  state.value.config.customBaseFontUrl = parsed?.sourceUrl ?? ''
-  state.value.config.customBaseFontFamily = parsed?.primaryFamily ?? ''
+  const parsed = parseGoogleFontsInput(value);
+  state.value.config.customBaseFontUrl = parsed?.sourceUrl ?? "";
+  state.value.config.customBaseFontFamily = parsed?.primaryFamily ?? "";
 }
 
 function updateMonoFont(value: MonoFont): void {
-  state.value.config.monoFont = value
+  state.value.config.monoFont = value;
 }
 
 function updateCustomMonoFontUrl(value: string): void {
-  const parsed = parseGoogleFontsInput(value)
-  state.value.config.customMonoFontUrl = parsed?.sourceUrl ?? ''
-  state.value.config.customMonoFontFamily = parsed?.primaryFamily ?? ''
+  const parsed = parseGoogleFontsInput(value);
+  state.value.config.customMonoFontUrl = parsed?.sourceUrl ?? "";
+  state.value.config.customMonoFontFamily = parsed?.primaryFamily ?? "";
 }
 
 function requestPreviewFitAfterRender(): void {
-  shouldFitPreviewAfterRender.value = true
+  shouldFitPreviewAfterRender.value = true;
 }
 
 function updateDirectionOverride(value: DirectionOverride): void {
-  state.value.config.directionOverride = value
-  requestPreviewFitAfterRender()
+  state.value.config.directionOverride = value;
+  requestPreviewFitAfterRender();
 }
 
 function updateSubgraphStyle(value: SubgraphStylePreset): void {
-  state.value.config.subgraphStyle = value
+  state.value.config.subgraphStyle = value;
 }
 
 function updateLineGeometry(value: LineGeometry): void {
-  state.value.config.lineGeometry = value
+  state.value.config.lineGeometry = value;
 }
 
 function updateCornerStyle(value: CornerStyle): void {
-  state.value.config.cornerStyle = value
+  state.value.config.cornerStyle = value;
 }
 
 function updateElementColorSource(payload: {
-  role: ElementColorRole
-  source: ElementColorSource
+  role: ElementColorRole;
+  source: ElementColorSource;
 }): void {
-  state.value.config.elementColors[payload.role].source = payload.source
+  state.value.config.elementColors[payload.role].source = payload.source;
 }
 
 function updateElementColorToken(payload: { role: ElementColorRole; token: ThemeToken }): void {
-  state.value.config.elementColors[payload.role].token = payload.token
+  state.value.config.elementColors[payload.role].token = payload.token;
 }
 
 function updateElementColorCustom(payload: { role: ElementColorRole; custom: string }): void {
-  state.value.config.elementColors[payload.role].custom = payload.custom
+  state.value.config.elementColors[payload.role].custom = payload.custom;
 }
 
 function updateEdgeLabelStyle(value: EdgeLabelStylePreset): void {
-  state.value.config.edgeLabelStyle = value
+  state.value.config.edgeLabelStyle = value;
 }
 
 function updateEdgePattern(value: StrokePattern): void {
-  state.value.config.edgePattern = value
+  state.value.config.edgePattern = value;
 }
 
 function updateEdgeWeight(value: EdgeWeight): void {
-  state.value.config.edgeWeight = value
+  state.value.config.edgeWeight = value;
 }
 
 function updateBorderPattern(value: BorderPattern): void {
-  state.value.config.borderPattern = value
+  state.value.config.borderPattern = value;
 }
 
 function updateBorderWeight(value: BorderWeight): void {
-  state.value.config.borderWeight = value
+  state.value.config.borderWeight = value;
 }
 
 function updateTransparent(value: boolean): void {
-  state.value.config.transparent = value
+  state.value.config.transparent = value;
 }
 
 function updatePadding(value: number): void {
-  state.value.config.padding = clamp(value, 0, 240)
-  requestPreviewFitAfterRender()
+  state.value.config.padding = clamp(value, 0, 240);
+  requestPreviewFitAfterRender();
 }
 
 function updateNodeSpacing(value: number): void {
-  state.value.config.nodeSpacing = clamp(value, 4, 200)
-  requestPreviewFitAfterRender()
+  state.value.config.nodeSpacing = clamp(value, 4, 200);
+  requestPreviewFitAfterRender();
 }
 
 function updateLayerSpacing(value: number): void {
-  state.value.config.layerSpacing = clamp(value, 4, 240)
-  requestPreviewFitAfterRender()
+  state.value.config.layerSpacing = clamp(value, 4, 240);
+  requestPreviewFitAfterRender();
 }
 
 function updateComponentSpacing(value: number): void {
-  state.value.config.componentSpacing = clamp(value, 4, 260)
-  requestPreviewFitAfterRender()
+  state.value.config.componentSpacing = clamp(value, 4, 260);
+  requestPreviewFitAfterRender();
 }
 
 function resetLayoutOptions(): void {
-  const defaults = defaultState.config
-  state.value.config.directionOverride = defaults.directionOverride
-  state.value.config.padding = defaults.padding
-  state.value.config.nodeSpacing = defaults.nodeSpacing
-  state.value.config.layerSpacing = defaults.layerSpacing
-  state.value.config.componentSpacing = defaults.componentSpacing
-  requestPreviewFitAfterRender()
+  const defaults = defaultState.config;
+  state.value.config.directionOverride = defaults.directionOverride;
+  state.value.config.padding = defaults.padding;
+  state.value.config.nodeSpacing = defaults.nodeSpacing;
+  state.value.config.layerSpacing = defaults.layerSpacing;
+  state.value.config.componentSpacing = defaults.componentSpacing;
+  requestPreviewFitAfterRender();
 }
 
 function resetNodeOptions(): void {
-  const defaults = defaultState.config
-  state.value.config.subgraphStyle = defaults.subgraphStyle
-  state.value.config.cornerStyle = defaults.cornerStyle
-  state.value.config.borderPattern = defaults.borderPattern
-  state.value.config.borderWeight = defaults.borderWeight
+  const defaults = defaultState.config;
+  state.value.config.subgraphStyle = defaults.subgraphStyle;
+  state.value.config.cornerStyle = defaults.cornerStyle;
+  state.value.config.borderPattern = defaults.borderPattern;
+  state.value.config.borderWeight = defaults.borderWeight;
 }
 
 function resetEdgeOptions(): void {
-  const defaults = defaultState.config
-  state.value.config.lineGeometry = defaults.lineGeometry
-  state.value.config.edgePattern = defaults.edgePattern
-  state.value.config.edgeWeight = defaults.edgeWeight
-  state.value.config.edgeLabelStyle = defaults.edgeLabelStyle
-  requestPreviewFitAfterRender()
+  const defaults = defaultState.config;
+  state.value.config.lineGeometry = defaults.lineGeometry;
+  state.value.config.edgePattern = defaults.edgePattern;
+  state.value.config.edgeWeight = defaults.edgeWeight;
+  state.value.config.edgeLabelStyle = defaults.edgeLabelStyle;
+  requestPreviewFitAfterRender();
 }
 
 function resetSystemOptions(): void {
-  const defaults = defaultState.config
-  state.value.config.baseFont = defaults.baseFont
-  state.value.config.customBaseFontUrl = defaults.customBaseFontUrl
-  state.value.config.customBaseFontFamily = defaults.customBaseFontFamily
-  state.value.config.monoFont = defaults.monoFont
-  state.value.config.customMonoFontUrl = defaults.customMonoFontUrl
-  state.value.config.customMonoFontFamily = defaults.customMonoFontFamily
-  state.value.config.transparent = defaults.transparent
+  const defaults = defaultState.config;
+  state.value.config.baseFont = defaults.baseFont;
+  state.value.config.customBaseFontUrl = defaults.customBaseFontUrl;
+  state.value.config.customBaseFontFamily = defaults.customBaseFontFamily;
+  state.value.config.monoFont = defaults.monoFont;
+  state.value.config.customMonoFontUrl = defaults.customMonoFontUrl;
+  state.value.config.customMonoFontFamily = defaults.customMonoFontFamily;
+  state.value.config.transparent = defaults.transparent;
 }
 
 function resetFoundationColors(): void {
-  const defaults = defaultState.config
-  state.value.config.useCustomBg = defaults.useCustomBg
-  state.value.config.customBg = defaults.customBg
-  state.value.config.useCustomFg = defaults.useCustomFg
-  state.value.config.customFg = defaults.customFg
+  const defaults = defaultState.config;
+  state.value.config.useCustomBg = defaults.useCustomBg;
+  state.value.config.customBg = defaults.customBg;
+  state.value.config.useCustomFg = defaults.useCustomFg;
+  state.value.config.customFg = defaults.customFg;
 }
 
 function resetEnrichedColors(): void {
-  const defaults = defaultState.config
-  state.value.config.useCustomLine = defaults.useCustomLine
-  state.value.config.customLine = defaults.customLine
-  state.value.config.useCustomAccent = defaults.useCustomAccent
-  state.value.config.customAccent = defaults.customAccent
-  state.value.config.useCustomMuted = defaults.useCustomMuted
-  state.value.config.customMuted = defaults.customMuted
-  state.value.config.useCustomSurface = defaults.useCustomSurface
-  state.value.config.customSurface = defaults.customSurface
-  state.value.config.useCustomBorder = defaults.useCustomBorder
-  state.value.config.customBorder = defaults.customBorder
+  const defaults = defaultState.config;
+  state.value.config.useCustomLine = defaults.useCustomLine;
+  state.value.config.customLine = defaults.customLine;
+  state.value.config.useCustomAccent = defaults.useCustomAccent;
+  state.value.config.customAccent = defaults.customAccent;
+  state.value.config.useCustomMuted = defaults.useCustomMuted;
+  state.value.config.customMuted = defaults.customMuted;
+  state.value.config.useCustomSurface = defaults.useCustomSurface;
+  state.value.config.customSurface = defaults.customSurface;
+  state.value.config.useCustomBorder = defaults.useCustomBorder;
+  state.value.config.customBorder = defaults.customBorder;
 }
 
 function resetElementColors(): void {
-  state.value.config.elementColors = structuredClone(defaultState.config.elementColors)
+  state.value.config.elementColors = structuredClone(defaultState.config.elementColors);
 }
 
 function resetAllColorSections(): void {
-  resetFoundationColors()
-  resetEnrichedColors()
-  resetElementColors()
+  resetFoundationColors();
+  resetEnrichedColors();
+  resetElementColors();
 }
 
 function resetPaletteOptions(): void {
-  resetAllColorSections()
+  resetAllColorSections();
 }
 
 function resetAllOptions(): void {
-  resetPaletteOptions()
-  resetLayoutOptions()
-  resetNodeOptions()
-  resetEdgeOptions()
-  resetSystemOptions()
+  resetPaletteOptions();
+  resetLayoutOptions();
+  resetNodeOptions();
+  resetEdgeOptions();
+  resetSystemOptions();
 }
 
 function updateMobilePane(value: ActiveMobilePane): void {
-  state.value.mobilePane = value
+  state.value.mobilePane = value;
 }
 
 function toggleDesktopPane(key: DesktopPaneKey): void {
-  const current = state.value.desktopPanes[key]
+  const current = state.value.desktopPanes[key];
   if (current) {
-    const visibleCount = Object.values(state.value.desktopPanes).filter(Boolean).length
+    const visibleCount = Object.values(state.value.desktopPanes).filter(Boolean).length;
     if (visibleCount <= 1) {
-      setNotice('At least one panel must stay open', 'warning')
-      return
+      setNotice("At least one panel must stay open", "warning");
+      return;
     }
   }
 
-  state.value.desktopPanes[key] = !current
+  state.value.desktopPanes[key] = !current;
 }
 
 onMounted(() => {
-  ensureEditorFontLoaded()
-  mobileMedia.addEventListener('change', syncIsMobile)
-  nextTick(() => editorRef.value?.focusToEnd())
-  renderNow()
-})
+  ensureEditorFontLoaded();
+  mobileMedia.addEventListener("change", syncIsMobile);
+  queueEditorFocus("focusToEnd");
+  scheduleIdlePrefetch();
+  void renderNow();
+});
 
 onUnmounted(() => {
-  mobileMedia.removeEventListener('change', syncIsMobile)
+  mobileMedia.removeEventListener("change", syncIsMobile);
+  clearIdlePrefetchSchedule();
 
   if (noticeTimer) {
-    clearTimeout(noticeTimer)
+    clearTimeout(noticeTimer);
   }
-})
+});
 </script>
 
 <template>
@@ -1061,12 +1200,19 @@ onUnmounted(() => {
           class="pane options-pane"
           :class="{ 'options-pane-full': !hasDesktopEditorPreview }"
         >
-          <PlaygroundOptionsPanel
-            v-bind="state.config"
-            :is-base-custom-font-loading="isBaseCustomFontLoading"
-            :is-mono-custom-font-loading="isMonoCustomFontLoading"
-            v-on="optionsPanelListeners"
-          />
+          <Suspense>
+            <template #default>
+              <PlaygroundOptionsPanel
+                v-bind="state.config"
+                :is-base-custom-font-loading="isBaseCustomFontLoading"
+                :is-mono-custom-font-loading="isMonoCustomFontLoading"
+                v-on="optionsPanelListeners"
+              />
+            </template>
+            <template #fallback>
+              <PanelSkeleton title="Options" />
+            </template>
+          </Suspense>
         </div>
 
         <section
@@ -1076,15 +1222,22 @@ onUnmounted(() => {
           :class="{ single: !showDesktopDivider, 'with-options': state.desktopPanes.options }"
         >
           <div v-if="state.desktopPanes.editor" class="pane editor-pane" :style="editorSplitStyle">
-            <MermaidEditor
-              ref="editorRef"
-              :model-value="state.code"
-              :font-size="EDITOR_FONT_SIZE"
-              :font-family="editorFontFamily"
-              :color-scheme="resolvedColorScheme"
-              :surface-color="appliedUiPalette.bg"
-              @update:model-value="updateCode"
-            />
+            <Suspense>
+              <template #default>
+                <MermaidEditor
+                  ref="editorRef"
+                  :model-value="state.code"
+                  :font-size="EDITOR_FONT_SIZE"
+                  :font-family="editorFontFamily"
+                  :color-scheme="resolvedColorScheme"
+                  :surface-color="appliedUiPalette.bg"
+                  @update:model-value="updateCode"
+                />
+              </template>
+              <template #fallback>
+                <PanelSkeleton title="Editor" />
+              </template>
+            </Suspense>
           </div>
 
           <div
@@ -1097,69 +1250,97 @@ onUnmounted(() => {
           />
 
           <div v-if="state.desktopPanes.preview" class="pane preview-pane">
-            <MermaidPreview
-              :output-mode="state.config.outputMode"
-              :fit-request-id="previewFitRequestId"
-              :mono-font-family="monoFontFamily"
-              :svg="renderState.svg"
-              :ascii="renderState.ascii"
-              :error="renderState.error"
-              :duration-ms="renderState.durationMs"
-              :is-rendering="isRendering"
-              :can-export="canExportCurrentOutput"
-              @update:output-mode="updateOutputMode"
-              @export:copy-svg="copySvg"
-              @export:copy-png="copyPng"
-              @export:download-svg="exportSvg"
-              @export:download-png="exportPng"
-              @export:copy-text="copyTextOutput"
-              @export:download-text="downloadTextOutput"
-            />
+            <Suspense>
+              <template #default>
+                <MermaidPreview
+                  :output-mode="state.config.outputMode"
+                  :fit-request-id="previewFitRequestId"
+                  :mono-font-family="monoFontFamily"
+                  :svg="renderState.svg"
+                  :ascii="renderState.ascii"
+                  :error="renderState.error"
+                  :duration-ms="renderState.durationMs"
+                  :is-rendering="isRendering"
+                  :can-export="canExportCurrentOutput"
+                  @update:output-mode="updateOutputMode"
+                  @export:copy-svg="copySvg"
+                  @export:copy-png="copyPng"
+                  @export:download-svg="exportSvg"
+                  @export:download-png="exportPng"
+                  @export:copy-text="copyTextOutput"
+                  @export:download-text="downloadTextOutput"
+                />
+              </template>
+              <template #fallback>
+                <PanelSkeleton title="Preview" />
+              </template>
+            </Suspense>
           </div>
         </section>
       </section>
 
       <section v-else class="mobile-workspace">
         <div v-if="state.mobilePane === 'options'" class="pane mobile-pane">
-          <PlaygroundOptionsPanel
-            v-bind="state.config"
-            :is-base-custom-font-loading="isBaseCustomFontLoading"
-            :is-mono-custom-font-loading="isMonoCustomFontLoading"
-            v-on="optionsPanelListeners"
-          />
+          <Suspense>
+            <template #default>
+              <PlaygroundOptionsPanel
+                v-bind="state.config"
+                :is-base-custom-font-loading="isBaseCustomFontLoading"
+                :is-mono-custom-font-loading="isMonoCustomFontLoading"
+                v-on="optionsPanelListeners"
+              />
+            </template>
+            <template #fallback>
+              <PanelSkeleton title="Options" />
+            </template>
+          </Suspense>
         </div>
 
         <div v-else-if="state.mobilePane === 'editor'" class="pane mobile-pane">
-          <MermaidEditor
-            ref="editorRef"
-            :model-value="state.code"
-            :font-size="EDITOR_FONT_SIZE"
-            :font-family="editorFontFamily"
-            :color-scheme="resolvedColorScheme"
-            :surface-color="appliedUiPalette.bg"
-            @update:model-value="updateCode"
-          />
+          <Suspense>
+            <template #default>
+              <MermaidEditor
+                ref="editorRef"
+                :model-value="state.code"
+                :font-size="EDITOR_FONT_SIZE"
+                :font-family="editorFontFamily"
+                :color-scheme="resolvedColorScheme"
+                :surface-color="appliedUiPalette.bg"
+                @update:model-value="updateCode"
+              />
+            </template>
+            <template #fallback>
+              <PanelSkeleton title="Editor" />
+            </template>
+          </Suspense>
         </div>
 
         <div v-else class="pane mobile-pane">
-          <MermaidPreview
-            :output-mode="state.config.outputMode"
-            :fit-request-id="previewFitRequestId"
-            :mono-font-family="monoFontFamily"
-            :svg="renderState.svg"
-            :ascii="renderState.ascii"
-            :error="renderState.error"
-            :duration-ms="renderState.durationMs"
-            :is-rendering="isRendering"
-            :can-export="canExportCurrentOutput"
-            @update:output-mode="updateOutputMode"
-            @export:copy-svg="copySvg"
-            @export:copy-png="copyPng"
-            @export:download-svg="exportSvg"
-            @export:download-png="exportPng"
-            @export:copy-text="copyTextOutput"
-            @export:download-text="downloadTextOutput"
-          />
+          <Suspense>
+            <template #default>
+              <MermaidPreview
+                :output-mode="state.config.outputMode"
+                :fit-request-id="previewFitRequestId"
+                :mono-font-family="monoFontFamily"
+                :svg="renderState.svg"
+                :ascii="renderState.ascii"
+                :error="renderState.error"
+                :duration-ms="renderState.durationMs"
+                :is-rendering="isRendering"
+                :can-export="canExportCurrentOutput"
+                @update:output-mode="updateOutputMode"
+                @export:copy-svg="copySvg"
+                @export:copy-png="copyPng"
+                @export:download-svg="exportSvg"
+                @export:download-png="exportPng"
+                @export:copy-text="copyTextOutput"
+                @export:download-text="downloadTextOutput"
+              />
+            </template>
+            <template #fallback>
+              <PanelSkeleton title="Preview" />
+            </template>
+          </Suspense>
         </div>
       </section>
     </main>
@@ -1279,7 +1460,7 @@ onUnmounted(() => {
 }
 
 .divider::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   bottom: 0;
@@ -1290,7 +1471,7 @@ onUnmounted(() => {
 }
 
 .divider::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;

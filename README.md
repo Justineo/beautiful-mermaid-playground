@@ -18,6 +18,13 @@ pnpm build
 pnpm preview
 ```
 
+## Build notes
+
+- Theme tokens are generated before `dev`, `type-check`, and `build` via
+  `scripts/generate-beautiful-themes.mjs`.
+- Vite chunk warnings are tuned to `1500kB` because Monaco and diagram runtime
+  are intentionally split into dedicated async chunks.
+
 ## Acknowledgements
 
 - [Mermaid](https://github.com/mermaid-js/mermaid)

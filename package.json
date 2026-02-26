@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:themes": "node scripts/generate-beautiful-themes.mjs",
+    "predev": "pnpm generate:themes",
     "dev": "vite",
+    "prebuild": "pnpm generate:themes",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
     "prepare": "lefthook install",
+    "pretype-check": "pnpm generate:themes",
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
@@ -16,14 +20,21 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@shikijs/core": "3.23.0",
+    "@shikijs/engine-javascript": "3.23.0",
+    "@shikijs/langs": "3.23.0",
+    "@shikijs/monaco": "3.23.0",
+    "@shikijs/themes": "3.23.0",
     "@vueuse/core": "14.2.0",
     "beautiful-mermaid": "1.0.1",
     "lucide-vue-next": "^0.575.0",
-    "modern-monaco": "0.3.8",
+    "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.14.0",
+    "shiki": "3.23.0",
     "vue": "3.6.0-beta.6"
   },
   "devDependencies": {
+    "@kong-ui-public/monaco-editor": "0.12.0",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.10.13",
     "@vitejs/plugin-vue": "^6.0.4",

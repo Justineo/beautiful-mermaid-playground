@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { DEFAULTS, THEMES } from 'beautiful-mermaid'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CircleSlash } from 'lucide-vue-next'
-import { computed, nextTick, ref, watch } from 'vue'
-import type { Component } from 'vue'
-import BaseCheckbox from '@/components/BaseCheckbox.vue'
-import BaseColorPicker from '@/components/BaseColorPicker.vue'
-import BaseDropdownMenu from '@/components/BaseDropdownMenu.vue'
-import BasePanel from '@/components/BasePanel.vue'
-import BaseSegmentedControl from '@/components/BaseSegmentedControl.vue'
-import BaseSelect from '@/components/BaseSelect.vue'
-import TokenColorSelect from '@/components/TokenColorSelect.vue'
-import { useOverlayScrollbars } from '@/composables/useOverlayScrollbars'
-import { parseGoogleFontsInput } from '@/utils/googleFonts'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CircleSlash } from "lucide-vue-next";
+import { computed, nextTick, ref, watch } from "vue";
+import type { Component } from "vue";
+import BaseCheckbox from "@/components/BaseCheckbox.vue";
+import BaseColorPicker from "@/components/BaseColorPicker.vue";
+import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
+import BasePanel from "@/components/BasePanel.vue";
+import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
+import BaseSelect from "@/components/BaseSelect.vue";
+import TokenColorSelect from "@/components/TokenColorSelect.vue";
+import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
+import { BEAUTIFUL_THEME_TOKENS, DEFAULT_THEME_TOKENS } from "@/generated/beautifulThemes";
+import { parseGoogleFontsInput } from "@/utils/googleFonts";
 import {
   BASE_FONT_OPTIONS,
   EDGE_LABEL_STYLE_OPTIONS,
   ELEMENT_COLOR_ROLES,
   SUBGRAPH_STYLE_OPTIONS,
   MONO_FONT_OPTIONS,
-} from '@/types/playground'
-import type { TokenColorOption } from '@/components/TokenColorSelect.vue'
+} from "@/types/playground";
+import type { TokenColorOption } from "@/components/TokenColorSelect.vue";
 import type {
   BorderPattern,
   BorderWeight,
@@ -37,598 +37,598 @@ import type {
   SubgraphStylePreset,
   MonoFont,
   ThemeToken,
-} from '@/types/playground'
+} from "@/types/playground";
 
-type OptionsTab = 'palette' | 'layout' | 'nodes' | 'edges' | 'system'
+type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "system";
 const tabs: Array<{ key: OptionsTab; label: string }> = [
-  { key: 'palette', label: 'Theme' },
-  { key: 'layout', label: 'Layout' },
-  { key: 'nodes', label: 'Nodes' },
-  { key: 'edges', label: 'Edges' },
-  { key: 'system', label: 'Other' },
-]
+  { key: "palette", label: "Theme" },
+  { key: "layout", label: "Layout" },
+  { key: "nodes", label: "Nodes" },
+  { key: "edges", label: "Edges" },
+  { key: "system", label: "Other" },
+];
 const optionsTabItems: Array<{ key: string; label: string }> = tabs.map((tab) => ({
   key: tab.key,
   label: tab.label,
-}))
+}));
 // Hidden for now: beautiful-mermaid currently doesn't produce reliable visual changes
 // from this control in our playground. Keep it easy to re-enable later.
-const SHOW_COMPONENT_GAP_CONTROL = false
+const SHOW_COMPONENT_GAP_CONTROL = false;
 const RESET_MENU_ITEMS = [
-  { key: 'reset-all', label: 'Reset all' },
-  { key: 'reset-current-tab', label: 'Reset current tab' },
-]
-const PREVIEW_STROKE_COLOR = 'color-mix(in srgb, var(--text-primary) 34%, var(--border-color))'
+  { key: "reset-all", label: "Reset all" },
+  { key: "reset-current-tab", label: "Reset current tab" },
+];
+const PREVIEW_STROKE_COLOR = "color-mix(in srgb, var(--text-primary) 34%, var(--border-color))";
 const cornerStyleItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'sharp',
-    label: 'Sharp',
+    key: "sharp",
+    label: "Sharp",
     iconOnly: true,
-    previewStyle: { width: '10px', height: '10px', borderRadius: '0px' },
+    previewStyle: { width: "10px", height: "10px", borderRadius: "0px" },
   },
   {
-    key: 'soft',
-    label: 'Soft',
+    key: "soft",
+    label: "Soft",
     iconOnly: true,
-    previewStyle: { width: '10px', height: '10px', borderRadius: '3px' },
+    previewStyle: { width: "10px", height: "10px", borderRadius: "3px" },
   },
   {
-    key: 'rounded',
-    label: 'Rounded',
+    key: "rounded",
+    label: "Rounded",
     iconOnly: true,
-    previewStyle: { width: '10px', height: '10px', borderRadius: '4px' },
+    previewStyle: { width: "10px", height: "10px", borderRadius: "4px" },
   },
   {
-    key: 'pill',
-    label: 'Pill',
+    key: "pill",
+    label: "Pill",
     iconOnly: true,
-    previewStyle: { width: '10px', height: '10px', borderRadius: '999px' },
+    previewStyle: { width: "10px", height: "10px", borderRadius: "999px" },
   },
-]
+];
 const borderPatternItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'solid',
-    label: 'Solid',
+    key: "solid",
+    label: "Solid",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderStyle: 'solid' },
+    previewStyle: { width: "12px", height: "8px", borderStyle: "solid" },
   },
   {
-    key: 'dashed',
-    label: 'Dashed',
+    key: "dashed",
+    label: "Dashed",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderStyle: 'dashed' },
+    previewStyle: { width: "12px", height: "8px", borderStyle: "dashed" },
   },
   {
-    key: 'dotted',
-    label: 'Dotted',
+    key: "dotted",
+    label: "Dotted",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderStyle: 'dotted' },
+    previewStyle: { width: "12px", height: "8px", borderStyle: "dotted" },
   },
-]
+];
 const borderWeightItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'normal',
-    label: 'Normal',
+    key: "normal",
+    label: "Normal",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderWidth: '1px' },
+    previewStyle: { width: "12px", height: "8px", borderWidth: "1px" },
   },
   {
-    key: 'bold',
-    label: 'Bold',
+    key: "bold",
+    label: "Bold",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderWidth: '1.5px' },
+    previewStyle: { width: "12px", height: "8px", borderWidth: "1.5px" },
   },
   {
-    key: 'heavy',
-    label: 'Heavy',
+    key: "heavy",
+    label: "Heavy",
     iconOnly: true,
-    previewStyle: { width: '12px', height: '8px', borderWidth: '2px' },
+    previewStyle: { width: "12px", height: "8px", borderWidth: "2px" },
   },
-]
+];
 const edgeGeometryItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'orthogonal',
-    label: 'Orthogonal',
+    key: "orthogonal",
+    label: "Orthogonal",
     iconOnly: true,
     previewStyle: {
-      width: '10px',
-      height: '8px',
-      border: '0',
-      background: 'transparent',
-      boxShadow: 'none',
+      width: "10px",
+      height: "8px",
+      border: "0",
+      background: "transparent",
+      boxShadow: "none",
       borderLeft: `1.35px solid ${PREVIEW_STROKE_COLOR}`,
       borderBottom: `1.35px solid ${PREVIEW_STROKE_COLOR}`,
-      borderBottomLeftRadius: '0px',
+      borderBottomLeftRadius: "0px",
     },
   },
   {
-    key: 'rounded',
-    label: 'Rounded',
+    key: "rounded",
+    label: "Rounded",
     iconOnly: true,
     previewStyle: {
-      width: '10px',
-      height: '8px',
-      border: '0',
-      background: 'transparent',
-      boxShadow: 'none',
+      width: "10px",
+      height: "8px",
+      border: "0",
+      background: "transparent",
+      boxShadow: "none",
       borderLeft: `1.35px solid ${PREVIEW_STROKE_COLOR}`,
       borderBottom: `1.35px solid ${PREVIEW_STROKE_COLOR}`,
-      borderBottomLeftRadius: '4px',
+      borderBottomLeftRadius: "4px",
     },
   },
-]
+];
 const edgePatternItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'solid',
-    label: 'Solid',
+    key: "solid",
+    label: "Solid",
     iconOnly: true,
     previewStyle: {
-      width: '10px',
-      height: '0',
-      border: '0',
-      background: 'transparent',
-      boxShadow: 'none',
+      width: "10px",
+      height: "0",
+      border: "0",
+      background: "transparent",
+      boxShadow: "none",
       borderTop: `1.2px solid ${PREVIEW_STROKE_COLOR}`,
     },
   },
   {
-    key: 'dashed',
-    label: 'Dashed',
+    key: "dashed",
+    label: "Dashed",
     iconOnly: true,
     previewStyle: {
-      width: '10px',
-      height: '0',
-      border: '0',
-      background: 'transparent',
-      boxShadow: 'none',
+      width: "10px",
+      height: "0",
+      border: "0",
+      background: "transparent",
+      boxShadow: "none",
       borderTop: `1.2px dashed ${PREVIEW_STROKE_COLOR}`,
     },
   },
   {
-    key: 'dotted',
-    label: 'Dotted',
+    key: "dotted",
+    label: "Dotted",
     iconOnly: true,
     previewStyle: {
-      width: '10px',
-      height: '0',
-      border: '0',
-      background: 'transparent',
-      boxShadow: 'none',
+      width: "10px",
+      height: "0",
+      border: "0",
+      background: "transparent",
+      boxShadow: "none",
       borderTop: `1.2px dotted ${PREVIEW_STROKE_COLOR}`,
     },
   },
-]
+];
 const edgeWeightItems: Array<{
-  key: string
-  label: string
-  icon?: Component
-  iconOnly: true
-  previewStyle?: Record<string, string>
+  key: string;
+  label: string;
+  icon?: Component;
+  iconOnly: true;
+  previewStyle?: Record<string, string>;
 }> = [
   {
-    key: 'default',
-    label: 'Default',
+    key: "default",
+    label: "Default",
     icon: CircleSlash,
     iconOnly: true,
   },
   {
-    key: 'normal',
-    label: 'Normal',
+    key: "normal",
+    label: "Normal",
     iconOnly: true,
     previewStyle: {
-      width: '12px',
-      height: '1.25px',
-      border: '0',
+      width: "12px",
+      height: "1.25px",
+      border: "0",
       background: PREVIEW_STROKE_COLOR,
-      boxShadow: 'none',
-      borderRadius: '999px',
+      boxShadow: "none",
+      borderRadius: "999px",
     },
   },
   {
-    key: 'bold',
-    label: 'Bold',
+    key: "bold",
+    label: "Bold",
     iconOnly: true,
     previewStyle: {
-      width: '12px',
-      height: '2.2px',
-      border: '0',
+      width: "12px",
+      height: "2.2px",
+      border: "0",
       background: PREVIEW_STROKE_COLOR,
-      boxShadow: 'none',
-      borderRadius: '999px',
+      boxShadow: "none",
+      borderRadius: "999px",
     },
   },
   {
-    key: 'heavy',
-    label: 'Heavy',
+    key: "heavy",
+    label: "Heavy",
     iconOnly: true,
     previewStyle: {
-      width: '12px',
-      height: '3.2px',
-      border: '0',
+      width: "12px",
+      height: "3.2px",
+      border: "0",
       background: PREVIEW_STROKE_COLOR,
-      boxShadow: 'none',
-      borderRadius: '999px',
+      boxShadow: "none",
+      borderRadius: "999px",
     },
   },
-]
-type DirectionSegmentKey = 'default' | 'TB' | 'LR' | 'RL' | 'BT'
+];
+type DirectionSegmentKey = "default" | "TB" | "LR" | "RL" | "BT";
 const directionSegmentItems: Array<{
-  key: DirectionSegmentKey
-  label: string
-  icon: Component
-  iconOnly: true
+  key: DirectionSegmentKey;
+  label: string;
+  icon: Component;
+  iconOnly: true;
 }> = [
-  { key: 'default', label: 'Default', icon: CircleSlash, iconOnly: true },
-  { key: 'TB', label: 'Top to bottom', icon: ArrowDown, iconOnly: true },
-  { key: 'LR', label: 'Left to right', icon: ArrowRight, iconOnly: true },
-  { key: 'RL', label: 'Right to left', icon: ArrowLeft, iconOnly: true },
-  { key: 'BT', label: 'Bottom to top', icon: ArrowUp, iconOnly: true },
-]
+  { key: "default", label: "Default", icon: CircleSlash, iconOnly: true },
+  { key: "TB", label: "Top to bottom", icon: ArrowDown, iconOnly: true },
+  { key: "LR", label: "Left to right", icon: ArrowRight, iconOnly: true },
+  { key: "RL", label: "Right to left", icon: ArrowLeft, iconOnly: true },
+  { key: "BT", label: "Bottom to top", icon: ArrowUp, iconOnly: true },
+];
 
-const THEME_TOKENS: ThemeToken[] = ['bg', 'fg', 'line', 'accent', 'muted', 'surface', 'border']
+const THEME_TOKENS: ThemeToken[] = ["bg", "fg", "line", "accent", "muted", "surface", "border"];
 
 const props = defineProps<{
-  diagramTheme: DiagramTheme
-  useCustomBg: boolean
-  customBg: string
-  useCustomFg: boolean
-  customFg: string
-  useCustomLine: boolean
-  customLine: string
-  useCustomAccent: boolean
-  customAccent: string
-  useCustomMuted: boolean
-  customMuted: string
-  useCustomSurface: boolean
-  customSurface: string
-  useCustomBorder: boolean
-  customBorder: string
-  elementColors: ElementColorConfig
-  baseFont: BaseFont
-  customBaseFontUrl: string
-  customBaseFontFamily: string
-  isBaseCustomFontLoading: boolean
-  monoFont: MonoFont
-  customMonoFontUrl: string
-  customMonoFontFamily: string
-  isMonoCustomFontLoading: boolean
-  directionOverride: DirectionOverride
-  subgraphStyle: SubgraphStylePreset
-  lineGeometry: LineGeometry
-  cornerStyle: CornerStyle
-  edgeLabelStyle: EdgeLabelStylePreset
-  edgePattern: StrokePattern
-  edgeWeight: EdgeWeight
-  borderPattern: BorderPattern
-  borderWeight: BorderWeight
-  transparent: boolean
-  padding: number
-  nodeSpacing: number
-  layerSpacing: number
-  componentSpacing: number
-}>()
+  diagramTheme: DiagramTheme;
+  useCustomBg: boolean;
+  customBg: string;
+  useCustomFg: boolean;
+  customFg: string;
+  useCustomLine: boolean;
+  customLine: string;
+  useCustomAccent: boolean;
+  customAccent: string;
+  useCustomMuted: boolean;
+  customMuted: string;
+  useCustomSurface: boolean;
+  customSurface: string;
+  useCustomBorder: boolean;
+  customBorder: string;
+  elementColors: ElementColorConfig;
+  baseFont: BaseFont;
+  customBaseFontUrl: string;
+  customBaseFontFamily: string;
+  isBaseCustomFontLoading: boolean;
+  monoFont: MonoFont;
+  customMonoFontUrl: string;
+  customMonoFontFamily: string;
+  isMonoCustomFontLoading: boolean;
+  directionOverride: DirectionOverride;
+  subgraphStyle: SubgraphStylePreset;
+  lineGeometry: LineGeometry;
+  cornerStyle: CornerStyle;
+  edgeLabelStyle: EdgeLabelStylePreset;
+  edgePattern: StrokePattern;
+  edgeWeight: EdgeWeight;
+  borderPattern: BorderPattern;
+  borderWeight: BorderWeight;
+  transparent: boolean;
+  padding: number;
+  nodeSpacing: number;
+  layerSpacing: number;
+  componentSpacing: number;
+}>();
 
 const emit = defineEmits<{
-  'update:useCustomBg': [value: boolean]
-  'update:customBg': [value: string]
-  'update:useCustomFg': [value: boolean]
-  'update:customFg': [value: string]
-  'update:useCustomLine': [value: boolean]
-  'update:customLine': [value: string]
-  'update:useCustomAccent': [value: boolean]
-  'update:customAccent': [value: string]
-  'update:useCustomMuted': [value: boolean]
-  'update:customMuted': [value: string]
-  'update:useCustomSurface': [value: boolean]
-  'update:customSurface': [value: string]
-  'update:useCustomBorder': [value: boolean]
-  'update:customBorder': [value: string]
-  'update:elementColorSource': [payload: { role: ElementColorRole; source: ElementColorSource }]
-  'update:elementColorToken': [payload: { role: ElementColorRole; token: ThemeToken }]
-  'update:elementColorCustom': [payload: { role: ElementColorRole; custom: string }]
-  'update:baseFont': [value: BaseFont]
-  'update:customBaseFontUrl': [value: string]
-  'update:monoFont': [value: MonoFont]
-  'update:customMonoFontUrl': [value: string]
-  'update:directionOverride': [value: DirectionOverride]
-  'update:subgraphStyle': [value: SubgraphStylePreset]
-  'update:lineGeometry': [value: LineGeometry]
-  'update:cornerStyle': [value: CornerStyle]
-  'update:edgeLabelStyle': [value: EdgeLabelStylePreset]
-  'update:edgePattern': [value: StrokePattern]
-  'update:edgeWeight': [value: EdgeWeight]
-  'update:borderPattern': [value: BorderPattern]
-  'update:borderWeight': [value: BorderWeight]
-  'update:transparent': [value: boolean]
-  'update:padding': [value: number]
-  'update:nodeSpacing': [value: number]
-  'update:layerSpacing': [value: number]
-  'update:componentSpacing': [value: number]
-  'reset:all': []
-  'reset:palette': []
-  'reset:layout': []
-  'reset:nodes': []
-  'reset:edges': []
-  'reset:system': []
-  'invalid:google-font-url': []
-}>()
+  "update:useCustomBg": [value: boolean];
+  "update:customBg": [value: string];
+  "update:useCustomFg": [value: boolean];
+  "update:customFg": [value: string];
+  "update:useCustomLine": [value: boolean];
+  "update:customLine": [value: string];
+  "update:useCustomAccent": [value: boolean];
+  "update:customAccent": [value: string];
+  "update:useCustomMuted": [value: boolean];
+  "update:customMuted": [value: string];
+  "update:useCustomSurface": [value: boolean];
+  "update:customSurface": [value: string];
+  "update:useCustomBorder": [value: boolean];
+  "update:customBorder": [value: string];
+  "update:elementColorSource": [payload: { role: ElementColorRole; source: ElementColorSource }];
+  "update:elementColorToken": [payload: { role: ElementColorRole; token: ThemeToken }];
+  "update:elementColorCustom": [payload: { role: ElementColorRole; custom: string }];
+  "update:baseFont": [value: BaseFont];
+  "update:customBaseFontUrl": [value: string];
+  "update:monoFont": [value: MonoFont];
+  "update:customMonoFontUrl": [value: string];
+  "update:directionOverride": [value: DirectionOverride];
+  "update:subgraphStyle": [value: SubgraphStylePreset];
+  "update:lineGeometry": [value: LineGeometry];
+  "update:cornerStyle": [value: CornerStyle];
+  "update:edgeLabelStyle": [value: EdgeLabelStylePreset];
+  "update:edgePattern": [value: StrokePattern];
+  "update:edgeWeight": [value: EdgeWeight];
+  "update:borderPattern": [value: BorderPattern];
+  "update:borderWeight": [value: BorderWeight];
+  "update:transparent": [value: boolean];
+  "update:padding": [value: number];
+  "update:nodeSpacing": [value: number];
+  "update:layerSpacing": [value: number];
+  "update:componentSpacing": [value: number];
+  "reset:all": [];
+  "reset:palette": [];
+  "reset:layout": [];
+  "reset:nodes": [];
+  "reset:edges": [];
+  "reset:system": [];
+  "invalid:google-font-url": [];
+}>();
 
-const activeTab = ref<OptionsTab>('palette')
-const optionsScrollHostRef = ref<HTMLElement | null>(null)
+const activeTab = ref<OptionsTab>("palette");
+const optionsScrollHostRef = ref<HTMLElement | null>(null);
 const directionSegmentActiveKey = computed<DirectionSegmentKey>(() =>
-  props.directionOverride === 'TD' ? 'TB' : props.directionOverride,
-)
+  props.directionOverride === "TD" ? "TB" : props.directionOverride,
+);
 
 const BASE_FONT_FAMILY: Record<BaseFont, string> = {
   Inter: '"Inter", sans-serif',
   Geist: '"Geist", sans-serif',
-  'Geist Mono': '"Geist Mono", monospace',
-  'IBM Plex Sans': '"IBM Plex Sans", sans-serif',
-  'IBM Plex Mono': '"IBM Plex Mono", monospace',
+  "Geist Mono": '"Geist Mono", monospace',
+  "IBM Plex Sans": '"IBM Plex Sans", sans-serif',
+  "IBM Plex Mono": '"IBM Plex Mono", monospace',
   Roboto: '"Roboto", sans-serif',
-  'Roboto Mono': '"Roboto Mono", monospace',
-  'Google Sans': '"Google Sans", sans-serif',
-  'Google Sans Code': '"Google Sans Code", monospace',
+  "Roboto Mono": '"Roboto Mono", monospace',
+  "Google Sans": '"Google Sans", sans-serif',
+  "Google Sans Code": '"Google Sans Code", monospace',
   Lato: '"Lato", sans-serif',
-  'JetBrains Mono': '"JetBrains Mono", monospace',
-  Custom: 'inherit',
-}
+  "JetBrains Mono": '"JetBrains Mono", monospace',
+  Custom: "inherit",
+};
 const MONO_FONT_FAMILY: Record<MonoFont, string> = {
-  'JetBrains Mono': '"JetBrains Mono", monospace',
-  'Geist Mono': '"Geist Mono", monospace',
-  'IBM Plex Mono': '"IBM Plex Mono", monospace',
-  'Roboto Mono': '"Roboto Mono", monospace',
-  'Google Sans Code': '"Google Sans Code", monospace',
-  Custom: 'monospace',
-}
+  "JetBrains Mono": '"JetBrains Mono", monospace',
+  "Geist Mono": '"Geist Mono", monospace',
+  "IBM Plex Mono": '"IBM Plex Mono", monospace',
+  "Roboto Mono": '"Roboto Mono", monospace',
+  "Google Sans Code": '"Google Sans Code", monospace',
+  Custom: "monospace",
+};
 type CustomFontOption = {
-  value: string
-  label: string
-  family: string
-  url: string
-}
-const CUSTOM_FONT_OPTION_VALUE = '__add_custom_font__'
+  value: string;
+  label: string;
+  family: string;
+  url: string;
+};
+const CUSTOM_FONT_OPTION_VALUE = "__add_custom_font__";
 
-const baseCustomInputRef = ref<HTMLInputElement | null>(null)
-const monoCustomInputRef = ref<HTMLInputElement | null>(null)
-const isBaseCustomInputMode = ref(false)
-const isMonoCustomInputMode = ref(false)
-const baseCustomInputValue = ref('')
-const monoCustomInputValue = ref('')
-const baseCustomFontOptions = ref<CustomFontOption[]>([])
-const monoCustomFontOptions = ref<CustomFontOption[]>([])
+const baseCustomInputRef = ref<HTMLInputElement | null>(null);
+const monoCustomInputRef = ref<HTMLInputElement | null>(null);
+const isBaseCustomInputMode = ref(false);
+const isMonoCustomInputMode = ref(false);
+const baseCustomInputValue = ref("");
+const monoCustomInputValue = ref("");
+const baseCustomFontOptions = ref<CustomFontOption[]>([]);
+const monoCustomFontOptions = ref<CustomFontOption[]>([]);
 
-const PRESET_BASE_FONT_OPTIONS = BASE_FONT_OPTIONS.filter((option) => option.value !== 'Custom')
-const PRESET_MONO_FONT_OPTIONS = MONO_FONT_OPTIONS.filter((option) => option.value !== 'Custom')
+const PRESET_BASE_FONT_OPTIONS = BASE_FONT_OPTIONS.filter((option) => option.value !== "Custom");
+const PRESET_MONO_FONT_OPTIONS = MONO_FONT_OPTIONS.filter((option) => option.value !== "Custom");
 
 function customFontOptionValue(url: string): string {
-  return `custom:${encodeURIComponent(url)}`
+  return `custom:${encodeURIComponent(url)}`;
 }
 
 function normalizeFontKey(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLowerCase()
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function findPresetBaseFontByFamily(family: string): BaseFont | null {
-  const key = normalizeFontKey(family)
+  const key = normalizeFontKey(family);
   const matched = PRESET_BASE_FONT_OPTIONS.find((option) => {
-    return normalizeFontKey(option.label) === key || normalizeFontKey(option.value) === key
-  })
-  return (matched?.value as BaseFont | undefined) ?? null
+    return normalizeFontKey(option.label) === key || normalizeFontKey(option.value) === key;
+  });
+  return (matched?.value as BaseFont | undefined) ?? null;
 }
 
 function findPresetMonoFontByFamily(family: string): MonoFont | null {
-  const key = normalizeFontKey(family)
+  const key = normalizeFontKey(family);
   const matched = PRESET_MONO_FONT_OPTIONS.find((option) => {
-    return normalizeFontKey(option.label) === key || normalizeFontKey(option.value) === key
-  })
-  return (matched?.value as MonoFont | undefined) ?? null
+    return normalizeFontKey(option.label) === key || normalizeFontKey(option.value) === key;
+  });
+  return (matched?.value as MonoFont | undefined) ?? null;
 }
 
 function upsertCustomFontOption(target: CustomFontOption[], option: CustomFontOption): void {
-  const normalizedFamily = option.family.trim().toLowerCase()
+  const normalizedFamily = option.family.trim().toLowerCase();
   const existingIndex = target.findIndex((item) => {
-    const sameFamily = item.family.trim().toLowerCase() === normalizedFamily
-    const sameUrl = item.url === option.url
-    return sameFamily || sameUrl
-  })
+    const sameFamily = item.family.trim().toLowerCase() === normalizedFamily;
+    const sameUrl = item.url === option.url;
+    return sameFamily || sameUrl;
+  });
   if (existingIndex >= 0) {
-    target.splice(existingIndex, 1)
+    target.splice(existingIndex, 1);
   }
-  target.unshift(option)
+  target.unshift(option);
 }
 
 function createCustomFontOption(url: string, family: string): CustomFontOption {
-  const normalizedFamily = family.trim()
+  const normalizedFamily = family.trim();
   return {
     value: customFontOptionValue(url),
     label: normalizedFamily,
     family: normalizedFamily,
     url,
-  }
+  };
 }
 
 function syncCustomFontOption(
   target: CustomFontOption[],
   urlValue: string,
   familyValue: string,
-  options: 'base' | 'mono',
+  options: "base" | "mono",
 ): void {
-  const url = urlValue.trim()
-  const family = familyValue.trim()
+  const url = urlValue.trim();
+  const family = familyValue.trim();
   if (!url || !family) {
-    return
+    return;
   }
 
-  if (options === 'base' && findPresetBaseFontByFamily(family)) {
-    return
+  if (options === "base" && findPresetBaseFontByFamily(family)) {
+    return;
   }
 
-  if (options === 'mono' && findPresetMonoFontByFamily(family)) {
-    return
+  if (options === "mono" && findPresetMonoFontByFamily(family)) {
+    return;
   }
 
-  upsertCustomFontOption(target, createCustomFontOption(url, family))
+  upsertCustomFontOption(target, createCustomFontOption(url, family));
 }
 
 const baseFontOptions = computed(() => [
   ...PRESET_BASE_FONT_OPTIONS,
   ...baseCustomFontOptions.value,
-])
+]);
 
 const monoFontOptions = computed(() => [
   ...PRESET_MONO_FONT_OPTIONS,
   ...monoCustomFontOptions.value,
-])
+]);
 
 const baseFontSelectValue = computed(() => {
-  if (props.baseFont !== 'Custom') {
-    return props.baseFont
+  if (props.baseFont !== "Custom") {
+    return props.baseFont;
   }
 
   const matchedOption =
     baseCustomFontOptions.value.find((option) => option.url === props.customBaseFontUrl) ??
     baseCustomFontOptions.value.find(
       (option) => option.family === props.customBaseFontFamily.trim(),
-    )
-  return matchedOption?.value ?? CUSTOM_FONT_OPTION_VALUE
-})
+    );
+  return matchedOption?.value ?? CUSTOM_FONT_OPTION_VALUE;
+});
 
 const monoFontSelectValue = computed(() => {
-  if (props.monoFont !== 'Custom') {
-    return props.monoFont
+  if (props.monoFont !== "Custom") {
+    return props.monoFont;
   }
 
   const matchedOption =
     monoCustomFontOptions.value.find((option) => option.url === props.customMonoFontUrl) ??
     monoCustomFontOptions.value.find(
       (option) => option.family === props.customMonoFontFamily.trim(),
-    )
-  return matchedOption?.value ?? CUSTOM_FONT_OPTION_VALUE
-})
+    );
+  return matchedOption?.value ?? CUSTOM_FONT_OPTION_VALUE;
+});
 
 type ThemeChannels = {
-  bg: string
-  fg: string
-  line?: string
-  accent?: string
-  muted?: string
-  surface?: string
-  border?: string
-}
+  bg: string;
+  fg: string;
+  line?: string;
+  accent?: string;
+  muted?: string;
+  surface?: string;
+  border?: string;
+};
 
 type RgbColor = {
-  r: number
-  g: number
-  b: number
-}
+  r: number;
+  g: number;
+  b: number;
+};
 
 function parseHexColor(color: string): RgbColor | null {
-  const normalized = color.trim().replace('#', '')
+  const normalized = color.trim().replace("#", "");
   if (!/^[\da-f]{3}([\da-f]{3})?$/iu.test(normalized)) {
-    return null
+    return null;
   }
 
   if (normalized.length === 3) {
-    const [r, g, b] = normalized.split('')
+    const [r, g, b] = normalized.split("");
     if (!r || !g || !b) {
-      return null
+      return null;
     }
 
     return {
       r: Number.parseInt(r + r, 16),
       g: Number.parseInt(g + g, 16),
       b: Number.parseInt(b + b, 16),
-    }
+    };
   }
 
   return {
     r: Number.parseInt(normalized.slice(0, 2), 16),
     g: Number.parseInt(normalized.slice(2, 4), 16),
     b: Number.parseInt(normalized.slice(4, 6), 16),
-  }
+  };
 }
 
 function formatHexColor(rgb: RgbColor): string {
-  const toHex = (value: number): string => value.toString(16).padStart(2, '0')
-  return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`
+  const toHex = (value: number): string => value.toString(16).padStart(2, "0");
+  return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
 }
 
 function mixFrom(base: ThemeChannels, percent: number): string {
-  const fg = parseHexColor(base.fg)
-  const bg = parseHexColor(base.bg)
+  const fg = parseHexColor(base.fg);
+  const bg = parseHexColor(base.bg);
   if (!fg || !bg) {
-    return `color-mix(in srgb, ${base.fg} ${percent}%, ${base.bg})`
+    return `color-mix(in srgb, ${base.fg} ${percent}%, ${base.bg})`;
   }
 
-  const alpha = percent / 100
+  const alpha = percent / 100;
   const mixed: RgbColor = {
     r: Math.round(fg.r * alpha + bg.r * (1 - alpha)),
     g: Math.round(fg.g * alpha + bg.g * (1 - alpha)),
     b: Math.round(fg.b * alpha + bg.b * (1 - alpha)),
-  }
+  };
 
-  return formatHexColor(mixed)
+  return formatHexColor(mixed);
 }
 
 function normalizeThemeChannels(base: ThemeChannels): ThemeChannels {
@@ -639,23 +639,23 @@ function normalizeThemeChannels(base: ThemeChannels): ThemeChannels {
     muted: base.muted ?? mixFrom(base, 40),
     surface: base.surface ?? mixFrom(base, 3),
     border: base.border ?? mixFrom(base, 20),
-  }
+  };
 }
 
 const resolvedRolePalette = computed(() => {
-  const theme = THEMES[props.diagramTheme] ?? DEFAULTS
+  const theme = BEAUTIFUL_THEME_TOKENS[props.diagramTheme] ?? DEFAULT_THEME_TOKENS;
   const effectiveTheme: ThemeChannels = {
     ...theme,
     bg: props.useCustomBg ? props.customBg : theme.bg,
     fg: props.useCustomFg ? props.customFg : theme.fg,
-  }
-  const normalized = normalizeThemeChannels(effectiveTheme)
+  };
+  const normalized = normalizeThemeChannels(effectiveTheme);
 
-  const baseLine = normalized.line ?? mixFrom(normalized, 50)
-  const baseAccent = normalized.accent ?? mixFrom(normalized, 85)
-  const baseMuted = normalized.muted ?? mixFrom(normalized, 40)
-  const baseSurface = normalized.surface ?? mixFrom(normalized, 3)
-  const baseBorder = normalized.border ?? mixFrom(normalized, 20)
+  const baseLine = normalized.line ?? mixFrom(normalized, 50);
+  const baseAccent = normalized.accent ?? mixFrom(normalized, 85);
+  const baseMuted = normalized.muted ?? mixFrom(normalized, 40);
+  const baseSurface = normalized.surface ?? mixFrom(normalized, 3);
+  const baseBorder = normalized.border ?? mixFrom(normalized, 20);
 
   return {
     background: normalized.bg,
@@ -670,727 +670,729 @@ const resolvedRolePalette = computed(() => {
     muted: props.useCustomMuted ? props.customMuted : baseMuted,
     surface: props.useCustomSurface ? props.customSurface : baseSurface,
     border: props.useCustomBorder ? props.customBorder : baseBorder,
-  }
-})
+  };
+});
 
 useOverlayScrollbars(optionsScrollHostRef, {
   overflow: {
-    x: 'hidden',
-    y: 'scroll',
+    x: "hidden",
+    y: "scroll",
   },
-})
+});
 
 function getSelectValue(event: Event): string {
-  return (event.target as HTMLSelectElement).value
+  return (event.target as HTMLSelectElement).value;
 }
 
 function getInputValue(event: Event): string {
-  return (event.target as HTMLInputElement).value
+  return (event.target as HTMLInputElement).value;
 }
 
 function updateCustomBgColor(value: string): void {
-  emit('update:customBg', value)
+  emit("update:customBg", value);
 }
 
 function updateCustomFgColor(value: string): void {
-  emit('update:customFg', value)
+  emit("update:customFg", value);
 }
 
 function toggleCustomBg(enabled: boolean): void {
   if (enabled) {
-    emit('update:customBg', resolvedRolePalette.value.background)
+    emit("update:customBg", resolvedRolePalette.value.background);
   }
-  emit('update:useCustomBg', enabled)
+  emit("update:useCustomBg", enabled);
 }
 
 function toggleCustomFg(enabled: boolean): void {
   if (enabled) {
-    emit('update:customFg', resolvedRolePalette.value.foreground)
+    emit("update:customFg", resolvedRolePalette.value.foreground);
   }
-  emit('update:useCustomFg', enabled)
+  emit("update:useCustomFg", enabled);
 }
 
 function toggleCustomLine(enabled: boolean): void {
   if (enabled) {
-    emit('update:customLine', resolvedRolePalette.value.baseLine)
+    emit("update:customLine", resolvedRolePalette.value.baseLine);
   }
-  emit('update:useCustomLine', enabled)
+  emit("update:useCustomLine", enabled);
 }
 
 function toggleCustomAccent(enabled: boolean): void {
   if (enabled) {
-    emit('update:customAccent', resolvedRolePalette.value.baseAccent)
+    emit("update:customAccent", resolvedRolePalette.value.baseAccent);
   }
-  emit('update:useCustomAccent', enabled)
+  emit("update:useCustomAccent", enabled);
 }
 
 function toggleCustomMuted(enabled: boolean): void {
   if (enabled) {
-    emit('update:customMuted', resolvedRolePalette.value.baseMuted)
+    emit("update:customMuted", resolvedRolePalette.value.baseMuted);
   }
-  emit('update:useCustomMuted', enabled)
+  emit("update:useCustomMuted", enabled);
 }
 
 function toggleCustomSurface(enabled: boolean): void {
   if (enabled) {
-    emit('update:customSurface', resolvedRolePalette.value.baseSurface)
+    emit("update:customSurface", resolvedRolePalette.value.baseSurface);
   }
-  emit('update:useCustomSurface', enabled)
+  emit("update:useCustomSurface", enabled);
 }
 
 function toggleCustomBorder(enabled: boolean): void {
   if (enabled) {
-    emit('update:customBorder', resolvedRolePalette.value.baseBorder)
+    emit("update:customBorder", resolvedRolePalette.value.baseBorder);
   }
-  emit('update:useCustomBorder', enabled)
+  emit("update:useCustomBorder", enabled);
 }
 
 function lookupCustomFontOption(
   value: string,
   options: CustomFontOption[],
 ): CustomFontOption | null {
-  return options.find((option) => option.value === value) ?? null
+  return options.find((option) => option.value === value) ?? null;
 }
 
 function resolveBaseFontPreviewFamily(value: string): string {
-  const customOption = lookupCustomFontOption(value, baseCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(value, baseCustomFontOptions.value);
   if (customOption) {
-    return `"${customOption.family.replace(/"/g, '')}", sans-serif`
+    return `"${customOption.family.replace(/"/g, "")}", sans-serif`;
   }
 
-  if (value === 'Custom') {
-    const family = props.customBaseFontFamily.trim().replace(/"/g, '')
-    return family ? `"${family}", sans-serif` : 'inherit'
+  if (value === "Custom") {
+    const family = props.customBaseFontFamily.trim().replace(/"/g, "");
+    return family ? `"${family}", sans-serif` : "inherit";
   }
 
-  return BASE_FONT_FAMILY[value as BaseFont] ?? 'inherit'
+  return BASE_FONT_FAMILY[value as BaseFont] ?? "inherit";
 }
 
 function resolveMonoFontPreviewFamily(value: string): string {
-  const customOption = lookupCustomFontOption(value, monoCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(value, monoCustomFontOptions.value);
   if (customOption) {
-    return `"${customOption.family.replace(/"/g, '')}", monospace`
+    return `"${customOption.family.replace(/"/g, "")}", monospace`;
   }
 
-  if (value === 'Custom') {
-    const family = props.customMonoFontFamily.trim().replace(/"/g, '')
-    return family ? `"${family}", monospace` : 'monospace'
+  if (value === "Custom") {
+    const family = props.customMonoFontFamily.trim().replace(/"/g, "");
+    return family ? `"${family}", monospace` : "monospace";
   }
 
-  return MONO_FONT_FAMILY[value as MonoFont] ?? 'monospace'
+  return MONO_FONT_FAMILY[value as MonoFont] ?? "monospace";
 }
 
 function getBaseFontStyle(value: string): { fontFamily: string } {
-  return { fontFamily: resolveBaseFontPreviewFamily(value) }
+  return { fontFamily: resolveBaseFontPreviewFamily(value) };
 }
 
 function getMonoFontStyle(value: string): { fontFamily: string } {
-  return { fontFamily: resolveMonoFontPreviewFamily(value) }
+  return { fontFamily: resolveMonoFontPreviewFamily(value) };
 }
 
 function getBaseFontLabel(optionValue: string, fallback: string): string {
-  const customOption = lookupCustomFontOption(optionValue, baseCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(optionValue, baseCustomFontOptions.value);
   if (customOption) {
-    return customOption.label
+    return customOption.label;
   }
 
-  if (optionValue === 'Custom' && props.customBaseFontFamily.trim().length > 0) {
-    return props.customBaseFontFamily.trim()
+  if (optionValue === "Custom" && props.customBaseFontFamily.trim().length > 0) {
+    return props.customBaseFontFamily.trim();
   }
 
-  return fallback
+  return fallback;
 }
 
 function getMonoFontLabel(optionValue: string, fallback: string): string {
-  const customOption = lookupCustomFontOption(optionValue, monoCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(optionValue, monoCustomFontOptions.value);
   if (customOption) {
-    return customOption.label
+    return customOption.label;
   }
 
-  if (optionValue === 'Custom' && props.customMonoFontFamily.trim().length > 0) {
-    return props.customMonoFontFamily.trim()
+  if (optionValue === "Custom" && props.customMonoFontFamily.trim().length > 0) {
+    return props.customMonoFontFamily.trim();
   }
 
-  return fallback
+  return fallback;
 }
 
 function finishBaseCustomInputMode(): void {
-  isBaseCustomInputMode.value = false
-  baseCustomInputValue.value = ''
+  isBaseCustomInputMode.value = false;
+  baseCustomInputValue.value = "";
 }
 
 function finishMonoCustomInputMode(): void {
-  isMonoCustomInputMode.value = false
-  monoCustomInputValue.value = ''
+  isMonoCustomInputMode.value = false;
+  monoCustomInputValue.value = "";
 }
 
 function tryApplyCustomBaseFont(rawValue: string): boolean {
-  const parsed = parseGoogleFontsInput(rawValue)
-  const family = parsed?.primaryFamily?.trim() ?? ''
+  const parsed = parseGoogleFontsInput(rawValue);
+  const family = parsed?.primaryFamily?.trim() ?? "";
   if (!parsed || !family) {
-    return false
+    return false;
   }
 
-  const preset = findPresetBaseFontByFamily(family)
+  const preset = findPresetBaseFontByFamily(family);
   if (preset) {
-    emit('update:customBaseFontUrl', '')
-    emit('update:baseFont', preset)
-    finishBaseCustomInputMode()
-    return true
+    emit("update:customBaseFontUrl", "");
+    emit("update:baseFont", preset);
+    finishBaseCustomInputMode();
+    return true;
   }
 
   upsertCustomFontOption(
     baseCustomFontOptions.value,
     createCustomFontOption(parsed.sourceUrl, family),
-  )
-  emit('update:customBaseFontUrl', parsed.sourceUrl)
-  emit('update:baseFont', 'Custom')
-  finishBaseCustomInputMode()
-  return true
+  );
+  emit("update:customBaseFontUrl", parsed.sourceUrl);
+  emit("update:baseFont", "Custom");
+  finishBaseCustomInputMode();
+  return true;
 }
 
 function tryApplyCustomMonoFont(rawValue: string): boolean {
-  const parsed = parseGoogleFontsInput(rawValue)
-  const family = parsed?.primaryFamily?.trim() ?? ''
+  const parsed = parseGoogleFontsInput(rawValue);
+  const family = parsed?.primaryFamily?.trim() ?? "";
   if (!parsed || !family) {
-    return false
+    return false;
   }
 
-  const preset = findPresetMonoFontByFamily(family)
+  const preset = findPresetMonoFontByFamily(family);
   if (preset) {
-    emit('update:customMonoFontUrl', '')
-    emit('update:monoFont', preset)
-    finishMonoCustomInputMode()
-    return true
+    emit("update:customMonoFontUrl", "");
+    emit("update:monoFont", preset);
+    finishMonoCustomInputMode();
+    return true;
   }
 
   upsertCustomFontOption(
     monoCustomFontOptions.value,
     createCustomFontOption(parsed.sourceUrl, family),
-  )
-  emit('update:customMonoFontUrl', parsed.sourceUrl)
-  emit('update:monoFont', 'Custom')
-  finishMonoCustomInputMode()
-  return true
+  );
+  emit("update:customMonoFontUrl", parsed.sourceUrl);
+  emit("update:monoFont", "Custom");
+  finishMonoCustomInputMode();
+  return true;
 }
 
 function notifyInvalidGoogleFontsUrl(): void {
-  emit('invalid:google-font-url')
+  emit("invalid:google-font-url");
 }
 
 function beginBaseCustomInputMode(): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
-  isBaseCustomInputMode.value = true
-  baseCustomInputValue.value = ''
-  nextTick(() => baseCustomInputRef.value?.focus())
+  isBaseCustomInputMode.value = true;
+  baseCustomInputValue.value = "";
+  nextTick(() => baseCustomInputRef.value?.focus());
 }
 
 function beginMonoCustomInputMode(): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
-  isMonoCustomInputMode.value = true
-  monoCustomInputValue.value = ''
-  nextTick(() => monoCustomInputRef.value?.focus())
+  isMonoCustomInputMode.value = true;
+  monoCustomInputValue.value = "";
+  nextTick(() => monoCustomInputRef.value?.focus());
 }
 
 function onBaseFontChange(event: Event): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
-  const value = getSelectValue(event)
+  const value = getSelectValue(event);
   if (value === CUSTOM_FONT_OPTION_VALUE) {
-    beginBaseCustomInputMode()
-    return
+    beginBaseCustomInputMode();
+    return;
   }
 
-  const customOption = lookupCustomFontOption(value, baseCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(value, baseCustomFontOptions.value);
   if (customOption) {
-    emit('update:customBaseFontUrl', customOption.url)
-    emit('update:baseFont', 'Custom')
-    return
+    emit("update:customBaseFontUrl", customOption.url);
+    emit("update:baseFont", "Custom");
+    return;
   }
 
   if (value in BASE_FONT_FAMILY) {
-    emit('update:baseFont', value as BaseFont)
+    emit("update:baseFont", value as BaseFont);
   }
 }
 
 function onMonoFontChange(event: Event): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
-  const value = getSelectValue(event)
+  const value = getSelectValue(event);
   if (value === CUSTOM_FONT_OPTION_VALUE) {
-    beginMonoCustomInputMode()
-    return
+    beginMonoCustomInputMode();
+    return;
   }
 
-  const customOption = lookupCustomFontOption(value, monoCustomFontOptions.value)
+  const customOption = lookupCustomFontOption(value, monoCustomFontOptions.value);
   if (customOption) {
-    emit('update:customMonoFontUrl', customOption.url)
-    emit('update:monoFont', 'Custom')
-    return
+    emit("update:customMonoFontUrl", customOption.url);
+    emit("update:monoFont", "Custom");
+    return;
   }
 
   if (value in MONO_FONT_FAMILY) {
-    emit('update:monoFont', value as MonoFont)
+    emit("update:monoFont", value as MonoFont);
   }
 }
 
 function onBaseCustomFontInput(event: Event): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
-  const value = getInputValue(event).trim()
-  baseCustomInputValue.value = value
+  const value = getInputValue(event).trim();
+  baseCustomInputValue.value = value;
   if (!value) {
-    return
+    return;
   }
 
   if (!tryApplyCustomBaseFont(value)) {
-    notifyInvalidGoogleFontsUrl()
-    baseCustomInputValue.value = ''
+    notifyInvalidGoogleFontsUrl();
+    baseCustomInputValue.value = "";
   }
 }
 
 function onMonoCustomFontInput(event: Event): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
-  const value = getInputValue(event).trim()
-  monoCustomInputValue.value = value
+  const value = getInputValue(event).trim();
+  monoCustomInputValue.value = value;
   if (!value) {
-    return
+    return;
   }
 
   if (!tryApplyCustomMonoFont(value)) {
-    notifyInvalidGoogleFontsUrl()
-    monoCustomInputValue.value = ''
+    notifyInvalidGoogleFontsUrl();
+    monoCustomInputValue.value = "";
   }
 }
 
 function onBaseCustomFontKeydown(event: KeyboardEvent): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    const value = baseCustomInputValue.value.trim()
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const value = baseCustomInputValue.value.trim();
     if (!value) {
-      return
+      return;
     }
 
     if (!tryApplyCustomBaseFont(value)) {
-      notifyInvalidGoogleFontsUrl()
-      baseCustomInputValue.value = ''
+      notifyInvalidGoogleFontsUrl();
+      baseCustomInputValue.value = "";
     }
-    return
+    return;
   }
 
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    finishBaseCustomInputMode()
+  if (event.key === "Escape") {
+    event.preventDefault();
+    finishBaseCustomInputMode();
   }
 }
 
 function onMonoCustomFontKeydown(event: KeyboardEvent): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    const value = monoCustomInputValue.value.trim()
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const value = monoCustomInputValue.value.trim();
     if (!value) {
-      return
+      return;
     }
 
     if (!tryApplyCustomMonoFont(value)) {
-      notifyInvalidGoogleFontsUrl()
-      monoCustomInputValue.value = ''
+      notifyInvalidGoogleFontsUrl();
+      monoCustomInputValue.value = "";
     }
-    return
+    return;
   }
 
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    finishMonoCustomInputMode()
+  if (event.key === "Escape") {
+    event.preventDefault();
+    finishMonoCustomInputMode();
   }
 }
 
 function onBaseCustomFontPaste(event: ClipboardEvent): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
-  const text = event.clipboardData?.getData('text') ?? ''
+  const text = event.clipboardData?.getData("text") ?? "";
   if (!text.trim()) {
-    return
+    return;
   }
 
-  event.preventDefault()
+  event.preventDefault();
   if (!tryApplyCustomBaseFont(text)) {
-    notifyInvalidGoogleFontsUrl()
-    baseCustomInputValue.value = ''
+    notifyInvalidGoogleFontsUrl();
+    baseCustomInputValue.value = "";
   }
 }
 
 function onMonoCustomFontPaste(event: ClipboardEvent): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
-  const text = event.clipboardData?.getData('text') ?? ''
+  const text = event.clipboardData?.getData("text") ?? "";
   if (!text.trim()) {
-    return
+    return;
   }
 
-  event.preventDefault()
+  event.preventDefault();
   if (!tryApplyCustomMonoFont(text)) {
-    notifyInvalidGoogleFontsUrl()
-    monoCustomInputValue.value = ''
+    notifyInvalidGoogleFontsUrl();
+    monoCustomInputValue.value = "";
   }
 }
 
 function onBaseCustomFontBlur(): void {
   if (props.isBaseCustomFontLoading) {
-    return
+    return;
   }
 
   if (baseCustomInputValue.value.trim().length === 0) {
-    finishBaseCustomInputMode()
+    finishBaseCustomInputMode();
   }
 }
 
 function onMonoCustomFontBlur(): void {
   if (props.isMonoCustomFontLoading) {
-    return
+    return;
   }
 
   if (monoCustomInputValue.value.trim().length === 0) {
-    finishMonoCustomInputMode()
+    finishMonoCustomInputMode();
   }
 }
 
 watch(
   () => [props.customBaseFontUrl, props.customBaseFontFamily],
-  ([url = '', family = '']) => {
-    syncCustomFontOption(baseCustomFontOptions.value, url, family, 'base')
+  ([url = "", family = ""]) => {
+    syncCustomFontOption(baseCustomFontOptions.value, url, family, "base");
   },
   { immediate: true },
-)
+);
 
 watch(
   () => [props.customMonoFontUrl, props.customMonoFontFamily],
-  ([url = '', family = '']) => {
-    syncCustomFontOption(monoCustomFontOptions.value, url, family, 'mono')
+  ([url = "", family = ""]) => {
+    syncCustomFontOption(monoCustomFontOptions.value, url, family, "mono");
   },
   { immediate: true },
-)
+);
 
 watch(
   () => props.baseFont,
   (nextFont) => {
-    if (nextFont !== 'Custom' && isBaseCustomInputMode.value) {
-      finishBaseCustomInputMode()
+    if (nextFont !== "Custom" && isBaseCustomInputMode.value) {
+      finishBaseCustomInputMode();
     }
   },
-)
+);
 
 watch(
   () => props.monoFont,
   (nextFont) => {
-    if (nextFont !== 'Custom' && isMonoCustomInputMode.value) {
-      finishMonoCustomInputMode()
+    if (nextFont !== "Custom" && isMonoCustomInputMode.value) {
+      finishMonoCustomInputMode();
     }
   },
-)
+);
 
 function onNumberInput(
   event: Event,
-  key: 'padding' | 'nodeSpacing' | 'layerSpacing' | 'componentSpacing',
+  key: "padding" | "nodeSpacing" | "layerSpacing" | "componentSpacing",
 ): void {
-  const next = Number((event.target as HTMLInputElement).value)
+  const next = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(next)) {
-    return
+    return;
   }
 
-  if (key === 'padding') {
-    emit('update:padding', next)
-    return
+  if (key === "padding") {
+    emit("update:padding", next);
+    return;
   }
 
-  if (key === 'nodeSpacing') {
-    emit('update:nodeSpacing', next)
-    return
+  if (key === "nodeSpacing") {
+    emit("update:nodeSpacing", next);
+    return;
   }
 
-  if (key === 'layerSpacing') {
-    emit('update:layerSpacing', next)
-    return
+  if (key === "layerSpacing") {
+    emit("update:layerSpacing", next);
+    return;
   }
 
-  if (key === 'componentSpacing') {
-    emit('update:componentSpacing', next)
+  if (key === "componentSpacing") {
+    emit("update:componentSpacing", next);
   }
 }
 
 function onOptionsTabSelect(value: string): void {
-  activeTab.value = value as OptionsTab
+  activeTab.value = value as OptionsTab;
 }
 
 function isDirectionSegmentKey(value: string): value is DirectionSegmentKey {
-  return value === 'default' || value === 'TB' || value === 'LR' || value === 'RL' || value === 'BT'
+  return (
+    value === "default" || value === "TB" || value === "LR" || value === "RL" || value === "BT"
+  );
 }
 
 function onDirectionSegmentSelect(value: string): void {
   if (!isDirectionSegmentKey(value)) {
-    return
+    return;
   }
 
-  emit('update:directionOverride', value)
+  emit("update:directionOverride", value);
 }
 
 function onCornerStyleSelect(value: string): void {
   if (
-    value !== 'default' &&
-    value !== 'sharp' &&
-    value !== 'soft' &&
-    value !== 'rounded' &&
-    value !== 'pill'
+    value !== "default" &&
+    value !== "sharp" &&
+    value !== "soft" &&
+    value !== "rounded" &&
+    value !== "pill"
   ) {
-    return
+    return;
   }
 
-  emit('update:cornerStyle', value as CornerStyle)
+  emit("update:cornerStyle", value as CornerStyle);
 }
 
 function onBorderPatternSelect(value: string): void {
-  if (value !== 'default' && value !== 'solid' && value !== 'dashed' && value !== 'dotted') {
-    return
+  if (value !== "default" && value !== "solid" && value !== "dashed" && value !== "dotted") {
+    return;
   }
 
-  emit('update:borderPattern', value as BorderPattern)
+  emit("update:borderPattern", value as BorderPattern);
 }
 
 function onBorderWeightSelect(value: string): void {
-  if (value !== 'default' && value !== 'normal' && value !== 'bold' && value !== 'heavy') {
-    return
+  if (value !== "default" && value !== "normal" && value !== "bold" && value !== "heavy") {
+    return;
   }
 
-  emit('update:borderWeight', value as BorderWeight)
+  emit("update:borderWeight", value as BorderWeight);
 }
 
 function onLineGeometrySelect(value: string): void {
-  if (value !== 'default' && value !== 'orthogonal' && value !== 'rounded') {
-    return
+  if (value !== "default" && value !== "orthogonal" && value !== "rounded") {
+    return;
   }
 
-  emit('update:lineGeometry', value as LineGeometry)
+  emit("update:lineGeometry", value as LineGeometry);
 }
 
 function onEdgePatternSelect(value: string): void {
-  if (value !== 'default' && value !== 'solid' && value !== 'dashed' && value !== 'dotted') {
-    return
+  if (value !== "default" && value !== "solid" && value !== "dashed" && value !== "dotted") {
+    return;
   }
 
-  emit('update:edgePattern', value as StrokePattern)
+  emit("update:edgePattern", value as StrokePattern);
 }
 
 function onEdgeWeightSelect(value: string): void {
-  if (value !== 'default' && value !== 'normal' && value !== 'bold' && value !== 'heavy') {
-    return
+  if (value !== "default" && value !== "normal" && value !== "bold" && value !== "heavy") {
+    return;
   }
 
-  emit('update:edgeWeight', value as EdgeWeight)
+  emit("update:edgeWeight", value as EdgeWeight);
 }
 
 function onEdgeLabelStyleChange(event: Event): void {
-  const value = getSelectValue(event)
+  const value = getSelectValue(event);
   if (
-    value !== 'default' &&
-    value !== 'minimal' &&
-    value !== 'subtle' &&
-    value !== 'pill' &&
-    value !== 'contrast' &&
-    value !== 'accent'
+    value !== "default" &&
+    value !== "minimal" &&
+    value !== "subtle" &&
+    value !== "pill" &&
+    value !== "contrast" &&
+    value !== "accent"
   ) {
-    return
+    return;
   }
 
-  emit('update:edgeLabelStyle', value as EdgeLabelStylePreset)
+  emit("update:edgeLabelStyle", value as EdgeLabelStylePreset);
 }
 
 function resetAllOptions(): void {
-  emit('reset:all')
+  emit("reset:all");
 }
 
 function resetActiveTab(): void {
-  if (activeTab.value === 'palette') {
-    emit('reset:palette')
-    return
+  if (activeTab.value === "palette") {
+    emit("reset:palette");
+    return;
   }
 
-  if (activeTab.value === 'layout') {
-    emit('reset:layout')
-    return
+  if (activeTab.value === "layout") {
+    emit("reset:layout");
+    return;
   }
 
-  if (activeTab.value === 'nodes') {
-    emit('reset:nodes')
-    return
+  if (activeTab.value === "nodes") {
+    emit("reset:nodes");
+    return;
   }
 
-  if (activeTab.value === 'edges') {
-    emit('reset:edges')
-    return
+  if (activeTab.value === "edges") {
+    emit("reset:edges");
+    return;
   }
 
-  emit('reset:system')
+  emit("reset:system");
 }
 
 function onResetMenuSelect(value: string): void {
-  if (value === 'reset-all') {
-    resetAllOptions()
-    return
+  if (value === "reset-all") {
+    resetAllOptions();
+    return;
   }
 
-  if (value === 'reset-current-tab') {
-    resetActiveTab()
+  if (value === "reset-current-tab") {
+    resetActiveTab();
   }
 }
 
 function isThemeToken(value: string): value is ThemeToken {
-  return THEME_TOKENS.includes(value as ThemeToken)
+  return THEME_TOKENS.includes(value as ThemeToken);
 }
 
 function getTokenValue(token: ThemeToken): string {
-  if (token === 'bg') {
-    return resolvedRolePalette.value.background
+  if (token === "bg") {
+    return resolvedRolePalette.value.background;
   }
-  if (token === 'fg') {
-    return resolvedRolePalette.value.foreground
+  if (token === "fg") {
+    return resolvedRolePalette.value.foreground;
   }
-  if (token === 'line') {
-    return resolvedRolePalette.value.line
+  if (token === "line") {
+    return resolvedRolePalette.value.line;
   }
-  if (token === 'accent') {
-    return resolvedRolePalette.value.accent
+  if (token === "accent") {
+    return resolvedRolePalette.value.accent;
   }
-  if (token === 'muted') {
-    return resolvedRolePalette.value.muted
+  if (token === "muted") {
+    return resolvedRolePalette.value.muted;
   }
-  if (token === 'surface') {
-    return resolvedRolePalette.value.surface
+  if (token === "surface") {
+    return resolvedRolePalette.value.surface;
   }
-  return resolvedRolePalette.value.border
+  return resolvedRolePalette.value.border;
 }
 
 function getElementAutoColor(role: ElementColorRole): string {
   const base: ThemeChannels = {
     bg: resolvedRolePalette.value.background,
     fg: resolvedRolePalette.value.foreground,
-  }
+  };
 
-  if (role === 'text') {
-    return resolvedRolePalette.value.foreground
+  if (role === "text") {
+    return resolvedRolePalette.value.foreground;
   }
-  if (role === 'secondaryText') {
-    return mixFrom(base, 60)
+  if (role === "secondaryText") {
+    return mixFrom(base, 60);
   }
-  if (role === 'edgeLabels') {
-    return mixFrom(base, 40)
+  if (role === "edgeLabels") {
+    return mixFrom(base, 40);
   }
-  if (role === 'faintText') {
-    return mixFrom(base, 25)
+  if (role === "faintText") {
+    return mixFrom(base, 25);
   }
-  if (role === 'connectors') {
-    return mixFrom(base, 50)
+  if (role === "connectors") {
+    return mixFrom(base, 50);
   }
-  if (role === 'nodeFill') {
-    return mixFrom(base, 3)
+  if (role === "nodeFill") {
+    return mixFrom(base, 3);
   }
-  if (role === 'groupHeader') {
-    return mixFrom(base, 5)
+  if (role === "groupHeader") {
+    return mixFrom(base, 5);
   }
-  if (role === 'innerStrokes') {
-    return mixFrom(base, 12)
+  if (role === "innerStrokes") {
+    return mixFrom(base, 12);
   }
-  return mixFrom(base, 20)
+  return mixFrom(base, 20);
 }
 
 function getElementRuleSelectValue(role: ElementColorRole): string {
-  const rule = props.elementColors[role]
-  if (rule.source === 'none') {
-    return 'default'
+  const rule = props.elementColors[role];
+  if (rule.source === "none") {
+    return "default";
   }
-  return rule.source === 'token' ? rule.token : rule.source
+  return rule.source === "token" ? rule.token : rule.source;
 }
 
 function getElementOptionSwatchColor(role: ElementColorRole, value: string): string {
-  if (value === 'default') {
-    return getElementAutoColor(role)
+  if (value === "default") {
+    return getElementAutoColor(role);
   }
 
-  if (value === 'custom') {
-    return props.elementColors[role].custom
+  if (value === "custom") {
+    return props.elementColors[role].custom;
   }
 
-  if (value === 'none') {
-    return 'transparent'
+  if (value === "none") {
+    return "transparent";
   }
 
   if (isThemeToken(value)) {
-    return getTokenValue(value)
+    return getTokenValue(value);
   }
 
-  return getElementAutoColor(role)
+  return getElementAutoColor(role);
 }
 
 function getElementColorOptions(): TokenColorOption[] {
   return [
-    { label: 'Default', value: 'default', group: 'mode' },
-    { label: 'Custom', value: 'custom', group: 'mode' },
+    { label: "Default", value: "default", group: "mode" },
+    { label: "Custom", value: "custom", group: "mode" },
     ...THEME_TOKENS.map((token) => ({
       label: token,
       value: token,
       isToken: true,
-      group: 'token' as const,
+      group: "token" as const,
     })),
-  ]
+  ];
 }
 
 function onElementSelectValueChange(role: ElementColorRole, value: string): void {
   if (isThemeToken(value)) {
-    emit('update:elementColorSource', { role, source: 'token' })
-    emit('update:elementColorToken', { role, token: value })
-    return
+    emit("update:elementColorSource", { role, source: "token" });
+    emit("update:elementColorToken", { role, token: value });
+    return;
   }
 
-  if (value === 'custom') {
-    emit('update:elementColorSource', { role, source: 'custom' })
-    return
+  if (value === "custom") {
+    emit("update:elementColorSource", { role, source: "custom" });
+    return;
   }
 
-  emit('update:elementColorSource', { role, source: 'default' })
+  emit("update:elementColorSource", { role, source: "default" });
 }
 
 function onElementCustomColorChange(role: ElementColorRole, custom: string): void {
-  emit('update:elementColorCustom', { role, custom })
+  emit("update:elementColorCustom", { role, custom });
 }
 
 function getElementSwatchColorGetter(role: ElementColorRole): (value: string) => string {
-  return (value: string) => getElementOptionSwatchColor(role, value)
+  return (value: string) => getElementOptionSwatchColor(role, value);
 }
 </script>
 
@@ -1921,9 +1923,9 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
 }
 
 .setting-row :deep(.ui-select-control),
-.setting-row input[type='number'],
-.setting-row input[type='text'],
-.setting-row input[type='url'] {
+.setting-row input[type="number"],
+.setting-row input[type="text"],
+.setting-row input[type="url"] {
   width: clamp(108px, 14vw, 156px);
   justify-self: end;
 }
@@ -1954,7 +1956,7 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
 }
 
 .token-key {
-  font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+  font-family: "JetBrains Mono", "Geist Mono", monospace;
   font-size: calc(var(--fs-meta) - 0.01rem);
   letter-spacing: 0;
   text-transform: none;
@@ -1968,7 +1970,7 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.options-panel input[type='number'] {
+.options-panel input[type="number"] {
   width: 100%;
   min-height: 26px;
   padding: 0 0.38rem;
@@ -1988,7 +1990,7 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   border-color: color-mix(in srgb, var(--border-color) 56%, transparent);
 }
 
-.options-panel input[type='url'] {
+.options-panel input[type="url"] {
   width: 100%;
   min-height: 26px;
   padding: 0 0.38rem;
@@ -2032,13 +2034,13 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   }
 
   .setting-row :deep(.ui-select-control),
-  .setting-row input[type='number'],
-  .setting-row input[type='text'],
-  .setting-row input[type='url'] {
+  .setting-row input[type="number"],
+  .setting-row input[type="text"],
+  .setting-row input[type="url"] {
     width: clamp(156px, 48vw, 220px);
   }
 
-  .options-panel input[type='number'] {
+  .options-panel input[type="number"] {
     min-height: 30px;
     font-size: var(--fs-section);
   }
@@ -2048,7 +2050,7 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
     font-size: var(--fs-section);
   }
 
-  .options-panel input[type='url'] {
+  .options-panel input[type="url"] {
     min-height: 30px;
     font-size: var(--fs-section);
   }
