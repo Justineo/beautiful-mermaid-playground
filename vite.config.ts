@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [
     monacoPlugin({
       languages: [],
+      features: [],
       shiki: {
         langs: ["mermaid"],
         themes: ["one-light", "one-dark-pro"],
