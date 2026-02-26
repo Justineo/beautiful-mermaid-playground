@@ -367,6 +367,15 @@ function queueEditorFocus(mode: EditorFocusMode): void {
   nextTick(flushPendingEditorFocus);
 }
 
+function queueEditorFocusAfterLayout(mode: EditorFocusMode): void {
+  pendingEditorFocusMode.value = mode;
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      flushPendingEditorFocus();
+    });
+  });
+}
+
 function prefetchComponent(loader: () => Promise<unknown>): void {
   void loader().catch(() => {});
 }
@@ -894,7 +903,7 @@ function applySample(sampleId: number): void {
   }
 
   requestPreviewFitAfterRender();
-  queueEditorFocus("focusToEnd");
+  queueEditorFocusAfterLayout("focusToEnd");
   void renderNow();
 }
 
