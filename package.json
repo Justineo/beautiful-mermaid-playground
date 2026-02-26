@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "generate:themes": "run-s generate:themes:raw generate:themes:format",
-    "generate:themes:raw": "run-s generate:themes:official:raw generate:themes:unofficial:raw",
+    "generate:themes:raw": "run-p generate:themes:official:raw generate:themes:unofficial:raw",
     "generate:themes:official:raw": "pnpm exec tsx scripts/generate-beautiful-themes.ts",
     "generate:themes:unofficial:raw": "pnpm exec tsx scripts/generate-unofficial-themes.ts",
-    "generate:themes:format": "run-s generate:themes:official:format generate:themes:unofficial:format",
+    "generate:themes:format": "run-p generate:themes:official:format generate:themes:unofficial:format",
     "generate:themes:official:format": "oxfmt src/generated/beautifulThemes.ts",
     "generate:themes:unofficial:format": "oxfmt src/generated/unofficialThemes.ts",
     "sync:official-samples": "run-s sync:official-samples:raw sync:official-samples:format",

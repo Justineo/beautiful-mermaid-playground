@@ -40,14 +40,12 @@ jobs:
       - name: Update dependency and sync generated files
         run: |
           pnpm up beautiful-mermaid@latest --save-exact
-          pnpm run generate:themes
-          pnpm run sync:official-samples
+          pnpm run-p generate:themes sync:official-samples
 
       - name: Validate
         run: |
           pnpm lint
-          pnpm type-check:raw
-          pnpm build-only:raw
+          pnpm run-p type-check:raw build-only:raw
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7

@@ -36,8 +36,5 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Type check
-        run: pnpm type-check:raw
-
-      - name: Build
-        run: pnpm build-only:raw
+      - name: Type check and build
+        run: pnpm run-p type-check:raw build-only:raw
