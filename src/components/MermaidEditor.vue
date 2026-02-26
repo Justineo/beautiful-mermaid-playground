@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import BasePanel from "@/components/BasePanel.vue";
+import BaseSkeleton from "@/components/BaseSkeleton.vue";
 
 import type { editor as MonacoEditorNs } from "monaco-editor";
 
@@ -345,12 +346,8 @@ defineExpose<{ focus: () => void; focusToEnd: () => void }>({
     >
       <div ref="rootRef" class="editor-root" />
       <div v-if="!isReady && !initError" class="editor-overlay" aria-busy="true" aria-live="polite">
-        <div class="editor-skeleton" aria-hidden="true">
-          <span class="editor-skeleton-row w-44" />
-          <span class="editor-skeleton-row w-66" />
-          <span class="editor-skeleton-row w-52" />
-          <span class="editor-skeleton-row w-72" />
-          <span class="editor-skeleton-row w-58" />
+        <div class="editor-skeleton-wrap" aria-hidden="true">
+          <BaseSkeleton :rows="[44, 66, 52, 72, 58]" row-height="10px" gap="0.32rem" />
         </div>
       </div>
       <div v-if="initError" class="editor-overlay error">
@@ -395,51 +392,8 @@ defineExpose<{ focus: () => void; focusToEnd: () => void }>({
   color: var(--danger-text);
 }
 
-.editor-skeleton {
-  display: grid;
-  gap: 0.32rem;
+.editor-skeleton-wrap {
   width: min(92%, 560px);
-}
-
-.editor-skeleton-row {
-  height: 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--border-color) 30%, transparent);
-  animation: editor-skeleton-pulse 1.2s ease-in-out infinite;
-}
-
-.editor-skeleton-row.w-44 {
-  width: 44%;
-}
-
-.editor-skeleton-row.w-52 {
-  width: 52%;
-}
-
-.editor-skeleton-row.w-58 {
-  width: 58%;
-}
-
-.editor-skeleton-row.w-66 {
-  width: 66%;
-}
-
-.editor-skeleton-row.w-72 {
-  width: 72%;
-}
-
-@keyframes editor-skeleton-pulse {
-  0% {
-    opacity: 0.42;
-  }
-
-  50% {
-    opacity: 0.9;
-  }
-
-  100% {
-    opacity: 0.42;
-  }
 }
 
 :deep(.monaco-editor),
