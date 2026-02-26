@@ -58,7 +58,7 @@ const DEFAULT_STATE: PlaygroundState = {
   code: DEFAULT_CODE,
   config: {
     outputMode: "svg",
-    diagramTheme: "zinc-light",
+    diagramTheme: "github-light",
     useCustomBg: false,
     customBg: "#ffffff",
     useCustomFg: false,
