@@ -1,21 +1,8 @@
 import type { ThemeName } from "beautiful-mermaid";
+import { UNOFFICIAL_THEME_OPTIONS } from "@/generated/unofficialThemes";
+import type { UnofficialDiagramThemeName } from "@/generated/unofficialThemes";
 
-export const UNOFFICIAL_DIAGRAM_THEME_VALUES = [
-  "ayu-light",
-  "ayu-dark",
-  "everforest-light",
-  "everforest-dark",
-  "gruvbox-light-medium",
-  "gruvbox-dark-medium",
-  "material-theme-lighter",
-  "material-theme",
-  "night-owl-light",
-  "night-owl",
-  "rose-pine-dawn",
-  "rose-pine-moon",
-] as const;
-
-export type UnofficialDiagramTheme = (typeof UNOFFICIAL_DIAGRAM_THEME_VALUES)[number];
+export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
 
@@ -236,20 +223,7 @@ export const OFFICIAL_DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: Theme
 export const UNOFFICIAL_DIAGRAM_THEME_OPTIONS: Array<{
   label: string;
   value: UnofficialDiagramTheme;
-}> = [
-  { label: "Ayu Light", value: "ayu-light" },
-  { label: "Ayu Dark", value: "ayu-dark" },
-  { label: "Everforest Light", value: "everforest-light" },
-  { label: "Everforest Dark", value: "everforest-dark" },
-  { label: "Gruvbox Light", value: "gruvbox-light-medium" },
-  { label: "Gruvbox Dark", value: "gruvbox-dark-medium" },
-  { label: "Material Light", value: "material-theme-lighter" },
-  { label: "Material Dark", value: "material-theme" },
-  { label: "Night Owl Light", value: "night-owl-light" },
-  { label: "Night Owl Dark", value: "night-owl" },
-  { label: "Rose Pine Dawn", value: "rose-pine-dawn" },
-  { label: "Rose Pine Moon", value: "rose-pine-moon" },
-];
+}> = [...UNOFFICIAL_THEME_OPTIONS];
 
 export const DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: DiagramTheme }> = [
   ...OFFICIAL_DIAGRAM_THEME_OPTIONS,
