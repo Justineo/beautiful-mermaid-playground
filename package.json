@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate:themes": "node scripts/generate-beautiful-themes.mjs",
+    "generate:themes": "run-s generate:themes:raw generate:themes:format",
+    "generate:themes:raw": "node scripts/generate-beautiful-themes.mjs",
+    "generate:themes:format": "oxfmt src/generated/beautifulThemes.ts",
     "predev": "pnpm generate:themes",
     "dev": "vite",
     "prebuild": "pnpm generate:themes",

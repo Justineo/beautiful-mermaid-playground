@@ -1,4 +1,5 @@
 import { computed, onUnmounted, ref } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import type { RenderOptions as BeautifulRenderOptions } from "beautiful-mermaid";
 import type { Ref } from "vue";
 import { ELEMENT_COLOR_ROLES } from "@/types/playground";
@@ -1138,8 +1139,8 @@ export function useBeautifulRenderer(
   });
 
   const isRendering = ref(false);
-  let timer: ReturnType<typeof setTimeout> | null = null;
   let latestRenderToken = 0;
+  let latestScheduleToken = 0;
 
   async function renderNow(): Promise<void> {
     const renderToken = latestRenderToken + 1;
@@ -1233,21 +1234,22 @@ export function useBeautifulRenderer(
     }
   }
 
-  function cancelScheduledRender(): void {
-    if (!timer) {
+  const scheduleDebouncedRender = useDebounceFn((scheduleToken: number) => {
+    if (scheduleToken !== latestScheduleToken) {
       return;
     }
 
-    clearTimeout(timer);
-    timer = null;
+    void renderNow();
+  }, delayMs);
+
+  function cancelScheduledRender(): void {
+    latestScheduleToken += 1;
   }
 
   function scheduleRender(): void {
-    cancelScheduledRender();
-    timer = setTimeout(() => {
-      void renderNow();
-      timer = null;
-    }, delayMs);
+    const scheduleToken = latestScheduleToken + 1;
+    latestScheduleToken = scheduleToken;
+    void scheduleDebouncedRender(scheduleToken);
   }
 
   onUnmounted(() => {

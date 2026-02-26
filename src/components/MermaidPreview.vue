@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Scan } from "lucide-vue-next";
-import { computed, nextTick, ref, watch } from "vue";
+import { useResizeObserver } from "@vueuse/core";
+import { computed, ref, watch } from "vue";
 import BaseButton from "@/components/BaseButton.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
@@ -63,8 +64,8 @@ let dragStartOffset: ViewportPoint | null = null;
 let pinchStartDistance = 0;
 let pinchStartScale = 1;
 let pinchStartWorldAnchor: ViewportPoint | null = null;
-let hasInitialFit = false;
-const currentContentSize = ref<ContentSize | null>(null);
+const autoFit = ref(true);
+const needsFit = ref(false);
 
 function snapToDevicePixel(value: number): number {
   const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
@@ -191,26 +192,33 @@ function readCurrentContentSize(outputMode: RenderOutputMode): ContentSize | nul
   return { width, height };
 }
 
-function centerAtScale(nextScale: number): void {
+function centerAtScale(nextScale: number, size: ContentSize): boolean {
   const viewport = viewportRef.value;
-  const size = currentContentSize.value;
-  if (!viewport || !size) {
-    return;
+  if (!viewport) {
+    return false;
   }
 
   const viewportRect = viewport.getBoundingClientRect();
+  if (viewportRect.width <= 0 || viewportRect.height <= 0) {
+    return false;
+  }
+
   offsetX.value = (viewportRect.width - size.width * nextScale) / 2;
   offsetY.value = (viewportRect.height - size.height * nextScale) / 2;
+  return true;
 }
 
-function zoomToFit(): void {
+function zoomToFit(outputMode: RenderOutputMode = props.outputMode): boolean {
   const viewport = viewportRef.value;
-  const size = currentContentSize.value;
+  const size = readCurrentContentSize(outputMode);
   if (!viewport || !size) {
-    return;
+    return false;
   }
 
   const viewportRect = viewport.getBoundingClientRect();
+  if (viewportRect.width <= 0 || viewportRect.height <= 0) {
+    return false;
+  }
   const availableWidth = Math.max(1, viewportRect.width - FIT_PADDING * 2);
   const availableHeight = Math.max(1, viewportRect.height - FIT_PADDING * 2);
   const fitScale = clamp(
@@ -220,13 +228,25 @@ function zoomToFit(): void {
   );
 
   scale.value = fitScale;
-  centerAtScale(fitScale);
+  if (!centerAtScale(fitScale, size)) {
+    return false;
+  }
+  autoFit.value = true;
+  return true;
 }
 
 function zoomToOneHundredPercent(): void {
+  const size = readCurrentContentSize(props.outputMode);
+  if (!size) {
+    return;
+  }
+
   const nextScale = 1;
   scale.value = nextScale;
-  centerAtScale(nextScale);
+  if (!centerAtScale(nextScale, size)) {
+    return;
+  }
+  autoFit.value = false;
 }
 
 function clearPointerState(): void {
@@ -323,6 +343,7 @@ function onViewportPointerDown(event: PointerEvent): void {
     return;
   }
 
+  autoFit.value = false;
   const localPoint = getLocalPoint(event);
   if (!localPoint) {
     return;
@@ -428,6 +449,7 @@ function onViewportWheel(event: WheelEvent): void {
   }
 
   event.preventDefault();
+  autoFit.value = false;
 
   const localPoint = getLocalPoint(event);
   if (!localPoint) {
@@ -483,11 +505,26 @@ function onOutputModeSelect(value: string): void {
   updateOutputMode(value as RenderOutputMode);
 }
 
+function syncFitWithLayout(outputMode: RenderOutputMode = props.outputMode): void {
+  if (!needsFit.value && !autoFit.value) {
+    return;
+  }
+
+  if (!zoomToFit(outputMode)) {
+    return;
+  }
+
+  needsFit.value = false;
+}
+
 defineExpose<{
   zoomToFit: () => void;
   zoomToOneHundredPercent: () => void;
 }>({
-  zoomToFit,
+  zoomToFit: () => {
+    needsFit.value = true;
+    syncFitWithLayout();
+  },
   zoomToOneHundredPercent,
 });
 
@@ -498,45 +535,57 @@ watch(
     outputMode: props.outputMode,
     fitRequestId: props.fitRequestId,
   }),
-  async (newValue, oldValue) => {
+  (newValue, oldValue) => {
     const { svg, ascii, outputMode, fitRequestId } = newValue;
     const previousMode = oldValue?.outputMode;
     const currentContent = outputMode === "svg" ? svg : ascii;
+    const previousContent = oldValue
+      ? oldValue.outputMode === "svg"
+        ? oldValue.svg
+        : oldValue.ascii
+      : null;
+    const contentBecameRenderable = Boolean(currentContent) && !previousContent;
     const modeChanged = previousMode !== undefined && previousMode !== outputMode;
     const fitRequested = fitRequestId !== (oldValue?.fitRequestId ?? 0);
 
-    if (outputMode === "svg" && svgHostRef.value) {
-      svgHostRef.value.innerHTML = svg ?? "";
-    }
-
-    await nextTick();
-
-    // When the preview panel is re-mounted, the first immediate watcher run can happen
-    // before svgHostRef is bound. Re-apply once refs are ready to avoid a blank canvas.
-    if (outputMode === "svg" && svgHostRef.value) {
-      svgHostRef.value.innerHTML = svg ?? "";
-      await nextTick();
-    }
-
-    currentContentSize.value = readCurrentContentSize(outputMode);
-    if (!currentContent || !currentContentSize.value) {
+    if (!currentContent) {
       clearPointerState();
-      hasInitialFit = false;
+      needsFit.value = false;
+      autoFit.value = true;
       return;
     }
 
-    if (!hasInitialFit) {
-      zoomToFit();
-      hasInitialFit = true;
-      return;
-    }
-
-    if (modeChanged || fitRequested) {
-      zoomToFit();
+    if (!oldValue || contentBecameRenderable || modeChanged || fitRequested) {
+      needsFit.value = true;
+      syncFitWithLayout(outputMode);
     }
   },
   { immediate: true, flush: "post" },
 );
+
+useResizeObserver(viewportRef, () => {
+  if (!hasCurrentOutput.value) {
+    return;
+  }
+
+  syncFitWithLayout(props.outputMode);
+});
+
+useResizeObserver(svgHostRef, () => {
+  if (props.outputMode !== "svg") {
+    return;
+  }
+
+  syncFitWithLayout("svg");
+});
+
+useResizeObserver(textCanvasRef, () => {
+  if (props.outputMode === "svg") {
+    return;
+  }
+
+  syncFitWithLayout(props.outputMode);
+});
 </script>
 
 <template>
@@ -603,7 +652,12 @@ watch(
         @wheel="onViewportWheel"
       >
         <div class="content-canvas" :style="canvasTransformStyle">
-          <div v-if="props.outputMode === 'svg'" ref="svgHostRef" class="svg-host" />
+          <div
+            v-if="props.outputMode === 'svg'"
+            ref="svgHostRef"
+            class="svg-host"
+            :innerHTML="props.svg ?? ''"
+          />
 
           <pre
             v-else

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import PanelSkeleton from "@/components/PanelSkeleton.vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import MermaidEditor from "@/components/MermaidEditor.vue";
+import MermaidPreview from "@/components/MermaidPreview.vue";
 import PlaygroundControlsRow from "@/components/PlaygroundControlsRow.vue";
 import PlaygroundHeader from "@/components/PlaygroundHeader.vue";
+import PlaygroundOptionsPanel from "@/components/PlaygroundOptionsPanel.vue";
 import { preloadRenderer, useBeautifulRenderer } from "@/composables/useBeautifulRenderer";
 import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
@@ -36,23 +38,6 @@ type NoticeState = {
   message: string;
   tone: NoticeTone;
 };
-
-const loadMermaidEditorPanel = () => import("@/components/MermaidEditor.vue");
-const loadMermaidPreviewPanel = () => import("@/components/MermaidPreview.vue");
-const loadPlaygroundOptionsPanel = () => import("@/components/PlaygroundOptionsPanel.vue");
-
-const MermaidEditor = defineAsyncComponent({
-  loader: loadMermaidEditorPanel,
-  suspensible: true,
-});
-const MermaidPreview = defineAsyncComponent({
-  loader: loadMermaidPreviewPanel,
-  suspensible: true,
-});
-const PlaygroundOptionsPanel = defineAsyncComponent({
-  loader: loadPlaygroundOptionsPanel,
-  suspensible: true,
-});
 
 type NetworkInformationLike = {
   saveData?: boolean;
@@ -329,6 +314,7 @@ const splitRatio = computed({
 const splitPaneRef = ref<HTMLElement | null>(null);
 type MermaidEditorExpose = { focus: () => void; focusToEnd: () => void };
 const editorRef = ref<MermaidEditorExpose | null>(null);
+const editorFocusToEndToken = ref(0);
 const shouldFitPreviewAfterRender = ref(false);
 const previewFitRequestId = ref(0);
 const isBaseCustomFontLoading = ref(false);
@@ -364,20 +350,7 @@ function flushPendingEditorFocus(): void {
 
 function queueEditorFocus(mode: EditorFocusMode): void {
   pendingEditorFocusMode.value = mode;
-  nextTick(flushPendingEditorFocus);
-}
-
-function queueEditorFocusAfterLayout(mode: EditorFocusMode): void {
-  pendingEditorFocusMode.value = mode;
-  nextTick(() => {
-    requestAnimationFrame(() => {
-      flushPendingEditorFocus();
-    });
-  });
-}
-
-function prefetchComponent(loader: () => Promise<unknown>): void {
-  void loader().catch(() => {});
+  flushPendingEditorFocus();
 }
 
 function shouldSkipIdlePrefetch(): boolean {
@@ -387,28 +360,6 @@ function shouldSkipIdlePrefetch(): boolean {
 function runIdlePrefetch(): void {
   if (shouldSkipIdlePrefetch()) {
     return;
-  }
-
-  if (isMobile.value) {
-    if (state.value.mobilePane !== "options") {
-      prefetchComponent(loadPlaygroundOptionsPanel);
-    }
-    if (state.value.mobilePane !== "editor") {
-      prefetchComponent(loadMermaidEditorPanel);
-    }
-    if (state.value.mobilePane !== "preview") {
-      prefetchComponent(loadMermaidPreviewPanel);
-    }
-  } else {
-    if (!state.value.desktopPanes.options) {
-      prefetchComponent(loadPlaygroundOptionsPanel);
-    }
-    if (!state.value.desktopPanes.editor) {
-      prefetchComponent(loadMermaidEditorPanel);
-    }
-    if (!state.value.desktopPanes.preview) {
-      prefetchComponent(loadMermaidPreviewPanel);
-    }
   }
 
   void preloadRenderer().catch(() => {});
@@ -626,17 +577,13 @@ watch(
 
 watch(isPreviewVisible, (visible, previous) => {
   if (visible && !previous) {
-    nextTick(() => {
-      void renderNow();
-    });
+    void renderNow();
   }
 });
 
 watch(isMobile, () => {
   if (isPreviewVisible.value) {
-    nextTick(() => {
-      void renderNow();
-    });
+    void renderNow();
   }
 });
 
@@ -903,7 +850,7 @@ function applySample(sampleId: number): void {
   }
 
   requestPreviewFitAfterRender();
-  queueEditorFocusAfterLayout("focusToEnd");
+  editorFocusToEndToken.value += 1;
   void renderNow();
 }
 
@@ -1170,7 +1117,7 @@ function toggleDesktopPane(key: DesktopPaneKey): void {
 onMounted(() => {
   ensureEditorFontLoaded();
   mobileMedia.addEventListener("change", syncIsMobile);
-  queueEditorFocus("focusToEnd");
+  editorFocusToEndToken.value += 1;
   scheduleIdlePrefetch();
   void renderNow();
 });
@@ -1209,19 +1156,12 @@ onUnmounted(() => {
           class="pane options-pane"
           :class="{ 'options-pane-full': !hasDesktopEditorPreview }"
         >
-          <Suspense>
-            <template #default>
-              <PlaygroundOptionsPanel
-                v-bind="state.config"
-                :is-base-custom-font-loading="isBaseCustomFontLoading"
-                :is-mono-custom-font-loading="isMonoCustomFontLoading"
-                v-on="optionsPanelListeners"
-              />
-            </template>
-            <template #fallback>
-              <PanelSkeleton title="Options" />
-            </template>
-          </Suspense>
+          <PlaygroundOptionsPanel
+            v-bind="state.config"
+            :is-base-custom-font-loading="isBaseCustomFontLoading"
+            :is-mono-custom-font-loading="isMonoCustomFontLoading"
+            v-on="optionsPanelListeners"
+          />
         </div>
 
         <section
@@ -1231,22 +1171,16 @@ onUnmounted(() => {
           :class="{ single: !showDesktopDivider, 'with-options': state.desktopPanes.options }"
         >
           <div v-if="state.desktopPanes.editor" class="pane editor-pane" :style="editorSplitStyle">
-            <Suspense>
-              <template #default>
-                <MermaidEditor
-                  ref="editorRef"
-                  :model-value="state.code"
-                  :font-size="EDITOR_FONT_SIZE"
-                  :font-family="editorFontFamily"
-                  :color-scheme="resolvedColorScheme"
-                  :surface-color="appliedUiPalette.bg"
-                  @update:model-value="updateCode"
-                />
-              </template>
-              <template #fallback>
-                <PanelSkeleton title="Editor" />
-              </template>
-            </Suspense>
+            <MermaidEditor
+              ref="editorRef"
+              :model-value="state.code"
+              :font-size="EDITOR_FONT_SIZE"
+              :font-family="editorFontFamily"
+              :color-scheme="resolvedColorScheme"
+              :surface-color="appliedUiPalette.bg"
+              :focus-to-end-token="editorFocusToEndToken"
+              @update:model-value="updateCode"
+            />
           </div>
 
           <div
@@ -1259,97 +1193,70 @@ onUnmounted(() => {
           />
 
           <div v-if="state.desktopPanes.preview" class="pane preview-pane">
-            <Suspense>
-              <template #default>
-                <MermaidPreview
-                  :output-mode="state.config.outputMode"
-                  :fit-request-id="previewFitRequestId"
-                  :mono-font-family="monoFontFamily"
-                  :svg="renderState.svg"
-                  :ascii="renderState.ascii"
-                  :error="renderState.error"
-                  :duration-ms="renderState.durationMs"
-                  :is-rendering="isRendering"
-                  :can-export="canExportCurrentOutput"
-                  @update:output-mode="updateOutputMode"
-                  @export:copy-svg="copySvg"
-                  @export:copy-png="copyPng"
-                  @export:download-svg="exportSvg"
-                  @export:download-png="exportPng"
-                  @export:copy-text="copyTextOutput"
-                  @export:download-text="downloadTextOutput"
-                />
-              </template>
-              <template #fallback>
-                <PanelSkeleton title="Preview" />
-              </template>
-            </Suspense>
+            <MermaidPreview
+              :output-mode="state.config.outputMode"
+              :fit-request-id="previewFitRequestId"
+              :mono-font-family="monoFontFamily"
+              :svg="renderState.svg"
+              :ascii="renderState.ascii"
+              :error="renderState.error"
+              :duration-ms="renderState.durationMs"
+              :is-rendering="isRendering"
+              :can-export="canExportCurrentOutput"
+              @update:output-mode="updateOutputMode"
+              @export:copy-svg="copySvg"
+              @export:copy-png="copyPng"
+              @export:download-svg="exportSvg"
+              @export:download-png="exportPng"
+              @export:copy-text="copyTextOutput"
+              @export:download-text="downloadTextOutput"
+            />
           </div>
         </section>
       </section>
 
       <section v-else class="mobile-workspace">
         <div v-if="state.mobilePane === 'options'" class="pane mobile-pane">
-          <Suspense>
-            <template #default>
-              <PlaygroundOptionsPanel
-                v-bind="state.config"
-                :is-base-custom-font-loading="isBaseCustomFontLoading"
-                :is-mono-custom-font-loading="isMonoCustomFontLoading"
-                v-on="optionsPanelListeners"
-              />
-            </template>
-            <template #fallback>
-              <PanelSkeleton title="Options" />
-            </template>
-          </Suspense>
+          <PlaygroundOptionsPanel
+            v-bind="state.config"
+            :is-base-custom-font-loading="isBaseCustomFontLoading"
+            :is-mono-custom-font-loading="isMonoCustomFontLoading"
+            v-on="optionsPanelListeners"
+          />
         </div>
 
         <div v-else-if="state.mobilePane === 'editor'" class="pane mobile-pane">
-          <Suspense>
-            <template #default>
-              <MermaidEditor
-                ref="editorRef"
-                :model-value="state.code"
-                :font-size="EDITOR_FONT_SIZE"
-                :font-family="editorFontFamily"
-                :color-scheme="resolvedColorScheme"
-                :surface-color="appliedUiPalette.bg"
-                @update:model-value="updateCode"
-              />
-            </template>
-            <template #fallback>
-              <PanelSkeleton title="Editor" />
-            </template>
-          </Suspense>
+          <MermaidEditor
+            ref="editorRef"
+            :model-value="state.code"
+            :font-size="EDITOR_FONT_SIZE"
+            :font-family="editorFontFamily"
+            :color-scheme="resolvedColorScheme"
+            :surface-color="appliedUiPalette.bg"
+            :focus-to-end-token="editorFocusToEndToken"
+            @update:model-value="updateCode"
+          />
         </div>
 
         <div v-else class="pane mobile-pane">
-          <Suspense>
-            <template #default>
-              <MermaidPreview
-                :output-mode="state.config.outputMode"
-                :fit-request-id="previewFitRequestId"
-                :mono-font-family="monoFontFamily"
-                :svg="renderState.svg"
-                :ascii="renderState.ascii"
-                :error="renderState.error"
-                :duration-ms="renderState.durationMs"
-                :is-rendering="isRendering"
-                :can-export="canExportCurrentOutput"
-                @update:output-mode="updateOutputMode"
-                @export:copy-svg="copySvg"
-                @export:copy-png="copyPng"
-                @export:download-svg="exportSvg"
-                @export:download-png="exportPng"
-                @export:copy-text="copyTextOutput"
-                @export:download-text="downloadTextOutput"
-              />
-            </template>
-            <template #fallback>
-              <PanelSkeleton title="Preview" />
-            </template>
-          </Suspense>
+          <MermaidPreview
+            :output-mode="state.config.outputMode"
+            :fit-request-id="previewFitRequestId"
+            :mono-font-family="monoFontFamily"
+            :svg="renderState.svg"
+            :ascii="renderState.ascii"
+            :error="renderState.error"
+            :duration-ms="renderState.durationMs"
+            :is-rendering="isRendering"
+            :can-export="canExportCurrentOutput"
+            @update:output-mode="updateOutputMode"
+            @export:copy-svg="copySvg"
+            @export:copy-png="copyPng"
+            @export:download-svg="exportSvg"
+            @export:download-png="exportPng"
+            @export:copy-text="copyTextOutput"
+            @export:download-text="downloadTextOutput"
+          />
         </div>
       </section>
     </main>
@@ -1395,9 +1302,10 @@ onUnmounted(() => {
 }
 
 .options-pane {
-  width: fit-content;
-  flex: 0 0 auto;
-  min-width: 256px;
+  --options-pane-width: 320px;
+  width: var(--options-pane-width);
+  flex: 0 0 var(--options-pane-width);
+  min-width: var(--options-pane-width);
   border-right: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
 }
 

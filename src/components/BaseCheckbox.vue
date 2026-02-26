@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { Check } from 'lucide-vue-next'
+import { Check } from "lucide-vue-next";
 
 const {
   modelValue = false,
   disabled = false,
-  id = '',
-  ariaLabel = 'Toggle option',
+  id = "",
+  ariaLabel = "Toggle option",
 } = defineProps<{
-  modelValue?: boolean
-  disabled?: boolean
-  id?: string
-  ariaLabel?: string
-}>()
+  modelValue?: boolean;
+  disabled?: boolean;
+  id?: string;
+  ariaLabel?: string;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  change: [value: boolean]
-}>()
+  "update:modelValue": [value: boolean];
+  change: [value: boolean];
+}>();
 
 function onInputChange(event: Event): void {
-  const checked = (event.target as HTMLInputElement).checked
-  emit('update:modelValue', checked)
-  emit('change', checked)
+  const checked = (event.target as HTMLInputElement).checked;
+  emit("update:modelValue", checked);
+  emit("change", checked);
 }
 </script>
 

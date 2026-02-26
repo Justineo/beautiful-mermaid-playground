@@ -1,198 +1,198 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Component } from 'vue'
-import type { CSSProperties } from 'vue'
-import type { ComponentPublicInstance } from 'vue'
+import { ref } from "vue";
+import type { Component } from "vue";
+import type { CSSProperties } from "vue";
+import type { ComponentPublicInstance } from "vue";
 
 type SegmentedControlItem = {
-  key: string
-  label: string
-  disabled?: boolean
-  icon?: Component
-  iconOnly?: boolean
-  previewStyle?: CSSProperties
-  previewClass?: string
-  previewInnerStyle?: CSSProperties
-  previewInnerClass?: string
-}
+  key: string;
+  label: string;
+  disabled?: boolean;
+  icon?: Component;
+  iconOnly?: boolean;
+  previewStyle?: CSSProperties;
+  previewClass?: string;
+  previewInnerStyle?: CSSProperties;
+  previewInnerClass?: string;
+};
 
 const props = defineProps<{
-  items: SegmentedControlItem[]
-  activeKey?: string
-  activeKeys?: string[]
-  multiple?: boolean
-  asTabs?: boolean
-  ariaLabel?: string
-}>()
+  items: SegmentedControlItem[];
+  activeKey?: string;
+  activeKeys?: string[];
+  multiple?: boolean;
+  asTabs?: boolean;
+  ariaLabel?: string;
+}>();
 
 const emit = defineEmits<{
-  select: [key: string]
-}>()
+  select: [key: string];
+}>();
 
-const buttonRefs = ref<Array<HTMLButtonElement | null>>([])
+const buttonRefs = ref<Array<HTMLButtonElement | null>>([]);
 
 function isActive(key: string): boolean {
   if (props.multiple) {
-    return props.activeKeys?.includes(key) ?? false
+    return props.activeKeys?.includes(key) ?? false;
   }
 
-  return props.activeKey === key
+  return props.activeKey === key;
 }
 
 function onSelect(item: SegmentedControlItem): void {
   if (item.disabled) {
-    return
+    return;
   }
 
-  emit('select', item.key)
+  emit("select", item.key);
 }
 
 function setButtonRef(index: number, element: Element | ComponentPublicInstance | null): void {
-  buttonRefs.value[index] = element instanceof HTMLButtonElement ? element : null
+  buttonRefs.value[index] = element instanceof HTMLButtonElement ? element : null;
 }
 
 function findFirstEnabledIndex(): number {
-  return props.items.findIndex((item) => !item.disabled)
+  return props.items.findIndex((item) => !item.disabled);
 }
 
 function findLastEnabledIndex(): number {
   for (let index = props.items.length - 1; index >= 0; index -= 1) {
     if (!props.items[index]?.disabled) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function findActiveIndex(): number {
-  const index = props.items.findIndex((item) => isActive(item.key) && !item.disabled)
+  const index = props.items.findIndex((item) => isActive(item.key) && !item.disabled);
   if (index >= 0) {
-    return index
+    return index;
   }
 
-  return findFirstEnabledIndex()
+  return findFirstEnabledIndex();
 }
 
 function findNextEnabledIndex(startIndex: number, direction: 1 | -1): number {
-  const total = props.items.length
+  const total = props.items.length;
   if (total === 0) {
-    return -1
+    return -1;
   }
 
-  let index = startIndex
+  let index = startIndex;
   for (let step = 0; step < total; step += 1) {
-    index = (index + direction + total) % total
+    index = (index + direction + total) % total;
     if (!props.items[index]?.disabled) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function focusButton(index: number): void {
   if (index < 0) {
-    return
+    return;
   }
 
-  buttonRefs.value[index]?.focus()
+  buttonRefs.value[index]?.focus();
 }
 
 function selectByIndex(index: number): void {
-  const item = props.items[index]
+  const item = props.items[index];
   if (!item || item.disabled) {
-    return
+    return;
   }
 
-  emit('select', item.key)
+  emit("select", item.key);
 }
 
 function moveFocusAndMaybeSelect(currentKey: string, direction: 1 | -1): void {
-  const currentIndex = props.items.findIndex((item) => item.key === currentKey)
-  const startIndex = currentIndex >= 0 ? currentIndex : findActiveIndex()
+  const currentIndex = props.items.findIndex((item) => item.key === currentKey);
+  const startIndex = currentIndex >= 0 ? currentIndex : findActiveIndex();
   if (startIndex < 0) {
-    return
+    return;
   }
 
-  const nextIndex = findNextEnabledIndex(startIndex, direction)
+  const nextIndex = findNextEnabledIndex(startIndex, direction);
   if (nextIndex < 0) {
-    return
+    return;
   }
 
-  focusButton(nextIndex)
+  focusButton(nextIndex);
   if (props.asTabs || !props.multiple) {
-    selectByIndex(nextIndex)
+    selectByIndex(nextIndex);
   }
 }
 
 function onButtonKeydown(event: KeyboardEvent, currentKey: string): void {
-  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-    event.preventDefault()
-    moveFocusAndMaybeSelect(currentKey, 1)
-    return
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    event.preventDefault();
+    moveFocusAndMaybeSelect(currentKey, 1);
+    return;
   }
 
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-    event.preventDefault()
-    moveFocusAndMaybeSelect(currentKey, -1)
-    return
+  if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    event.preventDefault();
+    moveFocusAndMaybeSelect(currentKey, -1);
+    return;
   }
 
-  if (event.key === 'Home') {
-    event.preventDefault()
-    const firstEnabledIndex = findFirstEnabledIndex()
+  if (event.key === "Home") {
+    event.preventDefault();
+    const firstEnabledIndex = findFirstEnabledIndex();
     if (firstEnabledIndex < 0) {
-      return
+      return;
     }
 
-    focusButton(firstEnabledIndex)
+    focusButton(firstEnabledIndex);
     if (props.asTabs || !props.multiple) {
-      selectByIndex(firstEnabledIndex)
+      selectByIndex(firstEnabledIndex);
     }
-    return
+    return;
   }
 
-  if (event.key === 'End') {
-    event.preventDefault()
-    const lastEnabledIndex = findLastEnabledIndex()
+  if (event.key === "End") {
+    event.preventDefault();
+    const lastEnabledIndex = findLastEnabledIndex();
     if (lastEnabledIndex < 0) {
-      return
+      return;
     }
 
-    focusButton(lastEnabledIndex)
+    focusButton(lastEnabledIndex);
     if (props.asTabs || !props.multiple) {
-      selectByIndex(lastEnabledIndex)
+      selectByIndex(lastEnabledIndex);
     }
-    return
+    return;
   }
 
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    const index = props.items.findIndex((item) => item.key === currentKey)
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    const index = props.items.findIndex((item) => item.key === currentKey);
     if (index < 0) {
-      return
+      return;
     }
 
-    selectByIndex(index)
+    selectByIndex(index);
   }
 }
 
 function getTabIndex(item: SegmentedControlItem, index: number): number {
   if (!props.asTabs) {
-    return 0
+    return 0;
   }
 
   if (item.disabled) {
-    return -1
+    return -1;
   }
 
-  const activeIndex = findActiveIndex()
+  const activeIndex = findActiveIndex();
   if (activeIndex < 0) {
-    return -1
+    return -1;
   }
 
-  return activeIndex === index ? 0 : -1
+  return activeIndex === index ? 0 : -1;
 }
 </script>
 

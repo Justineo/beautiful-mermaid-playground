@@ -1,167 +1,167 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { ChevronDown, Download, MoreHorizontal } from 'lucide-vue-next'
-import { useOverlayScrollbars } from '@/composables/useOverlayScrollbars'
-import { POPOVER_ROOT_SELECTOR } from '@/constants/overlay'
-import type { ComponentPublicInstance } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { ChevronDown, Download, MoreHorizontal } from "lucide-vue-next";
+import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
+import { POPOVER_ROOT_SELECTOR } from "@/constants/overlay";
+import type { ComponentPublicInstance } from "vue";
 
 interface DropdownMenuItem {
-  key: string
-  label: string
-  disabled?: boolean
-  separator?: boolean
+  key: string;
+  label: string;
+  disabled?: boolean;
+  separator?: boolean;
 }
 
 const {
-  label = '',
-  ariaLabel = 'Open menu',
-  menuLabel = 'Dropdown menu',
+  label = "",
+  ariaLabel = "Open menu",
+  menuLabel = "Dropdown menu",
   items,
   disabled = false,
-  align = 'right',
+  align = "right",
   iconOnly = false,
-  triggerIcon = 'chevron-down',
+  triggerIcon = "chevron-down",
 } = defineProps<{
-  label?: string
-  ariaLabel?: string
-  menuLabel?: string
-  items: DropdownMenuItem[]
-  disabled?: boolean
-  align?: 'left' | 'right'
-  iconOnly?: boolean
-  triggerIcon?: 'chevron-down' | 'ellipsis' | 'download'
-}>()
+  label?: string;
+  ariaLabel?: string;
+  menuLabel?: string;
+  items: DropdownMenuItem[];
+  disabled?: boolean;
+  align?: "left" | "right";
+  iconOnly?: boolean;
+  triggerIcon?: "chevron-down" | "ellipsis" | "download";
+}>();
 
 const emit = defineEmits<{
-  select: [key: string]
-}>()
+  select: [key: string];
+}>();
 
-const rootRef = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLButtonElement | null>(null)
-const popoverRef = ref<HTMLElement | null>(null)
-const itemRefs = ref<Array<HTMLButtonElement | null>>([])
-const isOpen = ref(false)
-const activeIndex = ref(-1)
-const isKeyboardNavigation = ref(false)
-const popoverStyle = ref<Record<string, string>>({})
-let viewportListenerAttached = false
-let pointerListenerAttached = false
-let rafId = 0
-const MIN_MENU_WIDTH = 120
+const rootRef = ref<HTMLElement | null>(null);
+const triggerRef = ref<HTMLButtonElement | null>(null);
+const popoverRef = ref<HTMLElement | null>(null);
+const itemRefs = ref<Array<HTMLButtonElement | null>>([]);
+const isOpen = ref(false);
+const activeIndex = ref(-1);
+const isKeyboardNavigation = ref(false);
+const popoverStyle = ref<Record<string, string>>({});
+let viewportListenerAttached = false;
+let pointerListenerAttached = false;
+let rafId = 0;
+const MIN_MENU_WIDTH = 120;
 
 useOverlayScrollbars(popoverRef, {
   overflow: {
-    x: 'hidden',
-    y: 'scroll',
+    x: "hidden",
+    y: "scroll",
   },
-})
+});
 
-const hasEnabledItem = computed(() => items.some((item) => !item.disabled && !item.separator))
+const hasEnabledItem = computed(() => items.some((item) => !item.disabled && !item.separator));
 const triggerIconComponent = computed(() =>
-  triggerIcon === 'ellipsis' ? MoreHorizontal : triggerIcon === 'download' ? Download : ChevronDown,
-)
+  triggerIcon === "ellipsis" ? MoreHorizontal : triggerIcon === "download" ? Download : ChevronDown,
+);
 
 function findFirstEnabledIndex(): number {
-  return items.findIndex((item) => !item.disabled && !item.separator)
+  return items.findIndex((item) => !item.disabled && !item.separator);
 }
 
 function findLastEnabledIndex(): number {
   for (let index = items.length - 1; index >= 0; index -= 1) {
     if (!items[index]?.disabled && !items[index]?.separator) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function findNextEnabledIndex(startIndex: number, direction: 1 | -1): number {
-  const total = items.length
+  const total = items.length;
   if (total === 0 || !hasEnabledItem.value) {
-    return -1
+    return -1;
   }
 
-  let index = startIndex
+  let index = startIndex;
   for (let step = 0; step < total; step += 1) {
-    index = (index + direction + total) % total
+    index = (index + direction + total) % total;
     if (!items[index]?.disabled && !items[index]?.separator) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function setItemRef(index: number, element: Element | ComponentPublicInstance | null): void {
-  itemRefs.value[index] = element instanceof HTMLButtonElement ? element : null
+  itemRefs.value[index] = element instanceof HTMLButtonElement ? element : null;
 }
 
 function focusItem(index: number, keyboard = true): void {
   if (index < 0 || !items[index] || items[index]?.disabled || items[index]?.separator) {
-    return
+    return;
   }
 
-  activeIndex.value = index
-  isKeyboardNavigation.value = keyboard
+  activeIndex.value = index;
+  isKeyboardNavigation.value = keyboard;
   nextTick(() => {
-    itemRefs.value[index]?.focus()
-  })
+    itemRefs.value[index]?.focus();
+  });
 }
 
 function openMenu(initialIndex?: number, keyboard = false): void {
   if (disabled || !hasEnabledItem.value) {
-    return
+    return;
   }
 
-  isOpen.value = true
+  isOpen.value = true;
   if (!keyboard) {
-    activeIndex.value = -1
-    isKeyboardNavigation.value = false
-    return
+    activeIndex.value = -1;
+    isKeyboardNavigation.value = false;
+    return;
   }
 
   const nextIndex =
-    initialIndex !== undefined && initialIndex >= 0 ? initialIndex : findFirstEnabledIndex()
-  focusItem(nextIndex, true)
+    initialIndex !== undefined && initialIndex >= 0 ? initialIndex : findFirstEnabledIndex();
+  focusItem(nextIndex, true);
 }
 
 function updatePopoverPosition(): void {
   if (!isOpen.value || !triggerRef.value || !popoverRef.value) {
-    return
+    return;
   }
 
-  const margin = 8
-  const gap = 6
-  const rect = triggerRef.value.getBoundingClientRect()
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
-  const maxWidth = Math.max(MIN_MENU_WIDTH, viewportWidth - margin * 2)
-  const minWidth = Math.min(Math.max(MIN_MENU_WIDTH, Math.round(rect.width)), maxWidth)
-  const currentWidth = popoverRef.value.offsetWidth > 0 ? popoverRef.value.offsetWidth : minWidth
-  const width = Math.min(Math.max(minWidth, currentWidth), maxWidth)
-  const currentHeight = popoverRef.value.offsetHeight
-  const naturalHeight = popoverRef.value.scrollHeight
-  const spaceBelow = viewportHeight - rect.bottom - gap - margin
-  const spaceAbove = rect.top - gap - margin
+  const margin = 8;
+  const gap = 6;
+  const rect = triggerRef.value.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const maxWidth = Math.max(MIN_MENU_WIDTH, viewportWidth - margin * 2);
+  const minWidth = Math.min(Math.max(MIN_MENU_WIDTH, Math.round(rect.width)), maxWidth);
+  const currentWidth = popoverRef.value.offsetWidth > 0 ? popoverRef.value.offsetWidth : minWidth;
+  const width = Math.min(Math.max(minWidth, currentWidth), maxWidth);
+  const currentHeight = popoverRef.value.offsetHeight;
+  const naturalHeight = popoverRef.value.scrollHeight;
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+  const spaceAbove = rect.top - gap - margin;
   const preferTop =
-    currentHeight > 0 ? spaceBelow < currentHeight && spaceAbove > spaceBelow : false
-  const maxHeight = Math.max(120, Math.floor(preferTop ? spaceAbove : spaceBelow))
-  const height = currentHeight > 0 ? Math.min(currentHeight, maxHeight) : maxHeight
-  const shouldClampHeight = naturalHeight > maxHeight + 1
+    currentHeight > 0 ? spaceBelow < currentHeight && spaceAbove > spaceBelow : false;
+  const maxHeight = Math.max(120, Math.floor(preferTop ? spaceAbove : spaceBelow));
+  const height = currentHeight > 0 ? Math.min(currentHeight, maxHeight) : maxHeight;
+  const shouldClampHeight = naturalHeight > maxHeight + 1;
 
-  const alignRight = align === 'right'
-  let left = alignRight ? rect.right - width : rect.left
+  const alignRight = align === "right";
+  let left = alignRight ? rect.right - width : rect.left;
   if (left + width > viewportWidth - margin) {
-    left = viewportWidth - margin - width
+    left = viewportWidth - margin - width;
   }
-  left = Math.max(margin, left)
+  left = Math.max(margin, left);
 
-  let top = preferTop ? rect.top - gap - height : rect.bottom + gap
+  let top = preferTop ? rect.top - gap - height : rect.bottom + gap;
   if (top < margin) {
-    top = margin
+    top = margin;
   }
   if (top + height > viewportHeight - margin) {
-    top = Math.max(margin, viewportHeight - margin - height)
+    top = Math.max(margin, viewportHeight - margin - height);
   }
 
   popoverStyle.value = {
@@ -170,217 +170,215 @@ function updatePopoverPosition(): void {
     minWidth: `${Math.round(minWidth)}px`,
     maxWidth: `${Math.round(maxWidth)}px`,
     maxHeight: `${Math.round(maxHeight)}px`,
-    height: shouldClampHeight ? `${Math.round(maxHeight)}px` : '',
-  }
+    height: shouldClampHeight ? `${Math.round(maxHeight)}px` : "",
+  };
 }
 
 function schedulePopoverPosition(): void {
   if (!isOpen.value) {
-    return
+    return;
   }
 
-  nextTick(() => {
-    updatePopoverPosition()
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-    }
-    rafId = requestAnimationFrame(() => {
-      updatePopoverPosition()
-      rafId = 0
-    })
-  })
+  updatePopoverPosition();
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+  }
+  rafId = requestAnimationFrame(() => {
+    updatePopoverPosition();
+    rafId = 0;
+  });
 }
 
 function handleViewportChange(): void {
-  updatePopoverPosition()
+  updatePopoverPosition();
 }
 
 function handleDocumentPointerDown(event: PointerEvent): void {
-  const target = event.target as Node | null
+  const target = event.target as Node | null;
   if (!target) {
-    return
+    return;
   }
 
   if (rootRef.value?.contains(target) || popoverRef.value?.contains(target)) {
-    return
+    return;
   }
 
-  closeMenu()
+  closeMenu();
 }
 
 function attachOpenListeners(): void {
   if (!viewportListenerAttached) {
-    window.addEventListener('resize', handleViewportChange)
-    window.addEventListener('scroll', handleViewportChange, true)
-    viewportListenerAttached = true
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = true;
   }
 
   if (!pointerListenerAttached) {
-    document.addEventListener('pointerdown', handleDocumentPointerDown, true)
-    pointerListenerAttached = true
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = true;
   }
 }
 
 function detachOpenListeners(): void {
   if (viewportListenerAttached) {
-    window.removeEventListener('resize', handleViewportChange)
-    window.removeEventListener('scroll', handleViewportChange, true)
-    viewportListenerAttached = false
+    window.removeEventListener("resize", handleViewportChange);
+    window.removeEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = false;
   }
 
   if (pointerListenerAttached) {
-    document.removeEventListener('pointerdown', handleDocumentPointerDown, true)
-    pointerListenerAttached = false
+    document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = false;
   }
 }
 
 function closeMenu(): void {
-  isOpen.value = false
-  activeIndex.value = -1
-  isKeyboardNavigation.value = false
+  isOpen.value = false;
+  activeIndex.value = -1;
+  isKeyboardNavigation.value = false;
 }
 
 function selectItem(item: DropdownMenuItem): void {
   if (disabled || item.disabled || item.separator) {
-    return
+    return;
   }
 
-  emit('select', item.key)
-  closeMenu()
-  nextTick(() => {
-    triggerRef.value?.focus()
-  })
+  emit("select", item.key);
+  closeMenu();
+  triggerRef.value?.focus();
 }
 
 function onTriggerClick(): void {
   if (isOpen.value) {
-    closeMenu()
-    return
+    closeMenu();
+    return;
   }
 
-  openMenu()
+  openMenu();
 }
 
 function focusAdjacent(direction: 1 | -1): void {
   if (activeIndex.value < 0) {
-    focusItem(direction === 1 ? findFirstEnabledIndex() : findLastEnabledIndex(), true)
-    return
+    focusItem(direction === 1 ? findFirstEnabledIndex() : findLastEnabledIndex(), true);
+    return;
   }
 
-  focusItem(findNextEnabledIndex(activeIndex.value, direction), true)
+  focusItem(findNextEnabledIndex(activeIndex.value, direction), true);
 }
 
 function onTriggerKeydown(event: KeyboardEvent): void {
   if (disabled) {
-    return
+    return;
   }
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
     if (!isOpen.value) {
-      openMenu(findFirstEnabledIndex(), true)
-      return
+      openMenu(findFirstEnabledIndex(), true);
+      return;
     }
 
-    focusAdjacent(1)
-    return
+    focusAdjacent(1);
+    return;
   }
 
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
     if (!isOpen.value) {
-      openMenu(findLastEnabledIndex(), true)
-      return
+      openMenu(findLastEnabledIndex(), true);
+      return;
     }
 
-    focusAdjacent(-1)
-    return
+    focusAdjacent(-1);
+    return;
   }
 
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
     if (isOpen.value) {
-      closeMenu()
+      closeMenu();
     } else {
-      openMenu(findFirstEnabledIndex(), true)
+      openMenu(findFirstEnabledIndex(), true);
     }
-    return
+    return;
   }
 
-  if (event.key === 'Escape' && isOpen.value) {
-    event.preventDefault()
-    closeMenu()
+  if (event.key === "Escape" && isOpen.value) {
+    event.preventDefault();
+    closeMenu();
   }
 }
 
 function onMenuKeydown(event: KeyboardEvent): void {
   if (!isOpen.value) {
-    return
+    return;
   }
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    focusAdjacent(1)
-    return
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    focusAdjacent(1);
+    return;
   }
 
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    focusAdjacent(-1)
-    return
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    focusAdjacent(-1);
+    return;
   }
 
-  if (event.key === 'Home') {
-    event.preventDefault()
-    focusItem(findFirstEnabledIndex(), true)
-    return
+  if (event.key === "Home") {
+    event.preventDefault();
+    focusItem(findFirstEnabledIndex(), true);
+    return;
   }
 
-  if (event.key === 'End') {
-    event.preventDefault()
-    focusItem(findLastEnabledIndex(), true)
-    return
+  if (event.key === "End") {
+    event.preventDefault();
+    focusItem(findLastEnabledIndex(), true);
+    return;
   }
 
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    closeMenu()
-    nextTick(() => {
-      triggerRef.value?.focus()
-    })
-    return
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeMenu();
+    triggerRef.value?.focus();
+    return;
   }
 
-  if (event.key === 'Tab') {
-    closeMenu()
+  if (event.key === "Tab") {
+    closeMenu();
   }
 }
 
 function onItemMouseenter(index: number): void {
-  activeIndex.value = index
-  isKeyboardNavigation.value = false
+  activeIndex.value = index;
+  isKeyboardNavigation.value = false;
 }
 
-watch(isOpen, (open) => {
-  if (open) {
-    attachOpenListeners()
-    schedulePopoverPosition()
-    return
-  }
+watch(
+  isOpen,
+  (open) => {
+    if (open) {
+      attachOpenListeners();
+      schedulePopoverPosition();
+      return;
+    }
 
-  if (rafId) {
-    cancelAnimationFrame(rafId)
-    rafId = 0
-  }
-  detachOpenListeners()
-})
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    detachOpenListeners();
+  },
+  { flush: "post" },
+);
 
 onBeforeUnmount(() => {
   if (rafId) {
-    cancelAnimationFrame(rafId)
+    cancelAnimationFrame(rafId);
   }
-  detachOpenListeners()
-})
+  detachOpenListeners();
+});
 </script>
 
 <template>

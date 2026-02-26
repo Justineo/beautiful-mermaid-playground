@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
   --t-bg: #ffffff;
@@ -40,7 +40,7 @@
   --lh-normal: 1.32;
 }
 
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   color-scheme: dark;
 }
 
@@ -59,7 +59,7 @@ body,
 body {
   overflow: hidden;
   font-family:
-    'Geist',
+    "Geist",
     system-ui,
     -apple-system,
     sans-serif;
@@ -89,9 +89,9 @@ textarea {
 
 button,
 select,
-input[type='number'],
-input[type='text'],
-input[type='url'] {
+input[type="number"],
+input[type="text"],
+input[type="url"] {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--surface);
@@ -100,24 +100,24 @@ input[type='url'] {
 }
 
 select,
-input[type='number'],
-input[type='text'],
-input[type='url'] {
+input[type="number"],
+input[type="text"],
+input[type="url"] {
   width: 100%;
 }
 
-input[type='number'] {
+input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-feature-settings:
-    'tnum' 1,
-    'lnum' 1;
+    "tnum" 1,
+    "lnum" 1;
 }
 
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -160,13 +160,13 @@ button:disabled {
     opacity 120ms ease;
 }
 
-.ui-control-surface:hover:not(:disabled):not([aria-disabled='true']) {
+.ui-control-surface:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: color-mix(in srgb, var(--border-strong) 88%, transparent);
   background: color-mix(in srgb, var(--surface-elevated) 86%, var(--surface));
 }
 
 .ui-control-surface:disabled,
-.ui-control-surface[aria-disabled='true'] {
+.ui-control-surface[aria-disabled="true"] {
   opacity: 0.46;
   cursor: not-allowed;
 }
@@ -200,8 +200,8 @@ button:disabled {
   textarea,
   a[href],
   summary,
-  [role='button'],
-  [tabindex]:not([tabindex='-1'])
+  [role="button"],
+  [tabindex]:not([tabindex="-1"])
 ):focus {
   outline: none;
 }
@@ -213,8 +213,8 @@ button:disabled {
   textarea,
   a[href],
   summary,
-  [role='button'],
-  [tabindex]:not([tabindex='-1'])
+  [role="button"],
+  [tabindex]:not([tabindex="-1"])
 ):focus-visible {
   position: relative;
   z-index: 80;
@@ -224,14 +224,14 @@ button:disabled {
     inset 0 0 0 2px var(--focus-outline);
 }
 
-input[type='checkbox'] {
+input[type="checkbox"] {
   width: 16px;
   height: 16px;
   margin: 0;
   accent-color: var(--text-primary);
 }
 
-input[type='color'] {
+input[type="color"] {
   appearance: none;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -241,11 +241,11 @@ input[type='color'] {
   padding: 2px;
 }
 
-input[type='color']::-webkit-color-swatch-wrapper {
+input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 
-input[type='color']::-webkit-color-swatch {
+input[type="color"]::-webkit-color-swatch {
   border: none;
   border-radius: 6px;
 }
@@ -253,5 +253,5 @@ input[type='color']::-webkit-color-swatch {
 code,
 pre,
 textarea {
-  font-family: 'JetBrains Mono', 'Iosevka Web', monospace;
+  font-family: "JetBrains Mono", "Iosevka Web", monospace;
 }

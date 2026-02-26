@@ -1,84 +1,84 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { ChevronDown } from 'lucide-vue-next'
-import { useOverlayScrollbars } from '@/composables/useOverlayScrollbars'
-import { POPOVER_ROOT_SELECTOR } from '@/constants/overlay'
-import type { ComponentPublicInstance, VNode } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { ChevronDown } from "lucide-vue-next";
+import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
+import { POPOVER_ROOT_SELECTOR } from "@/constants/overlay";
+import type { ComponentPublicInstance, VNode } from "vue";
 
 type SelectOptionItem = {
-  id: string
-  label: string
-  value: string
-  disabled: boolean
-}
+  id: string;
+  label: string;
+  value: string;
+  disabled: boolean;
+};
 
 type SelectOptionGroup = {
-  id: string
-  label: string | null
-  options: SelectOptionItem[]
-}
+  id: string;
+  label: string | null;
+  options: SelectOptionItem[];
+};
 
 type SelectIndexedOption = SelectOptionItem & {
-  flatIndex: number
-}
+  flatIndex: number;
+};
 
 type SelectIndexedGroup = {
-  id: string
-  label: string | null
-  options: SelectIndexedOption[]
-}
+  id: string;
+  label: string | null;
+  options: SelectIndexedOption[];
+};
 
 const props = defineProps<{
-  value?: string | number | null
-  disabled?: boolean
-  placeholder?: string
-}>()
+  value?: string | number | null;
+  disabled?: boolean;
+  placeholder?: string;
+}>();
 
 const emit = defineEmits<{
-  change: [event: Event]
-}>()
+  change: [event: Event];
+}>();
 
 const slots = defineSlots<{
-  default?: () => VNode[]
-  selected?: (props: { option: SelectIndexedOption | undefined; label: string }) => unknown
-  option?: (props: { option: SelectIndexedOption }) => unknown
-}>()
-const rootRef = ref<HTMLElement | null>(null)
-const triggerRef = ref<HTMLButtonElement | null>(null)
-const popoverRef = ref<HTMLElement | null>(null)
-const itemRefs = ref<Array<HTMLButtonElement | null>>([])
-const isOpen = ref(false)
-const activeIndex = ref(-1)
-const popoverStyle = ref<Record<string, string>>({})
-let viewportListenerAttached = false
-let pointerListenerAttached = false
-let rafId = 0
-const MIN_MENU_WIDTH = 120
+  default?: () => VNode[];
+  selected?: (props: { option: SelectIndexedOption | undefined; label: string }) => unknown;
+  option?: (props: { option: SelectIndexedOption }) => unknown;
+}>();
+const rootRef = ref<HTMLElement | null>(null);
+const triggerRef = ref<HTMLButtonElement | null>(null);
+const popoverRef = ref<HTMLElement | null>(null);
+const itemRefs = ref<Array<HTMLButtonElement | null>>([]);
+const isOpen = ref(false);
+const activeIndex = ref(-1);
+const popoverStyle = ref<Record<string, string>>({});
+let viewportListenerAttached = false;
+let pointerListenerAttached = false;
+let rafId = 0;
+const MIN_MENU_WIDTH = 120;
 
 useOverlayScrollbars(popoverRef, {
   overflow: {
-    x: 'hidden',
-    y: 'scroll',
+    x: "hidden",
+    y: "scroll",
   },
-})
+});
 
 function normalizeNodeText(node: VNode | string): string {
-  if (typeof node === 'string') {
-    return node
+  if (typeof node === "string") {
+    return node;
   }
 
-  if (typeof node.children === 'string') {
-    return node.children
+  if (typeof node.children === "string") {
+    return node.children;
   }
 
   if (Array.isArray(node.children)) {
     return node.children
       .map((child) => normalizeNodeText(child as VNode | string))
-      .join('')
-      .trim()
+      .join("")
+      .trim();
   }
 
-  return ''
+  return "";
 }
 
 function extractOptions(
@@ -86,72 +86,72 @@ function extractOptions(
   sourceIndexRef: { value: number },
   groupLabel: string | null = null,
 ): SelectOptionGroup[] {
-  const standaloneOptions: SelectOptionItem[] = []
-  const nestedGroups: SelectOptionGroup[] = []
+  const standaloneOptions: SelectOptionItem[] = [];
+  const nestedGroups: SelectOptionGroup[] = [];
 
   for (const node of nodes) {
-    if (typeof node.type !== 'string') {
+    if (typeof node.type !== "string") {
       if (Array.isArray(node.children)) {
-        nestedGroups.push(...extractOptions(node.children as VNode[], sourceIndexRef, groupLabel))
+        nestedGroups.push(...extractOptions(node.children as VNode[], sourceIndexRef, groupLabel));
       }
-      continue
+      continue;
     }
 
-    if (node.type === 'optgroup') {
+    if (node.type === "optgroup") {
       const nextLabel =
-        typeof node.props?.label === 'string' && node.props.label.trim().length > 0
+        typeof node.props?.label === "string" && node.props.label.trim().length > 0
           ? node.props.label.trim()
-          : null
-      const children = Array.isArray(node.children) ? (node.children as VNode[]) : []
-      nestedGroups.push(...extractOptions(children, sourceIndexRef, nextLabel))
-      continue
+          : null;
+      const children = Array.isArray(node.children) ? (node.children as VNode[]) : [];
+      nestedGroups.push(...extractOptions(children, sourceIndexRef, nextLabel));
+      continue;
     }
 
-    if (node.type !== 'option') {
+    if (node.type !== "option") {
       if (Array.isArray(node.children)) {
-        nestedGroups.push(...extractOptions(node.children as VNode[], sourceIndexRef, groupLabel))
+        nestedGroups.push(...extractOptions(node.children as VNode[], sourceIndexRef, groupLabel));
       }
-      continue
+      continue;
     }
 
-    const rawLabel = normalizeNodeText(node).trim()
+    const rawLabel = normalizeNodeText(node).trim();
     const rawValue =
       node.props?.value !== undefined
         ? String(node.props.value)
         : rawLabel.length > 0
           ? rawLabel
-          : ''
+          : "";
 
     standaloneOptions.push({
       id: `option-${sourceIndexRef.value}`,
       label: rawLabel,
       value: rawValue,
       disabled: Boolean(node.props?.disabled),
-    })
-    sourceIndexRef.value += 1
+    });
+    sourceIndexRef.value += 1;
   }
 
   if (standaloneOptions.length === 0) {
-    return nestedGroups
+    return nestedGroups;
   }
 
   return [
     {
-      id: `group-${sourceIndexRef.value}-${groupLabel ?? 'root'}`,
+      id: `group-${sourceIndexRef.value}-${groupLabel ?? "root"}`,
       label: groupLabel,
       options: standaloneOptions,
     },
     ...nestedGroups,
-  ]
+  ];
 }
 
 const optionGroups = computed<SelectOptionGroup[]>(() => {
-  const nodes = slots.default?.() ?? []
-  return extractOptions(nodes, { value: 0 })
-})
+  const nodes = slots.default?.() ?? [];
+  return extractOptions(nodes, { value: 0 });
+});
 
 const indexedGroups = computed<SelectIndexedGroup[]>(() => {
-  let flatIndex = 0
+  let flatIndex = 0;
   return optionGroups.value.map((group) => ({
     id: group.id,
     label: group.label,
@@ -159,110 +159,110 @@ const indexedGroups = computed<SelectIndexedGroup[]>(() => {
       ...option,
       flatIndex: flatIndex++,
     })),
-  }))
-})
+  }));
+});
 
 const flatOptions = computed<SelectIndexedOption[]>(() =>
   indexedGroups.value.flatMap((group) => group.options),
-)
+);
 
-const selectedValue = computed(() => (props.value ?? '') + '')
+const selectedValue = computed(() => (props.value ?? "") + "");
 const selectedOption = computed(() =>
   flatOptions.value.find((option) => option.value === selectedValue.value),
-)
+);
 const selectedLabel = computed(
-  () => selectedOption.value?.label ?? props.placeholder ?? 'Select an option',
-)
-const hasEnabledOption = computed(() => flatOptions.value.some((option) => !option.disabled))
+  () => selectedOption.value?.label ?? props.placeholder ?? "Select an option",
+);
+const hasEnabledOption = computed(() => flatOptions.value.some((option) => !option.disabled));
 
 function setItemRef(index: number, element: Element | ComponentPublicInstance | null): void {
-  itemRefs.value[index] = element instanceof HTMLButtonElement ? element : null
+  itemRefs.value[index] = element instanceof HTMLButtonElement ? element : null;
 }
 
 function findFirstEnabledIndex(): number {
-  return flatOptions.value.findIndex((option) => !option.disabled)
+  return flatOptions.value.findIndex((option) => !option.disabled);
 }
 
 function findLastEnabledIndex(): number {
   for (let index = flatOptions.value.length - 1; index >= 0; index -= 1) {
     if (!flatOptions.value[index]?.disabled) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function findSelectedIndex(): number {
   return flatOptions.value.findIndex(
     (option) => option.value === selectedValue.value && !option.disabled,
-  )
+  );
 }
 
 function findNextEnabledIndex(startIndex: number, direction: 1 | -1): number {
-  const total = flatOptions.value.length
+  const total = flatOptions.value.length;
   if (total === 0 || !hasEnabledOption.value) {
-    return -1
+    return -1;
   }
 
-  let index = startIndex
+  let index = startIndex;
   for (let step = 0; step < total; step += 1) {
-    index = (index + direction + total) % total
+    index = (index + direction + total) % total;
     if (!flatOptions.value[index]?.disabled) {
-      return index
+      return index;
     }
   }
 
-  return -1
+  return -1;
 }
 
 function focusItem(index: number): void {
   if (index < 0 || !flatOptions.value[index] || flatOptions.value[index]?.disabled) {
-    return
+    return;
   }
 
-  activeIndex.value = index
+  activeIndex.value = index;
   nextTick(() => {
-    itemRefs.value[index]?.focus()
-  })
+    itemRefs.value[index]?.focus();
+  });
 }
 
 function updatePopoverPosition(): void {
   if (!isOpen.value || !triggerRef.value || !popoverRef.value) {
-    return
+    return;
   }
 
-  const margin = 8
-  const gap = 6
-  const rect = triggerRef.value.getBoundingClientRect()
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
-  const maxWidth = Math.max(MIN_MENU_WIDTH, viewportWidth - margin * 2)
-  const minWidth = Math.min(Math.max(MIN_MENU_WIDTH, Math.round(rect.width)), maxWidth)
-  const currentWidth = popoverRef.value.offsetWidth > 0 ? popoverRef.value.offsetWidth : minWidth
-  const width = Math.min(Math.max(minWidth, currentWidth), maxWidth)
-  const currentHeight = popoverRef.value.offsetHeight
-  const naturalHeight = popoverRef.value.scrollHeight
-  const spaceBelow = viewportHeight - rect.bottom - gap - margin
-  const spaceAbove = rect.top - gap - margin
+  const margin = 8;
+  const gap = 6;
+  const rect = triggerRef.value.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const maxWidth = Math.max(MIN_MENU_WIDTH, viewportWidth - margin * 2);
+  const minWidth = Math.min(Math.max(MIN_MENU_WIDTH, Math.round(rect.width)), maxWidth);
+  const currentWidth = popoverRef.value.offsetWidth > 0 ? popoverRef.value.offsetWidth : minWidth;
+  const width = Math.min(Math.max(minWidth, currentWidth), maxWidth);
+  const currentHeight = popoverRef.value.offsetHeight;
+  const naturalHeight = popoverRef.value.scrollHeight;
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+  const spaceAbove = rect.top - gap - margin;
   const preferTop =
-    currentHeight > 0 ? spaceBelow < currentHeight && spaceAbove > spaceBelow : false
-  const maxHeight = Math.max(120, Math.floor(preferTop ? spaceAbove : spaceBelow))
-  const height = currentHeight > 0 ? Math.min(currentHeight, maxHeight) : maxHeight
-  const shouldClampHeight = naturalHeight > maxHeight + 1
+    currentHeight > 0 ? spaceBelow < currentHeight && spaceAbove > spaceBelow : false;
+  const maxHeight = Math.max(120, Math.floor(preferTop ? spaceAbove : spaceBelow));
+  const height = currentHeight > 0 ? Math.min(currentHeight, maxHeight) : maxHeight;
+  const shouldClampHeight = naturalHeight > maxHeight + 1;
 
-  let left = rect.left
+  let left = rect.left;
   if (left + width > viewportWidth - margin) {
-    left = viewportWidth - margin - width
+    left = viewportWidth - margin - width;
   }
-  left = Math.max(margin, left)
+  left = Math.max(margin, left);
 
-  let top = preferTop ? rect.top - gap - height : rect.bottom + gap
+  let top = preferTop ? rect.top - gap - height : rect.bottom + gap;
   if (top < margin) {
-    top = margin
+    top = margin;
   }
   if (top + height > viewportHeight - margin) {
-    top = Math.max(margin, viewportHeight - margin - height)
+    top = Math.max(margin, viewportHeight - margin - height);
   }
 
   popoverStyle.value = {
@@ -271,230 +271,230 @@ function updatePopoverPosition(): void {
     minWidth: `${Math.round(minWidth)}px`,
     maxWidth: `${Math.round(maxWidth)}px`,
     maxHeight: `${Math.round(maxHeight)}px`,
-    height: shouldClampHeight ? `${Math.round(maxHeight)}px` : '',
-  }
+    height: shouldClampHeight ? `${Math.round(maxHeight)}px` : "",
+  };
 }
 
 function schedulePopoverPosition(): void {
   if (!isOpen.value) {
-    return
+    return;
   }
 
-  nextTick(() => {
-    updatePopoverPosition()
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-    }
-    rafId = requestAnimationFrame(() => {
-      updatePopoverPosition()
-      rafId = 0
-    })
-  })
+  updatePopoverPosition();
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+  }
+  rafId = requestAnimationFrame(() => {
+    updatePopoverPosition();
+    rafId = 0;
+  });
 }
 
 function handleViewportChange(): void {
-  updatePopoverPosition()
+  updatePopoverPosition();
 }
 
 function handleDocumentPointerDown(event: PointerEvent): void {
-  const target = event.target as Node | null
+  const target = event.target as Node | null;
   if (!target) {
-    return
+    return;
   }
 
   if (rootRef.value?.contains(target) || popoverRef.value?.contains(target)) {
-    return
+    return;
   }
 
-  closeMenu()
+  closeMenu();
 }
 
 function attachOpenListeners(): void {
   if (!viewportListenerAttached) {
-    window.addEventListener('resize', handleViewportChange)
-    window.addEventListener('scroll', handleViewportChange, true)
-    viewportListenerAttached = true
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = true;
   }
 
   if (!pointerListenerAttached) {
-    document.addEventListener('pointerdown', handleDocumentPointerDown, true)
-    pointerListenerAttached = true
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = true;
   }
 }
 
 function detachOpenListeners(): void {
   if (viewportListenerAttached) {
-    window.removeEventListener('resize', handleViewportChange)
-    window.removeEventListener('scroll', handleViewportChange, true)
-    viewportListenerAttached = false
+    window.removeEventListener("resize", handleViewportChange);
+    window.removeEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = false;
   }
 
   if (pointerListenerAttached) {
-    document.removeEventListener('pointerdown', handleDocumentPointerDown, true)
-    pointerListenerAttached = false
+    document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = false;
   }
 }
 
 function openMenu(initialIndex?: number): void {
   if (props.disabled || !hasEnabledOption.value) {
-    return
+    return;
   }
 
-  isOpen.value = true
-  const selectedIndex = findSelectedIndex()
-  const fallbackIndex = selectedIndex >= 0 ? selectedIndex : findFirstEnabledIndex()
-  const nextIndex = initialIndex !== undefined && initialIndex >= 0 ? initialIndex : fallbackIndex
-  focusItem(nextIndex)
+  isOpen.value = true;
+  const selectedIndex = findSelectedIndex();
+  const fallbackIndex = selectedIndex >= 0 ? selectedIndex : findFirstEnabledIndex();
+  const nextIndex = initialIndex !== undefined && initialIndex >= 0 ? initialIndex : fallbackIndex;
+  focusItem(nextIndex);
 }
 
 function closeMenu(restoreFocus = false): void {
-  isOpen.value = false
-  activeIndex.value = -1
+  isOpen.value = false;
+  activeIndex.value = -1;
   if (restoreFocus) {
-    nextTick(() => {
-      triggerRef.value?.focus()
-    })
+    triggerRef.value?.focus();
   }
 }
 
 function emitChange(value: string): void {
-  emit('change', { target: { value } } as unknown as Event)
+  emit("change", { target: { value } } as unknown as Event);
 }
 
 function selectByIndex(index: number): void {
-  const option = flatOptions.value[index]
+  const option = flatOptions.value[index];
   if (!option || option.disabled || props.disabled) {
-    return
+    return;
   }
 
-  emitChange(option.value)
-  closeMenu(true)
+  emitChange(option.value);
+  closeMenu(true);
 }
 
 function onTriggerClick(): void {
   if (isOpen.value) {
-    closeMenu()
-    return
+    closeMenu();
+    return;
   }
 
-  openMenu()
+  openMenu();
 }
 
 function onTriggerKeydown(event: KeyboardEvent): void {
   if (props.disabled) {
-    return
+    return;
   }
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
     if (!isOpen.value) {
-      openMenu(findSelectedIndex())
-      return
+      openMenu(findSelectedIndex());
+      return;
     }
 
-    focusItem(findNextEnabledIndex(activeIndex.value, 1))
-    return
+    focusItem(findNextEnabledIndex(activeIndex.value, 1));
+    return;
   }
 
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
     if (!isOpen.value) {
-      openMenu(findSelectedIndex() >= 0 ? findSelectedIndex() : findLastEnabledIndex())
-      return
+      openMenu(findSelectedIndex() >= 0 ? findSelectedIndex() : findLastEnabledIndex());
+      return;
     }
 
-    focusItem(findNextEnabledIndex(activeIndex.value, -1))
-    return
+    focusItem(findNextEnabledIndex(activeIndex.value, -1));
+    return;
   }
 
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
     if (isOpen.value) {
       if (activeIndex.value >= 0) {
-        selectByIndex(activeIndex.value)
+        selectByIndex(activeIndex.value);
       } else {
-        closeMenu()
+        closeMenu();
       }
     } else {
-      openMenu()
+      openMenu();
     }
-    return
+    return;
   }
 
-  if (event.key === 'Escape' && isOpen.value) {
-    event.preventDefault()
-    closeMenu(true)
+  if (event.key === "Escape" && isOpen.value) {
+    event.preventDefault();
+    closeMenu(true);
   }
 }
 
 function onMenuKeydown(event: KeyboardEvent): void {
   if (!isOpen.value) {
-    return
+    return;
   }
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    focusItem(findNextEnabledIndex(activeIndex.value, 1))
-    return
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    focusItem(findNextEnabledIndex(activeIndex.value, 1));
+    return;
   }
 
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    focusItem(findNextEnabledIndex(activeIndex.value, -1))
-    return
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    focusItem(findNextEnabledIndex(activeIndex.value, -1));
+    return;
   }
 
-  if (event.key === 'Home') {
-    event.preventDefault()
-    focusItem(findFirstEnabledIndex())
-    return
+  if (event.key === "Home") {
+    event.preventDefault();
+    focusItem(findFirstEnabledIndex());
+    return;
   }
 
-  if (event.key === 'End') {
-    event.preventDefault()
-    focusItem(findLastEnabledIndex())
-    return
+  if (event.key === "End") {
+    event.preventDefault();
+    focusItem(findLastEnabledIndex());
+    return;
   }
 
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
     if (activeIndex.value >= 0) {
-      selectByIndex(activeIndex.value)
+      selectByIndex(activeIndex.value);
     }
-    return
+    return;
   }
 
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    closeMenu(true)
-    return
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeMenu(true);
+    return;
   }
 
-  if (event.key === 'Tab') {
-    closeMenu()
+  if (event.key === "Tab") {
+    closeMenu();
   }
 }
 
-watch(isOpen, (open) => {
-  if (open) {
-    attachOpenListeners()
-    schedulePopoverPosition()
-    return
-  }
+watch(
+  isOpen,
+  (open) => {
+    if (open) {
+      attachOpenListeners();
+      schedulePopoverPosition();
+      return;
+    }
 
-  if (rafId) {
-    cancelAnimationFrame(rafId)
-    rafId = 0
-  }
-  detachOpenListeners()
-})
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    detachOpenListeners();
+  },
+  { flush: "post" },
+);
 
 onBeforeUnmount(() => {
   if (rafId) {
-    cancelAnimationFrame(rafId)
+    cancelAnimationFrame(rafId);
   }
-  detachOpenListeners()
-})
+  detachOpenListeners();
+});
 </script>
 
 <template>

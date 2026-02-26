@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const {
-  type = 'button',
-  variant = 'text',
-  size = 'xs',
+  type = "button",
+  variant = "text",
+  size = "xs",
   iconOnly = false,
   disabled = false,
 } = defineProps<{
-  type?: 'button' | 'submit' | 'reset'
-  variant?: 'text' | 'ghost' | 'solid'
-  size?: 'xs' | 'sm'
-  iconOnly?: boolean
-  disabled?: boolean
-}>()
+  type?: "button" | "submit" | "reset";
+  variant?: "text" | "ghost" | "solid";
+  size?: "xs" | "sm";
+  iconOnly?: boolean;
+  disabled?: boolean;
+}>();
 </script>
 
 <template>

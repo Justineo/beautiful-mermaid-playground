@@ -1,116 +1,116 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { onClickOutside } from "@vueuse/core";
+import { computed, ref, watch } from "vue";
 
 type RgbaColor = {
-  r: number
-  g: number
-  b: number
-  a: number
-}
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+};
 
 type HsvColor = {
-  h: number
-  s: number
-  v: number
-}
+  h: number;
+  s: number;
+  v: number;
+};
 
 const {
   modelValue,
   disabled = false,
-  ariaLabel = 'Pick color',
-  size = 'md',
+  ariaLabel = "Pick color",
+  size = "md",
   allowAlpha = true,
 } = defineProps<{
-  modelValue: string
-  disabled?: boolean
-  ariaLabel?: string
-  size?: 'sm' | 'md'
-  allowAlpha?: boolean
-}>()
+  modelValue: string;
+  disabled?: boolean;
+  ariaLabel?: string;
+  size?: "sm" | "md";
+  allowAlpha?: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  "update:modelValue": [value: string];
+}>();
 
-const rootRef = ref<HTMLElement | null>(null)
-const svRef = ref<HTMLElement | null>(null)
-const isOpen = ref(false)
-const isDraggingSv = ref(false)
+const rootRef = ref<HTMLElement | null>(null);
+const svRef = ref<HTMLElement | null>(null);
+const isOpen = ref(false);
+const isDraggingSv = ref(false);
 
-const rgba = ref<RgbaColor>(parseColor(modelValue) ?? { r: 0, g: 0, b: 0, a: 1 })
-const hsv = ref<HsvColor>(rgbToHsv(rgba.value))
+const rgba = ref<RgbaColor>(parseColor(modelValue) ?? { r: 0, g: 0, b: 0, a: 1 });
+const hsv = ref<HsvColor>(rgbToHsv(rgba.value));
 
 const triggerStyle = computed(() => ({
   background: toCssRgba(rgba.value),
-}))
-const hueColor = computed(() => `hsl(${Math.round(hsv.value.h)} 100% 50%)`)
+}));
+const hueColor = computed(() => `hsl(${Math.round(hsv.value.h)} 100% 50%)`);
 const svCursorStyle = computed(() => ({
   left: `${Math.round(hsv.value.s * 100)}%`,
   top: `${Math.round((1 - hsv.value.v) * 100)}%`,
-}))
+}));
 const alphaTrackStyle = computed(() => ({
-  '--alpha-start': `rgba(${rgba.value.r}, ${rgba.value.g}, ${rgba.value.b}, 0)`,
-  '--alpha-end': `rgba(${rgba.value.r}, ${rgba.value.g}, ${rgba.value.b}, 1)`,
-}))
-const alphaInput = computed(() => Math.round(rgba.value.a * 100))
-const valueLabel = computed(() => formatOutputColor(rgba.value, allowAlpha))
-const valueInput = ref(valueLabel.value)
-const isValueEditing = ref(false)
+  "--alpha-start": `rgba(${rgba.value.r}, ${rgba.value.g}, ${rgba.value.b}, 0)`,
+  "--alpha-end": `rgba(${rgba.value.r}, ${rgba.value.g}, ${rgba.value.b}, 1)`,
+}));
+const alphaInput = computed(() => Math.round(rgba.value.a * 100));
+const valueLabel = computed(() => formatOutputColor(rgba.value, allowAlpha));
+const valueInput = ref(valueLabel.value);
+const isValueEditing = ref(false);
 
 watch(
   () => modelValue,
   (nextValue) => {
-    const parsed = parseColor(nextValue)
+    const parsed = parseColor(nextValue);
     if (!parsed) {
-      return
+      return;
     }
 
-    rgba.value = parsed
-    hsv.value = rgbToHsv(parsed)
+    rgba.value = parsed;
+    hsv.value = rgbToHsv(parsed);
   },
-)
+);
 
 watch(valueLabel, (nextValue) => {
   if (isValueEditing.value) {
-    return
+    return;
   }
 
-  valueInput.value = nextValue
-})
+  valueInput.value = nextValue;
+});
 
 onClickOutside(
   () => rootRef.value,
   () => {
-    isOpen.value = false
+    isOpen.value = false;
   },
-)
+);
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
+  return Math.max(min, Math.min(max, value));
 }
 
 function toHexByte(value: number): string {
   return Math.round(clamp(value, 0, 255))
     .toString(16)
-    .padStart(2, '0')
-    .toUpperCase()
+    .padStart(2, "0")
+    .toUpperCase();
 }
 
 function toCssRgba(color: RgbaColor): string {
-  return `rgba(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)}, ${clamp(color.a, 0, 1)})`
+  return `rgba(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)}, ${clamp(color.a, 0, 1)})`;
 }
 
 function parseHex(value: string): RgbaColor | null {
-  const normalized = value.trim().replace('#', '')
+  const normalized = value.trim().replace("#", "");
   if (!/^[\da-f]{3,4}$|^[\da-f]{6}$|^[\da-f]{8}$/iu.test(normalized)) {
-    return null
+    return null;
   }
 
   if (normalized.length === 3 || normalized.length === 4) {
-    const [r, g, b, a] = normalized.split('')
+    const [r, g, b, a] = normalized.split("");
     if (!r || !g || !b) {
-      return null
+      return null;
     }
 
     return {
@@ -118,101 +118,101 @@ function parseHex(value: string): RgbaColor | null {
       g: Number.parseInt(g + g, 16),
       b: Number.parseInt(b + b, 16),
       a: a ? Number.parseInt(a + a, 16) / 255 : 1,
-    }
+    };
   }
 
-  const hasAlpha = normalized.length === 8
+  const hasAlpha = normalized.length === 8;
   return {
     r: Number.parseInt(normalized.slice(0, 2), 16),
     g: Number.parseInt(normalized.slice(2, 4), 16),
     b: Number.parseInt(normalized.slice(4, 6), 16),
     a: hasAlpha ? Number.parseInt(normalized.slice(6, 8), 16) / 255 : 1,
-  }
+  };
 }
 
 function parseRgbFunction(value: string): RgbaColor | null {
   const rgbRegex =
-    /^rgba?\(\s*(-?\d+)\s*[, ]\s*(-?\d+)\s*[, ]\s*(-?\d+)(?:\s*[,/]\s*(\d*\.?\d+)\s*)?\)$/iu
-  const matched = value.trim().match(rgbRegex)
+    /^rgba?\(\s*(-?\d+)\s*[, ]\s*(-?\d+)\s*[, ]\s*(-?\d+)(?:\s*[,/]\s*(\d*\.?\d+)\s*)?\)$/iu;
+  const matched = value.trim().match(rgbRegex);
   if (!matched) {
-    return null
+    return null;
   }
 
-  const r = Number.parseFloat(matched[1] ?? '0')
-  const g = Number.parseFloat(matched[2] ?? '0')
-  const b = Number.parseFloat(matched[3] ?? '0')
-  const alpha = Number.parseFloat(matched[4] ?? '1')
+  const r = Number.parseFloat(matched[1] ?? "0");
+  const g = Number.parseFloat(matched[2] ?? "0");
+  const b = Number.parseFloat(matched[3] ?? "0");
+  const alpha = Number.parseFloat(matched[4] ?? "1");
 
   return {
     r: clamp(r, 0, 255),
     g: clamp(g, 0, 255),
     b: clamp(b, 0, 255),
     a: Number.isFinite(alpha) ? clamp(alpha, 0, 1) : 1,
-  }
+  };
 }
 
 function parseColor(value: string): RgbaColor | null {
-  return parseHex(value) ?? parseRgbFunction(value)
+  return parseHex(value) ?? parseRgbFunction(value);
 }
 
 function formatOutputColor(color: RgbaColor, withAlpha: boolean): string {
-  const alpha = clamp(color.a, 0, 1)
+  const alpha = clamp(color.a, 0, 1);
   if (!withAlpha || alpha >= 0.999) {
-    return `#${toHexByte(color.r)}${toHexByte(color.g)}${toHexByte(color.b)}`
+    return `#${toHexByte(color.r)}${toHexByte(color.g)}${toHexByte(color.b)}`;
   }
 
-  return `#${toHexByte(color.r)}${toHexByte(color.g)}${toHexByte(color.b)}${toHexByte(alpha * 255)}`
+  return `#${toHexByte(color.r)}${toHexByte(color.g)}${toHexByte(color.b)}${toHexByte(alpha * 255)}`;
 }
 
 function rgbToHsv(color: RgbaColor): HsvColor {
-  const r = clamp(color.r, 0, 255) / 255
-  const g = clamp(color.g, 0, 255) / 255
-  const b = clamp(color.b, 0, 255) / 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const delta = max - min
+  const r = clamp(color.r, 0, 255) / 255;
+  const g = clamp(color.g, 0, 255) / 255;
+  const b = clamp(color.b, 0, 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
 
-  let h = 0
+  let h = 0;
   if (delta !== 0) {
     if (max === r) {
-      h = ((g - b) / delta) % 6
+      h = ((g - b) / delta) % 6;
     } else if (max === g) {
-      h = (b - r) / delta + 2
+      h = (b - r) / delta + 2;
     } else {
-      h = (r - g) / delta + 4
+      h = (r - g) / delta + 4;
     }
-    h *= 60
+    h *= 60;
     if (h < 0) {
-      h += 360
+      h += 360;
     }
   }
 
-  const s = max === 0 ? 0 : delta / max
-  const v = max
-  return { h, s, v }
+  const s = max === 0 ? 0 : delta / max;
+  const v = max;
+  return { h, s, v };
 }
 
 function hsvToRgb(color: HsvColor, alpha: number): RgbaColor {
-  const h = ((color.h % 360) + 360) % 360
-  const s = clamp(color.s, 0, 1)
-  const v = clamp(color.v, 0, 1)
-  const chroma = v * s
-  const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1))
-  const m = v - chroma
+  const h = ((color.h % 360) + 360) % 360;
+  const s = clamp(color.s, 0, 1);
+  const v = clamp(color.v, 0, 1);
+  const chroma = v * s;
+  const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - chroma;
 
-  let rgbPrime: [number, number, number] = [0, 0, 0]
+  let rgbPrime: [number, number, number] = [0, 0, 0];
   if (h < 60) {
-    rgbPrime = [chroma, x, 0]
+    rgbPrime = [chroma, x, 0];
   } else if (h < 120) {
-    rgbPrime = [x, chroma, 0]
+    rgbPrime = [x, chroma, 0];
   } else if (h < 180) {
-    rgbPrime = [0, chroma, x]
+    rgbPrime = [0, chroma, x];
   } else if (h < 240) {
-    rgbPrime = [0, x, chroma]
+    rgbPrime = [0, x, chroma];
   } else if (h < 300) {
-    rgbPrime = [x, 0, chroma]
+    rgbPrime = [x, 0, chroma];
   } else {
-    rgbPrime = [chroma, 0, x]
+    rgbPrime = [chroma, 0, x];
   }
 
   return {
@@ -220,7 +220,7 @@ function hsvToRgb(color: HsvColor, alpha: number): RgbaColor {
     g: Math.round((rgbPrime[1] + m) * 255),
     b: Math.round((rgbPrime[2] + m) * 255),
     a: clamp(alpha, 0, 1),
-  }
+  };
 }
 
 function emitColor(nextRgba: RgbaColor): void {
@@ -229,176 +229,176 @@ function emitColor(nextRgba: RgbaColor): void {
     g: clamp(nextRgba.g, 0, 255),
     b: clamp(nextRgba.b, 0, 255),
     a: allowAlpha ? clamp(nextRgba.a, 0, 1) : 1,
-  }
+  };
 
-  rgba.value = normalized
-  hsv.value = rgbToHsv(normalized)
-  emit('update:modelValue', formatOutputColor(normalized, allowAlpha))
+  rgba.value = normalized;
+  hsv.value = rgbToHsv(normalized);
+  emit("update:modelValue", formatOutputColor(normalized, allowAlpha));
 }
 
 function updateSvFromPointer(event: PointerEvent): void {
-  const area = svRef.value
+  const area = svRef.value;
   if (!area) {
-    return
+    return;
   }
 
-  const rect = area.getBoundingClientRect()
+  const rect = area.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) {
-    return
+    return;
   }
 
-  const s = clamp((event.clientX - rect.left) / rect.width, 0, 1)
-  const v = clamp(1 - (event.clientY - rect.top) / rect.height, 0, 1)
+  const s = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+  const v = clamp(1 - (event.clientY - rect.top) / rect.height, 0, 1);
   const nextHsv: HsvColor = {
     ...hsv.value,
     s,
     v,
-  }
-  emitColor(hsvToRgb(nextHsv, rgba.value.a))
+  };
+  emitColor(hsvToRgb(nextHsv, rgba.value.a));
 }
 
 function onSvPointerDown(event: PointerEvent): void {
   if (disabled) {
-    return
+    return;
   }
 
-  isDraggingSv.value = true
-  svRef.value?.setPointerCapture(event.pointerId)
-  updateSvFromPointer(event)
+  isDraggingSv.value = true;
+  svRef.value?.setPointerCapture(event.pointerId);
+  updateSvFromPointer(event);
 }
 
 function onSvPointerMove(event: PointerEvent): void {
   if (!isDraggingSv.value) {
-    return
+    return;
   }
 
-  updateSvFromPointer(event)
+  updateSvFromPointer(event);
 }
 
 function onSvPointerUp(event: PointerEvent): void {
   if (!isDraggingSv.value) {
-    return
+    return;
   }
 
-  isDraggingSv.value = false
-  svRef.value?.releasePointerCapture(event.pointerId)
+  isDraggingSv.value = false;
+  svRef.value?.releasePointerCapture(event.pointerId);
 }
 
 function onHueInput(event: Event): void {
-  const value = Number((event.target as HTMLInputElement).value)
+  const value = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(value)) {
-    return
+    return;
   }
 
   const nextHsv: HsvColor = {
     ...hsv.value,
     h: clamp(value, 0, 359),
-  }
-  emitColor(hsvToRgb(nextHsv, rgba.value.a))
+  };
+  emitColor(hsvToRgb(nextHsv, rgba.value.a));
 }
 
 function onAlphaInput(event: Event): void {
-  const value = Number((event.target as HTMLInputElement).value)
+  const value = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(value)) {
-    return
+    return;
   }
 
   emitColor({
     ...rgba.value,
     a: clamp(value / 100, 0, 1),
-  })
+  });
 }
 
-function onRgbInput(channel: 'r' | 'g' | 'b', event: Event): void {
-  const value = Number((event.target as HTMLInputElement).value)
+function onRgbInput(channel: "r" | "g" | "b", event: Event): void {
+  const value = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(value)) {
-    return
+    return;
   }
 
   emitColor({
     ...rgba.value,
     [channel]: clamp(value, 0, 255),
-  })
+  });
 }
 
 function onAlphaNumberInput(event: Event): void {
-  const value = Number((event.target as HTMLInputElement).value)
+  const value = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(value)) {
-    return
+    return;
   }
 
   emitColor({
     ...rgba.value,
     a: clamp(value / 100, 0, 1),
-  })
+  });
 }
 
 function rollbackValueInput(): void {
-  isValueEditing.value = false
-  valueInput.value = valueLabel.value
+  isValueEditing.value = false;
+  valueInput.value = valueLabel.value;
 }
 
 function commitValueInput(): void {
-  const parsed = parseHex(valueInput.value)
+  const parsed = parseHex(valueInput.value);
   if (!parsed) {
-    rollbackValueInput()
-    return
+    rollbackValueInput();
+    return;
   }
 
-  isValueEditing.value = false
-  emitColor(parsed)
+  isValueEditing.value = false;
+  emitColor(parsed);
 }
 
 function onValueInput(event: Event): void {
-  valueInput.value = (event.target as HTMLInputElement).value
+  valueInput.value = (event.target as HTMLInputElement).value;
 }
 
 function onValueFocus(): void {
-  isValueEditing.value = true
+  isValueEditing.value = true;
 }
 
 function onValueBlur(): void {
   if (!isValueEditing.value) {
-    return
+    return;
   }
 
-  commitValueInput()
+  commitValueInput();
 }
 
 function onValueChange(): void {
   if (!isValueEditing.value) {
-    return
+    return;
   }
 
-  commitValueInput()
+  commitValueInput();
 }
 
 function onValueKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    commitValueInput()
-    ;(event.target as HTMLInputElement).blur()
-    return
+  if (event.key === "Enter") {
+    event.preventDefault();
+    commitValueInput();
+    (event.target as HTMLInputElement).blur();
+    return;
   }
 
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    rollbackValueInput()
-    ;(event.target as HTMLInputElement).blur()
+  if (event.key === "Escape") {
+    event.preventDefault();
+    rollbackValueInput();
+    (event.target as HTMLInputElement).blur();
   }
 }
 
 function onTriggerClick(): void {
   if (disabled) {
-    return
+    return;
   }
 
-  isOpen.value = !isOpen.value
+  isOpen.value = !isOpen.value;
 }
 
 function onRootKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') {
-    isOpen.value = false
+  if (event.key === "Escape") {
+    isOpen.value = false;
   }
 }
 </script>
@@ -750,7 +750,7 @@ function onRootKeydown(event: KeyboardEvent): void {
   border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
   background: color-mix(in srgb, var(--surface) 98%, var(--surface-muted));
   color: var(--text-secondary);
-  font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+  font-family: "JetBrains Mono", "Geist Mono", monospace;
   font-size: calc(var(--fs-control) - 0.02rem);
   line-height: 1.2;
   letter-spacing: 0;

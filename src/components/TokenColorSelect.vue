@@ -1,151 +1,151 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import BaseColorPicker from '@/components/BaseColorPicker.vue'
-import BaseSelect from '@/components/BaseSelect.vue'
+import { computed } from "vue";
+import BaseColorPicker from "@/components/BaseColorPicker.vue";
+import BaseSelect from "@/components/BaseSelect.vue";
 
 export type TokenColorOption = {
-  label: string
-  value: string
-  isToken?: boolean
-  group?: 'mode' | 'token'
-  disabled?: boolean
-}
+  label: string;
+  value: string;
+  isToken?: boolean;
+  group?: "mode" | "token";
+  disabled?: boolean;
+};
 
 const {
   modelValue,
   options,
-  customValue = '#000000',
-  customValueKey = 'custom',
-  defaultValueKey = 'default',
-  transparentValueKey = 'transparent',
+  customValue = "#000000",
+  customValueKey = "custom",
+  defaultValueKey = "default",
+  transparentValueKey = "transparent",
   disabled = false,
   swatchColorForValue,
 } = defineProps<{
-  modelValue: string
-  options: TokenColorOption[]
-  customValue?: string
-  customValueKey?: string
-  defaultValueKey?: string
-  transparentValueKey?: string
-  disabled?: boolean
-  swatchColorForValue: (value: string) => string | null | undefined
-}>()
+  modelValue: string;
+  options: TokenColorOption[];
+  customValue?: string;
+  customValueKey?: string;
+  defaultValueKey?: string;
+  transparentValueKey?: string;
+  disabled?: boolean;
+  swatchColorForValue: (value: string) => string | null | undefined;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'update:customValue': [value: string]
-}>()
+  "update:modelValue": [value: string];
+  "update:customValue": [value: string];
+}>();
 
 const tokenValues = computed(() => {
-  const values = new Set<string>()
+  const values = new Set<string>();
   for (const option of options) {
     if (option.isToken) {
-      values.add(option.value)
+      values.add(option.value);
     }
   }
-  return values
-})
+  return values;
+});
 
-const showCustomColorInput = computed(() => modelValue === customValueKey)
+const showCustomColorInput = computed(() => modelValue === customValueKey);
 const groupedOptions = computed(() => {
-  const groups = new Map<string, TokenColorOption[]>()
+  const groups = new Map<string, TokenColorOption[]>();
 
   for (const option of options) {
-    const key = option.group ?? 'default'
-    const existing = groups.get(key)
+    const key = option.group ?? "default";
+    const existing = groups.get(key);
     if (existing) {
-      existing.push(option)
-      continue
+      existing.push(option);
+      continue;
     }
 
-    groups.set(key, [option])
+    groups.set(key, [option]);
   }
 
   return Array.from(groups.entries()).map(([key, items]) => ({
     id: key,
     options: items,
-  }))
-})
+  }));
+});
 
 function getSelectValue(event: Event): string {
-  return (event.target as HTMLSelectElement).value
+  return (event.target as HTMLSelectElement).value;
 }
 
 function onValueChange(event: Event): void {
-  const nextValue = getSelectValue(event)
-  emit('update:modelValue', nextValue)
+  const nextValue = getSelectValue(event);
+  emit("update:modelValue", nextValue);
 
   if (nextValue !== defaultValueKey) {
-    return
+    return;
   }
 
-  const resetColor = normalizeHexColor(swatchColorForValue(defaultValueKey))
+  const resetColor = normalizeHexColor(swatchColorForValue(defaultValueKey));
   if (!resetColor) {
-    return
+    return;
   }
 
-  emit('update:customValue', resetColor)
+  emit("update:customValue", resetColor);
 }
 
 function onCustomColorInput(value: string): void {
-  emit('update:customValue', value)
+  emit("update:customValue", value);
 }
 
 function isTokenValue(value: string | null | undefined): boolean {
   if (!value) {
-    return false
+    return false;
   }
 
-  return tokenValues.value.has(value)
+  return tokenValues.value.has(value);
 }
 
 function isTransparentValue(value: string | null | undefined): boolean {
-  return value === transparentValueKey
+  return value === transparentValueKey;
 }
 
 function getSwatchStyle(value: string | null | undefined): Record<string, string> {
   if (!value || isTransparentValue(value)) {
-    return {}
+    return {};
   }
 
-  const color = swatchColorForValue(value)
-  if (!color || color === 'transparent') {
-    return {}
+  const color = swatchColorForValue(value);
+  if (!color || color === "transparent") {
+    return {};
   }
 
   return {
     background: color,
-  }
+  };
 }
 
 function getSelectedText(value: string | null | undefined, fallbackLabel: string): string {
   if (value !== customValueKey) {
-    return fallbackLabel
+    return fallbackLabel;
   }
 
-  return customValue.trim().toUpperCase()
+  return customValue.trim().toUpperCase();
 }
 
 function normalizeHexColor(value: string | null | undefined): string | null {
   if (!value) {
-    return null
+    return null;
   }
 
-  const normalized = value.trim()
+  const normalized = value.trim();
   if (/^#[\da-f]{6}$/iu.test(normalized) || /^#[\da-f]{8}$/iu.test(normalized)) {
-    return normalized.toUpperCase()
+    return normalized.toUpperCase();
   }
 
   if (!/^#[\da-f]{3}$/iu.test(normalized) && !/^#[\da-f]{4}$/iu.test(normalized)) {
-    return null
+    return null;
   }
 
-  const [r, g, b, a] = normalized.slice(1).split('')
+  const [r, g, b, a] = normalized.slice(1).split("");
   if (!r || !g || !b) {
-    return null
+    return null;
   }
 
-  return `#${r}${r}${g}${g}${b}${b}${a ? a + a : ''}`.toUpperCase()
+  return `#${r}${r}${g}${g}${b}${b}${a ? a + a : ""}`.toUpperCase();
 }
 </script>
 
@@ -204,7 +204,8 @@ function normalizeHexColor(value: string | null | undefined): string | null {
 
 <style scoped>
 .token-color-select {
-  width: clamp(108px, 14vw, 156px);
+  width: 156px;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   justify-self: end;
@@ -279,7 +280,7 @@ function normalizeHexColor(value: string | null | undefined): string | null {
 }
 
 .token-key {
-  font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+  font-family: "JetBrains Mono", "Geist Mono", monospace;
   font-size: calc(var(--fs-meta) - 0.01rem);
   letter-spacing: 0;
   text-transform: none;

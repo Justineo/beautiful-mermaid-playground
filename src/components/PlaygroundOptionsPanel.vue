@@ -1926,7 +1926,8 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
 .setting-row input[type="number"],
 .setting-row input[type="text"],
 .setting-row input[type="url"] {
-  width: clamp(108px, 14vw, 156px);
+  width: 156px;
+  max-width: 100%;
   justify-self: end;
 }
 
@@ -2037,7 +2038,8 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   .setting-row input[type="number"],
   .setting-row input[type="text"],
   .setting-row input[type="url"] {
-    width: clamp(156px, 48vw, 220px);
+    width: 156px;
+    max-width: 100%;
   }
 
   .options-panel input[type="number"] {

@@ -177,11 +177,13 @@ function onPanelSelect(key: string): void {
 }
 
 .control-sample .ui-select-control {
-  width: clamp(128px, 18vw, 200px);
+  width: 176px;
+  max-width: 100%;
 }
 
 .control-theme .ui-select-control {
   width: 148px;
+  max-width: 100%;
 }
 
 .toolbar-panels {
@@ -223,11 +225,13 @@ function onPanelSelect(key: string): void {
   }
 
   .control-sample .ui-select-control {
-    width: clamp(124px, 52vw, 196px);
+    width: 176px;
+    max-width: 100%;
   }
 
   .control-theme .ui-select-control {
-    width: clamp(120px, 36vw, 180px);
+    width: 148px;
+    max-width: 100%;
   }
 
   .panel-toggles {
