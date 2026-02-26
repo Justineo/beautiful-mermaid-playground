@@ -46,8 +46,8 @@ jobs:
       - name: Validate
         run: |
           pnpm lint
-          pnpm type-check
-          pnpm build-only
+          pnpm type-check:raw
+          pnpm build-only:raw
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
@@ -66,4 +66,5 @@ jobs:
             package.json
             pnpm-lock.yaml
             src/generated/beautifulThemes.ts
+            src/generated/unofficialThemes.ts
             src/data/officialSamples.ts

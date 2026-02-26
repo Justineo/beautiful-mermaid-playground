@@ -30,11 +30,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate themes
+        run: pnpm generate:themes
+
       - name: Lint
         run: pnpm lint
 
       - name: Type check
-        run: pnpm type-check
+        run: pnpm type-check:raw
 
       - name: Build
-        run: pnpm build-only
+        run: pnpm build-only:raw
