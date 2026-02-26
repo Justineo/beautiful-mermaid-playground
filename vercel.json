@@ -5,12 +5,6 @@
       "has": [{ "type": "host", "value": "beautiful-mermaid.dev" }],
       "destination": "https://agents.craft.do/mermaid",
       "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.beautiful-mermaid.dev" }],
-      "destination": "https://agents.craft.do/mermaid",
-      "permanent": true
     }
   ]
 }
