@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref, watch } from "vue";
 import {
   BORDER_PATTERN_OPTIONS,
   BORDER_WEIGHT_OPTIONS,
@@ -34,71 +34,61 @@ import {
   type SubgraphStylePreset,
   type MonoFont,
   type ThemeToken,
-} from '@/types/playground'
-import { parseGoogleFontsInput } from '@/utils/googleFonts'
+} from "@/types/playground";
+import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
+import { parseGoogleFontsInput } from "@/utils/googleFonts";
 
-const STORAGE_KEY = 'beautiful-mermaid-playground'
+const STORAGE_KEY = "beautiful-mermaid-playground";
 
-const DEFAULT_CODE = `stateDiagram-v2
-    direction LR
-    [*] --> Input
-    Input --> Parse: DSL
-    Parse --> Layout: AST
-    Layout --> SVG: Vector
-    Layout --> ASCII: Text
-    SVG --> Theme
-    ASCII --> Theme
-    Theme --> Output
-    Output --> [*]
-`
+const DEFAULT_CODE = OFFICIAL_SAMPLES.find((sample) => sample.category === "Basic")?.source ?? "";
 
 const DEFAULT_ELEMENT_COLORS: ElementColorConfig = {
-  text: { source: 'default', token: 'fg', custom: '#111111' },
-  secondaryText: { source: 'default', token: 'muted', custom: '#6b7280' },
-  edgeLabels: { source: 'default', token: 'muted', custom: '#6b7280' },
-  faintText: { source: 'default', token: 'muted', custom: '#9ca3af' },
-  connectors: { source: 'default', token: 'line', custom: '#3b82f6' },
-  nodeFill: { source: 'default', token: 'surface', custom: '#f8fafc' },
-  groupHeader: { source: 'default', token: 'surface', custom: '#f1f5f9' },
-  innerStrokes: { source: 'default', token: 'border', custom: '#d4d4d8' },
-  nodeStroke: { source: 'default', token: 'border', custom: '#d4d4d8' },
-}
+  text: { source: "default", token: "fg", custom: "#111111" },
+  secondaryText: { source: "default", token: "muted", custom: "#6b7280" },
+  edgeLabels: { source: "default", token: "muted", custom: "#6b7280" },
+  faintText: { source: "default", token: "muted", custom: "#9ca3af" },
+  connectors: { source: "default", token: "line", custom: "#3b82f6" },
+  nodeFill: { source: "default", token: "surface", custom: "#f8fafc" },
+  groupHeader: { source: "default", token: "surface", custom: "#f1f5f9" },
+  innerStrokes: { source: "default", token: "border", custom: "#d4d4d8" },
+  nodeStroke: { source: "default", token: "border", custom: "#d4d4d8" },
+};
 
 const DEFAULT_STATE: PlaygroundState = {
   code: DEFAULT_CODE,
   config: {
-    outputMode: 'svg',
-    diagramTheme: 'zinc-light',
+    outputMode: "svg",
+    diagramTheme: "zinc-light",
     useCustomBg: false,
-    customBg: '#ffffff',
+    customBg: "#ffffff",
     useCustomFg: false,
-    customFg: '#111111',
+    customFg: "#111111",
     useCustomLine: false,
-    customLine: '#3b82f6',
+    customLine: "#3b82f6",
     useCustomAccent: false,
-    customAccent: '#111111',
+    customAccent: "#111111",
     useCustomMuted: false,
-    customMuted: '#6b7280',
+    customMuted: "#6b7280",
     useCustomSurface: false,
-    customSurface: '#f8fafc',
+    customSurface: "#f8fafc",
     useCustomBorder: false,
-    customBorder: '#d4d4d8',
+    customBorder: "#d4d4d8",
     elementColors: structuredClone(DEFAULT_ELEMENT_COLORS),
-    baseFont: 'Inter',
-    customBaseFontUrl: '',
-    customBaseFontFamily: '',
-    monoFont: 'JetBrains Mono',
-    customMonoFontUrl: '',
-    customMonoFontFamily: '',
-    directionOverride: 'default',
-    subgraphStyle: 'soft',
-    lineGeometry: 'default',
-    cornerStyle: 'default',
-    edgeLabelStyle: 'subtle',
-    edgePattern: 'default',
-    edgeWeight: 'default',
-    borderPattern: 'default',
-    borderWeight: 'default',
+    baseFont: "Inter",
+    customBaseFontUrl: "",
+    customBaseFontFamily: "",
+    monoFont: "JetBrains Mono",
+    customMonoFontUrl: "",
+    customMonoFontFamily: "",
+    directionOverride: "default",
+    subgraphStyle: "soft",
+    lineGeometry: "default",
+    cornerStyle: "default",
+    edgeLabelStyle: "subtle",
+    edgePattern: "default",
+    edgeWeight: "default",
+    borderPattern: "default",
+    borderWeight: "default",
     transparent: true,
     padding: 40,
     nodeSpacing: 24,
@@ -112,238 +102,238 @@ const DEFAULT_STATE: PlaygroundState = {
     editor: true,
     preview: true,
   },
-  mobilePane: 'editor',
-}
+  mobilePane: "editor",
+};
 
 const diagramThemeSet = new Set<DiagramTheme>(
   DIAGRAM_THEME_OPTIONS.map((themeOption) => themeOption.value),
-)
+);
 const outputModeSet = new Set<RenderOutputMode>(
   RENDER_OUTPUT_MODE_OPTIONS.map((outputModeOption) => outputModeOption.value),
-)
-const baseFontSet = new Set<BaseFont>(BASE_FONT_OPTIONS.map((fontOption) => fontOption.value))
-const monoFontSet = new Set<MonoFont>(MONO_FONT_OPTIONS.map((fontOption) => fontOption.value))
+);
+const baseFontSet = new Set<BaseFont>(BASE_FONT_OPTIONS.map((fontOption) => fontOption.value));
+const monoFontSet = new Set<MonoFont>(MONO_FONT_OPTIONS.map((fontOption) => fontOption.value));
 const directionSet = new Set<DirectionOverride>(
   DIRECTION_OPTIONS.map((directionOption) => directionOption.value),
-)
+);
 const edgeWeightSet = new Set<EdgeWeight>(
   EDGE_WEIGHT_OPTIONS.map((weightOption) => weightOption.value),
-)
+);
 const subgraphStyleSet = new Set<SubgraphStylePreset>(
   SUBGRAPH_STYLE_OPTIONS.map((styleOption) => styleOption.value),
-)
+);
 const lineGeometrySet = new Set<LineGeometry>(
   LINE_GEOMETRY_OPTIONS.map((lineOption) => lineOption.value),
-)
+);
 const cornerStyleSet = new Set<CornerStyle>(
   CORNER_STYLE_OPTIONS.map((cornerOption) => cornerOption.value),
-)
+);
 const edgeLabelStyleSet = new Set<EdgeLabelStylePreset>(
   EDGE_LABEL_STYLE_OPTIONS.map((shapeOption) => shapeOption.value),
-)
+);
 const strokePatternSet = new Set<StrokePattern>(
   STROKE_PATTERN_OPTIONS.map((patternOption) => patternOption.value),
-)
+);
 const borderPatternSet = new Set<BorderPattern>(
   BORDER_PATTERN_OPTIONS.map((patternOption) => patternOption.value),
-)
+);
 const borderWeightSet = new Set<BorderWeight>(
   BORDER_WEIGHT_OPTIONS.map((weightOption) => weightOption.value),
-)
+);
 
-const elementColorSourceSet = new Set<ElementColorSource>(['default', 'token', 'custom', 'none'])
+const elementColorSourceSet = new Set<ElementColorSource>(["default", "token", "custom", "none"]);
 const themeTokenSet = new Set<ThemeToken>([
-  'bg',
-  'fg',
-  'line',
-  'accent',
-  'muted',
-  'surface',
-  'border',
-])
+  "bg",
+  "fg",
+  "line",
+  "accent",
+  "muted",
+  "surface",
+  "border",
+]);
 const elementRoleSupportMap = Object.fromEntries(
   ELEMENT_COLOR_ROLES.map((item) => [item.role, item.supportsNone]),
-) as Record<ElementColorRole, boolean>
+) as Record<ElementColorRole, boolean>;
 
 function isDiagramTheme(value: unknown): value is DiagramTheme {
-  return typeof value === 'string' && diagramThemeSet.has(value as DiagramTheme)
+  return typeof value === "string" && diagramThemeSet.has(value as DiagramTheme);
 }
 
 function isDirectionOverride(value: unknown): value is DirectionOverride {
-  return typeof value === 'string' && directionSet.has(value as DirectionOverride)
+  return typeof value === "string" && directionSet.has(value as DirectionOverride);
 }
 
 function isRenderOutputMode(value: unknown): value is RenderOutputMode {
-  return typeof value === 'string' && outputModeSet.has(value as RenderOutputMode)
+  return typeof value === "string" && outputModeSet.has(value as RenderOutputMode);
 }
 
 function isBaseFont(value: unknown): value is BaseFont {
-  return typeof value === 'string' && baseFontSet.has(value as BaseFont)
+  return typeof value === "string" && baseFontSet.has(value as BaseFont);
 }
 
 function isMonoFont(value: unknown): value is MonoFont {
-  return typeof value === 'string' && monoFontSet.has(value as MonoFont)
+  return typeof value === "string" && monoFontSet.has(value as MonoFont);
 }
 
 function isEdgeWeight(value: unknown): value is EdgeWeight {
-  return typeof value === 'string' && edgeWeightSet.has(value as EdgeWeight)
+  return typeof value === "string" && edgeWeightSet.has(value as EdgeWeight);
 }
 
 function isSubgraphStyle(value: unknown): value is SubgraphStylePreset {
-  return typeof value === 'string' && subgraphStyleSet.has(value as SubgraphStylePreset)
+  return typeof value === "string" && subgraphStyleSet.has(value as SubgraphStylePreset);
 }
 
 function isLineGeometry(value: unknown): value is LineGeometry {
-  return typeof value === 'string' && lineGeometrySet.has(value as LineGeometry)
+  return typeof value === "string" && lineGeometrySet.has(value as LineGeometry);
 }
 
 function isCornerStyle(value: unknown): value is CornerStyle {
-  return typeof value === 'string' && cornerStyleSet.has(value as CornerStyle)
+  return typeof value === "string" && cornerStyleSet.has(value as CornerStyle);
 }
 
 function isEdgeLabelStyle(value: unknown): value is EdgeLabelStylePreset {
-  return typeof value === 'string' && edgeLabelStyleSet.has(value as EdgeLabelStylePreset)
+  return typeof value === "string" && edgeLabelStyleSet.has(value as EdgeLabelStylePreset);
 }
 
 function isStrokePattern(value: unknown): value is StrokePattern {
-  return typeof value === 'string' && strokePatternSet.has(value as StrokePattern)
+  return typeof value === "string" && strokePatternSet.has(value as StrokePattern);
 }
 
 function isBorderPattern(value: unknown): value is BorderPattern {
-  return typeof value === 'string' && borderPatternSet.has(value as BorderPattern)
+  return typeof value === "string" && borderPatternSet.has(value as BorderPattern);
 }
 
 function isBorderWeight(value: unknown): value is BorderWeight {
-  return typeof value === 'string' && borderWeightSet.has(value as BorderWeight)
+  return typeof value === "string" && borderWeightSet.has(value as BorderWeight);
 }
 
 function isMobilePane(value: unknown): value is ActiveMobilePane {
-  return value === 'options' || value === 'editor' || value === 'preview'
+  return value === "options" || value === "editor" || value === "preview";
 }
 
 function isElementColorSource(value: unknown): value is ElementColorSource {
-  return typeof value === 'string' && elementColorSourceSet.has(value as ElementColorSource)
+  return typeof value === "string" && elementColorSourceSet.has(value as ElementColorSource);
 }
 
 function isThemeToken(value: unknown): value is ThemeToken {
-  return typeof value === 'string' && themeTokenSet.has(value as ThemeToken)
+  return typeof value === "string" && themeTokenSet.has(value as ThemeToken);
 }
 
-function sanitizeDesktopPanes(source: unknown): PlaygroundState['desktopPanes'] {
-  if (!source || typeof source !== 'object') {
-    return structuredClone(DEFAULT_STATE.desktopPanes)
+function sanitizeDesktopPanes(source: unknown): PlaygroundState["desktopPanes"] {
+  if (!source || typeof source !== "object") {
+    return structuredClone(DEFAULT_STATE.desktopPanes);
   }
 
-  const raw = source as Partial<PlaygroundState['desktopPanes']>
+  const raw = source as Partial<PlaygroundState["desktopPanes"]>;
   const next = {
-    options: typeof raw.options === 'boolean' ? raw.options : DEFAULT_STATE.desktopPanes.options,
-    editor: typeof raw.editor === 'boolean' ? raw.editor : DEFAULT_STATE.desktopPanes.editor,
-    preview: typeof raw.preview === 'boolean' ? raw.preview : DEFAULT_STATE.desktopPanes.preview,
-  }
+    options: typeof raw.options === "boolean" ? raw.options : DEFAULT_STATE.desktopPanes.options,
+    editor: typeof raw.editor === "boolean" ? raw.editor : DEFAULT_STATE.desktopPanes.editor,
+    preview: typeof raw.preview === "boolean" ? raw.preview : DEFAULT_STATE.desktopPanes.preview,
+  };
 
   if (!next.options && !next.editor && !next.preview) {
-    return structuredClone(DEFAULT_STATE.desktopPanes)
+    return structuredClone(DEFAULT_STATE.desktopPanes);
   }
 
-  return next
+  return next;
 }
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
+  return Math.max(min, Math.min(max, value));
 }
 
 function sanitizeNumber(value: unknown, fallback: number, min: number, max: number): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return fallback
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
   }
 
-  return clamp(Math.round(value), min, max)
+  return clamp(Math.round(value), min, max);
 }
 
 function sanitizeHexColor(value: unknown, fallback: string): string {
-  if (typeof value !== 'string') {
-    return fallback
+  if (typeof value !== "string") {
+    return fallback;
   }
 
-  const normalized = value.trim()
+  const normalized = value.trim();
   if (
     /^#[\da-f]{6}$/i.test(normalized) ||
     /^#[\da-f]{3}$/i.test(normalized) ||
     /^#[\da-f]{8}$/i.test(normalized) ||
     /^#[\da-f]{4}$/i.test(normalized)
   ) {
-    return normalized
+    return normalized;
   }
 
-  return fallback
+  return fallback;
 }
 
-function sanitizeFontFamily(value: unknown, fallback = ''): string {
-  if (typeof value !== 'string') {
-    return fallback
+function sanitizeFontFamily(value: unknown, fallback = ""): string {
+  if (typeof value !== "string") {
+    return fallback;
   }
 
-  const trimmed = value.trim().replace(/"/g, '')
+  const trimmed = value.trim().replace(/"/g, "");
   if (!trimmed) {
-    return fallback
+    return fallback;
   }
 
-  return trimmed.slice(0, 120)
+  return trimmed.slice(0, 120);
 }
 
 function sanitizeElementColorRule(role: ElementColorRole, source: unknown): ElementColorRule {
-  const fallback = DEFAULT_ELEMENT_COLORS[role]
-  if (!source || typeof source !== 'object') {
-    return { ...fallback }
+  const fallback = DEFAULT_ELEMENT_COLORS[role];
+  if (!source || typeof source !== "object") {
+    return { ...fallback };
   }
 
-  const raw = source as Partial<ElementColorRule>
-  const supportsNone = elementRoleSupportMap[role]
+  const raw = source as Partial<ElementColorRule>;
+  const supportsNone = elementRoleSupportMap[role];
 
-  let nextSource = isElementColorSource(raw.source) ? raw.source : fallback.source
-  if (nextSource === 'none' && !supportsNone) {
-    nextSource = 'default'
+  let nextSource = isElementColorSource(raw.source) ? raw.source : fallback.source;
+  if (nextSource === "none" && !supportsNone) {
+    nextSource = "default";
   }
 
   return {
     source: nextSource,
     token: isThemeToken(raw.token) ? raw.token : fallback.token,
     custom: sanitizeHexColor(raw.custom, fallback.custom),
-  }
+  };
 }
 
 function sanitizeElementColors(source: unknown): ElementColorConfig {
-  if (!source || typeof source !== 'object') {
-    return structuredClone(DEFAULT_ELEMENT_COLORS)
+  if (!source || typeof source !== "object") {
+    return structuredClone(DEFAULT_ELEMENT_COLORS);
   }
 
-  const raw = source as Partial<Record<ElementColorRole, unknown>>
-  const next = {} as ElementColorConfig
+  const raw = source as Partial<Record<ElementColorRole, unknown>>;
+  const next = {} as ElementColorConfig;
 
   for (const roleConfig of ELEMENT_COLOR_ROLES) {
-    const role = roleConfig.role
-    next[role] = sanitizeElementColorRule(role, raw[role])
+    const role = roleConfig.role;
+    next[role] = sanitizeElementColorRule(role, raw[role]);
   }
 
-  return next
+  return next;
 }
 
 function sanitizeState(source: unknown): PlaygroundState {
-  if (!source || typeof source !== 'object') {
-    return structuredClone(DEFAULT_STATE)
+  if (!source || typeof source !== "object") {
+    return structuredClone(DEFAULT_STATE);
   }
 
-  const raw = source as Partial<PlaygroundState>
-  const rawConfig: Partial<PlaygroundState['config']> = raw.config ?? {}
+  const raw = source as Partial<PlaygroundState>;
+  const rawConfig: Partial<PlaygroundState["config"]> = raw.config ?? {};
   const parsedCustomBaseFont = parseGoogleFontsInput(
-    typeof rawConfig.customBaseFontUrl === 'string' ? rawConfig.customBaseFontUrl : '',
-  )
+    typeof rawConfig.customBaseFontUrl === "string" ? rawConfig.customBaseFontUrl : "",
+  );
   const parsedCustomMonoFont = parseGoogleFontsInput(
-    typeof rawConfig.customMonoFontUrl === 'string' ? rawConfig.customMonoFontUrl : '',
-  )
+    typeof rawConfig.customMonoFontUrl === "string" ? rawConfig.customMonoFontUrl : "",
+  );
 
   return {
-    code: typeof raw.code === 'string' ? raw.code : DEFAULT_STATE.code,
+    code: typeof raw.code === "string" ? raw.code : DEFAULT_STATE.code,
     config: {
       outputMode: isRenderOutputMode(rawConfig.outputMode)
         ? rawConfig.outputMode
@@ -352,37 +342,37 @@ function sanitizeState(source: unknown): PlaygroundState {
         ? rawConfig.diagramTheme
         : DEFAULT_STATE.config.diagramTheme,
       useCustomBg:
-        typeof rawConfig.useCustomBg === 'boolean'
+        typeof rawConfig.useCustomBg === "boolean"
           ? rawConfig.useCustomBg
           : DEFAULT_STATE.config.useCustomBg,
       customBg: sanitizeHexColor(rawConfig.customBg, DEFAULT_STATE.config.customBg),
       useCustomFg:
-        typeof rawConfig.useCustomFg === 'boolean'
+        typeof rawConfig.useCustomFg === "boolean"
           ? rawConfig.useCustomFg
           : DEFAULT_STATE.config.useCustomFg,
       customFg: sanitizeHexColor(rawConfig.customFg, DEFAULT_STATE.config.customFg),
       useCustomLine:
-        typeof rawConfig.useCustomLine === 'boolean'
+        typeof rawConfig.useCustomLine === "boolean"
           ? rawConfig.useCustomLine
           : DEFAULT_STATE.config.useCustomLine,
       customLine: sanitizeHexColor(rawConfig.customLine, DEFAULT_STATE.config.customLine),
       useCustomAccent:
-        typeof rawConfig.useCustomAccent === 'boolean'
+        typeof rawConfig.useCustomAccent === "boolean"
           ? rawConfig.useCustomAccent
           : DEFAULT_STATE.config.useCustomAccent,
       customAccent: sanitizeHexColor(rawConfig.customAccent, DEFAULT_STATE.config.customAccent),
       useCustomMuted:
-        typeof rawConfig.useCustomMuted === 'boolean'
+        typeof rawConfig.useCustomMuted === "boolean"
           ? rawConfig.useCustomMuted
           : DEFAULT_STATE.config.useCustomMuted,
       customMuted: sanitizeHexColor(rawConfig.customMuted, DEFAULT_STATE.config.customMuted),
       useCustomSurface:
-        typeof rawConfig.useCustomSurface === 'boolean'
+        typeof rawConfig.useCustomSurface === "boolean"
           ? rawConfig.useCustomSurface
           : DEFAULT_STATE.config.useCustomSurface,
       customSurface: sanitizeHexColor(rawConfig.customSurface, DEFAULT_STATE.config.customSurface),
       useCustomBorder:
-        typeof rawConfig.useCustomBorder === 'boolean'
+        typeof rawConfig.useCustomBorder === "boolean"
           ? rawConfig.useCustomBorder
           : DEFAULT_STATE.config.useCustomBorder,
       customBorder: sanitizeHexColor(rawConfig.customBorder, DEFAULT_STATE.config.customBorder),
@@ -427,7 +417,7 @@ function sanitizeState(source: unknown): PlaygroundState {
         ? rawConfig.borderWeight
         : DEFAULT_STATE.config.borderWeight,
       transparent:
-        typeof rawConfig.transparent === 'boolean'
+        typeof rawConfig.transparent === "boolean"
           ? rawConfig.transparent
           : DEFAULT_STATE.config.transparent,
       padding: sanitizeNumber(rawConfig.padding, DEFAULT_STATE.config.padding, 0, 240),
@@ -452,56 +442,56 @@ function sanitizeState(source: unknown): PlaygroundState {
       ),
     },
     splitRatio:
-      typeof raw.splitRatio === 'number' && Number.isFinite(raw.splitRatio)
+      typeof raw.splitRatio === "number" && Number.isFinite(raw.splitRatio)
         ? clamp(raw.splitRatio, 0.25, 0.75)
         : DEFAULT_STATE.splitRatio,
     desktopPanes: sanitizeDesktopPanes(raw.desktopPanes),
     mobilePane: isMobilePane(raw.mobilePane) ? raw.mobilePane : DEFAULT_STATE.mobilePane,
-  }
+  };
 }
 
 function loadState(): PlaygroundState {
-  if (typeof window === 'undefined') {
-    return structuredClone(DEFAULT_STATE)
+  if (typeof window === "undefined") {
+    return structuredClone(DEFAULT_STATE);
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY)
+  const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {
-    return structuredClone(DEFAULT_STATE)
+    return structuredClone(DEFAULT_STATE);
   }
 
   try {
-    return sanitizeState(JSON.parse(raw))
+    return sanitizeState(JSON.parse(raw));
   } catch {
-    return structuredClone(DEFAULT_STATE)
+    return structuredClone(DEFAULT_STATE);
   }
 }
 
 function persistState(state: PlaygroundState): void {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-export function sanitizePlaygroundConfig(source: unknown): PlaygroundState['config'] {
-  return sanitizeState({ config: source }).config
+export function sanitizePlaygroundConfig(source: unknown): PlaygroundState["config"] {
+  return sanitizeState({ config: source }).config;
 }
 
 export function usePlaygroundState() {
-  const state = ref<PlaygroundState>(loadState())
+  const state = ref<PlaygroundState>(loadState());
 
   watch(
     state,
     (value) => {
-      persistState(value)
+      persistState(value);
     },
     { deep: true },
-  )
+  );
 
   return {
     state,
     defaultState: structuredClone(DEFAULT_STATE),
-  }
+  };
 }

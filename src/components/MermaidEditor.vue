@@ -184,6 +184,9 @@ onMounted(async () => {
       theme: getMonacoTheme(props.colorScheme),
       automaticLayout: true,
       editContext: false,
+      detectIndentation: false,
+      insertSpaces: true,
+      tabSize: 2,
       fontSize: props.fontSize,
       fontFamily: props.fontFamily,
       minimap: { enabled: false },
@@ -202,6 +205,11 @@ onMounted(async () => {
 
     const model = editor.getModel();
     if (model) {
+      model.updateOptions({
+        insertSpaces: true,
+        indentSize: 2,
+        tabSize: 2,
+      });
       monacoInstance.editor.setModelLanguage(model, MERMAID_LANGUAGE_ID);
     }
 

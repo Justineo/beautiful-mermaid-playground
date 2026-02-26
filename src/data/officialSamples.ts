@@ -14,6 +14,23 @@ function trimSourceTrailingSpaces(source: string): string {
     .join("\n");
 }
 
+function normalizeSourceIndentation(source: string): string {
+  return source
+    .split("\n")
+    .map((line) => {
+      const leadingWhitespaceMatch = line.match(/^[ \t]+/u);
+      if (!leadingWhitespaceMatch) {
+        return line;
+      }
+
+      const normalizedLeadingWhitespace = leadingWhitespaceMatch[0]
+        .replace(/\t/gu, "  ")
+        .replace(/ {4}/gu, "  ");
+      return `${normalizedLeadingWhitespace}${line.slice(leadingWhitespaceMatch[0].length)}`;
+    })
+    .join("\n");
+}
+
 export const OFFICIAL_SAMPLE_CATEGORIES: string[] = [
   "Basic",
   "Flowchart",
@@ -652,5 +669,5 @@ const RAW_OFFICIAL_SAMPLES: OfficialSample[] = [
 
 export const OFFICIAL_SAMPLES: OfficialSample[] = RAW_OFFICIAL_SAMPLES.map((sample) => ({
   ...sample,
-  source: trimSourceTrailingSpaces(sample.source),
+  source: normalizeSourceIndentation(trimSourceTrailingSpaces(sample.source)),
 }));
