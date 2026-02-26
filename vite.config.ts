@@ -23,11 +23,10 @@ export default defineConfig({
       output: {
         codeSplitting: {
           minSize: 20_000,
-          maxSize: 1_400_000,
           groups: [
             {
               name: "editor-monaco",
-              test: /node_modules[\\/](monaco-editor|@shikijs|shiki)/,
+              test: /node_modules[\\/]monaco-editor/,
               priority: 100,
             },
             {
