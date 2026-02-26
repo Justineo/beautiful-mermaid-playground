@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --t-bg: #ffffff;
+  --t-fg: #27272a;
+  --t-accent: #3b82f6;
+
+  color-scheme: light;
+  --bg: var(--t-bg);
+  --surface: var(--t-bg);
+  --surface-muted: color-mix(in srgb, var(--t-fg) 2%, var(--t-bg));
+  --surface-elevated: color-mix(in srgb, var(--t-fg) 5%, var(--t-bg));
+  --text-primary: var(--t-fg);
+  --text-secondary: color-mix(in srgb, var(--t-fg) 74%, var(--t-bg));
+  --text-muted: color-mix(in srgb, var(--t-fg) 52%, var(--t-bg));
+  --border-color: color-mix(in srgb, var(--t-fg) 15%, var(--t-bg));
+  --border-subtle: color-mix(in srgb, var(--t-fg) 10%, var(--t-bg));
+  --border-strong: color-mix(in srgb, var(--t-fg) 20%, var(--t-bg));
+  --button-hover: color-mix(in srgb, var(--t-fg) 4%, var(--t-bg));
+  --button-active: color-mix(in srgb, var(--t-fg) 8%, var(--t-bg));
+  --danger-bg: color-mix(in srgb, #ef4444 10%, var(--t-bg));
+  --danger-text: color-mix(in srgb, #ef4444 78%, var(--t-fg));
+  --focus-outline: color-mix(in srgb, var(--t-accent) 58%, transparent);
+  --focus-inset: color-mix(in srgb, var(--t-accent) 18%, transparent);
+  --panel-shadow: none;
+  --ui-control-height: 23px;
+  --ui-control-radius: 5px;
+  --ui-control-pad-x: 0.42rem;
+
+  /* Type scale */
+  --fs-title: 0.8rem;
+  --fs-section: 0.75rem;
+  --fs-control: 0.68rem;
+  --fs-label: 0.61rem;
+  --fs-meta: 0.64rem;
+  --fs-code: 0.74rem;
+  --fs-body: 0.72rem;
+  --fs-toast: 0.67rem;
+  --lh-tight: 1.08;
+  --lh-normal: 1.32;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  font-family:
+    'Geist',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--text-primary);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100dvh;
+}
+
+#app-popover-root {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button,
+select,
+input[type='number'],
+input[type='text'],
+input[type='url'] {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 0 0.52rem;
+  min-height: 28px;
+}
+
+select,
+input[type='number'],
+input[type='text'],
+input[type='url'] {
+  width: 100%;
+}
+
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:
+    'tnum' 1,
+    'lnum' 1;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  background: var(--surface);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+button:hover:enabled {
+  background: var(--button-hover);
+}
+
+button:active:enabled {
+  background: var(--button-active);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ui-control-surface {
+  min-height: var(--ui-control-height);
+  border-radius: var(--ui-control-radius);
+  padding: 0 var(--ui-control-pad-x);
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  background: color-mix(in srgb, var(--surface) 96%, var(--surface-muted));
+  color: var(--text-secondary);
+  font-size: var(--fs-control);
+  line-height: var(--lh-tight);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.ui-control-surface:hover:not(:disabled):not([aria-disabled='true']) {
+  border-color: color-mix(in srgb, var(--border-strong) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 86%, var(--surface));
+}
+
+.ui-control-surface:disabled,
+.ui-control-surface[aria-disabled='true'] {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
+.ui-select {
+  width: 100%;
+  appearance: none;
+}
+
+.os-theme-playground {
+  box-sizing: border-box;
+  --os-size: 8px;
+  --os-padding-perpendicular: 1px;
+  --os-padding-axis: 1px;
+  --os-track-border-radius: 999px;
+  --os-handle-border-radius: 999px;
+  --os-handle-min-size: 28px;
+  --os-handle-interactive-area-offset: 2px;
+  --os-track-bg: transparent;
+  --os-track-bg-hover: color-mix(in srgb, var(--surface-muted) 62%, transparent);
+  --os-track-bg-active: color-mix(in srgb, var(--surface-muted) 76%, transparent);
+  --os-handle-bg: color-mix(in srgb, var(--text-muted) 42%, transparent);
+  --os-handle-bg-hover: color-mix(in srgb, var(--text-secondary) 56%, transparent);
+  --os-handle-bg-active: color-mix(in srgb, var(--text-primary) 62%, transparent);
+}
+
+:where(
+  button,
+  input,
+  select,
+  textarea,
+  a[href],
+  summary,
+  [role='button'],
+  [tabindex]:not([tabindex='-1'])
+):focus {
+  outline: none;
+}
+
+:where(
+  button,
+  input,
+  select,
+  textarea,
+  a[href],
+  summary,
+  [role='button'],
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  position: relative;
+  z-index: 80;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--surface) 92%, transparent),
+    inset 0 0 0 2px var(--focus-outline);
+}
+
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--text-primary);
+}
+
+input[type='color'] {
+  appearance: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface);
+  width: 42px;
+  height: 30px;
+  padding: 2px;
+}
+
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+code,
+pre,
+textarea {
+  font-family: 'JetBrains Mono', 'Iosevka Web', monospace;
+}

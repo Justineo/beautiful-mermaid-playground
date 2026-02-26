@@ -1,0 +1,48 @@
+{
+  "name": "beautiful-mermaid-playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "prepare": "lefthook install",
+    "type-check": "vue-tsc --build",
+    "lint": "run-s lint:*",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "format": "oxfmt src/"
+  },
+  "dependencies": {
+    "@vueuse/core": "link:../tempad-dev/node_modules/.pnpm/@vueuse+core@14.2.0_vue@3.5.27_typescript@5.9.3_/node_modules/@vueuse/core",
+    "beautiful-mermaid": "1.0.1",
+    "lucide-vue-next": "^0.575.0",
+    "modern-monaco": "0.3.8",
+    "overlayscrollbars": "link:../tempad-dev/node_modules/.pnpm/overlayscrollbars@2.14.0/node_modules/overlayscrollbars",
+    "vue": "3.6.0-beta.6"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^24.10.13",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "1.50.0",
+    "eslint-plugin-vue": "~10.8.0",
+    "jiti": "^2.6.1",
+    "lefthook": "2.1.1",
+    "npm-run-all2": "^8.0.4",
+    "oxfmt": "0.35.0",
+    "oxlint": "1.50.0",
+    "typescript": "~5.9.3",
+    "vite": "8.0.0-beta.15",
+    "vue-tsc": "^3.2.4"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}

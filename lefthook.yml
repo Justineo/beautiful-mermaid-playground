@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: oxfmt
+      glob: '*.{vue,ts,tsx,js,mjs,cjs,json}'
+      run: pnpm exec oxfmt {staged_files} && git add {staged_files}
+    - name: oxlint
+      glob: '*.{vue,ts,tsx,js,mjs,cjs}'
+      run: pnpm exec oxlint --fix {staged_files} && git add {staged_files}
+    - name: eslint
+      glob: '*.{vue,ts,tsx,js,mjs,cjs}'
+      run: pnpm exec eslint --fix --cache {staged_files} && git add {staged_files}
