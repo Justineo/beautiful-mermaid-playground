@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Asia/Shanghai",
+  "schedule": ["before 3am on monday"],
+  "separateMajorMinor": false,
+  "separateMinorPatch": false,
+  "prConcurrentLimit": 3,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "groupName": "deps-major",
+      "groupSlug": "deps-major",
+      "labels": ["dependencies", "major"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "groupName": "deps-minor",
+      "groupSlug": "deps-minor",
+      "labels": ["dependencies", "minor"]
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "groupName": "deps-patch",
+      "groupSlug": "deps-patch",
+      "labels": ["dependencies", "patch"]
+    }
+  ]
+}
