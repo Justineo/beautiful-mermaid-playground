@@ -6,6 +6,7 @@ import BaseButton from "@/components/BaseButton.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
+import BaseSkeleton from "@/components/BaseSkeleton.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS } from "@/types/playground";
 import type { RenderOutputMode } from "@/types/playground";
 
@@ -672,6 +673,14 @@ useResizeObserver(textCanvasRef, () => {
         <p v-if="!hasCurrentOutput && !props.error && !props.isRendering" class="placeholder">
           Preview will appear here.
         </p>
+        <div
+          v-if="!hasCurrentOutput && !props.error && props.isRendering"
+          class="preview-skeleton"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <BaseSkeleton :rows="[58, 74, 46, 64]" row-height="10px" gap="0.32rem" />
+        </div>
 
         <pre v-if="props.error" class="error-block">{{ props.error }}</pre>
       </div>
@@ -802,6 +811,20 @@ useResizeObserver(textCanvasRef, () => {
   color: var(--text-muted);
   font-size: var(--fs-body);
   line-height: var(--lh-normal);
+}
+
+.preview-skeleton {
+  position: absolute;
+  inset: 0;
+  padding: 0.88rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  z-index: 2;
+}
+
+.preview-skeleton > * {
+  width: min(92%, 560px);
 }
 
 .error-block {
