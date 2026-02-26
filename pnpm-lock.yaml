@@ -24,8 +24,8 @@ importers:
   .:
     dependencies:
       '@vueuse/core':
-        specifier: link:../tempad-dev/node_modules/.pnpm/@vueuse+core@14.2.0_vue@3.5.27_typescript@5.9.3_/node_modules/@vueuse/core
-        version: link:../tempad-dev/node_modules/.pnpm/@vueuse+core@14.2.0_vue@3.5.27_typescript@5.9.3_/node_modules/@vueuse/core
+        specifier: 14.2.0
+        version: 14.2.0(vue@3.6.0-beta.6(typescript@5.9.3))
       beautiful-mermaid:
         specifier: 1.0.1
         version: 1.0.1
@@ -36,8 +36,8 @@ importers:
         specifier: 0.3.8
         version: 0.3.8(typescript@5.9.3)
       overlayscrollbars:
-        specifier: link:../tempad-dev/node_modules/.pnpm/overlayscrollbars@2.14.0/node_modules/overlayscrollbars
-        version: link:../tempad-dev/node_modules/.pnpm/overlayscrollbars@2.14.0/node_modules/overlayscrollbars
+        specifier: 2.14.0
+        version: 2.14.0
       vue:
         specifier: 3.6.0-beta.6
         version: 3.6.0-beta.6(typescript@5.9.3)
@@ -686,6 +686,9 @@ packages:
   '@types/node@24.10.13':
     resolution: {integrity: sha512-oH72nZRfDv9lADUBSo104Aq7gPHpQZc4BTx38r9xf9pg5LfP6EzSyH2n7qFmmxRQXh7YlUXODcYsg6PuTDSxGg==}
 
+  '@types/web-bluetooth@0.0.21':
+    resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
+
   '@typescript-eslint/eslint-plugin@8.56.0':
     resolution: {integrity: sha512-lRyPDLzNCuae71A3t9NEINBiTn7swyOhvUj3MyUOxb8x6g6vPEFoOU+ZRmGMusNC3X3YMhqMIX7i8ShqhT74Pw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -822,6 +825,19 @@ packages:
         optional: true
       vue:
         optional: true
+
+  '@vueuse/core@14.2.0':
+    resolution: {integrity: sha512-tpjzVl7KCQNVd/qcaCE9XbejL38V6KJAEq/tVXj7mDPtl6JtzmUdnXelSS+ULRkkrDgzYVK7EerQJvd2jR794Q==}
+    peerDependencies:
+      vue: 3.6.0-beta.6
+
+  '@vueuse/metadata@14.2.0':
+    resolution: {integrity: sha512-i3axTGjU8b13FtyR4Keeama+43iD+BwX9C2TmzBVKqjSHArF03hjkp2SBZ1m72Jk2UtrX0aYCugBq2R1fhkuAQ==}
+
+  '@vueuse/shared@14.2.0':
+    resolution: {integrity: sha512-Z0bmluZTlAXgUcJ4uAFaML16JcD8V0QG00Db3quR642I99JXIDRa2MI2LGxiLVhcBjVnL1jOzIvT5TT2lqJlkA==}
+    peerDependencies:
+      vue: 3.6.0-beta.6
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -1339,6 +1355,9 @@ packages:
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
+
+  overlayscrollbars@2.14.0:
+    resolution: {integrity: sha512-RjV0pqc79kYhQLC3vTcLRb5GLpI1n6qh0Oua3g+bGH4EgNOJHVBGP7u0zZtxoAa0dkHlAqTTSYRb9MMmxNLjig==}
 
   oxfmt@0.35.0:
     resolution: {integrity: sha512-QYeXWkP+aLt7utt5SLivNIk09glWx9QE235ODjgcEZ3sd1VMaUBSpLymh6ZRCA76gD2rMP4bXanUz/fx+nLM9Q==}
@@ -1963,6 +1982,8 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/web-bluetooth@0.0.21': {}
+
   '@typescript-eslint/eslint-plugin@8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -2167,6 +2188,19 @@ snapshots:
   '@vue/tsconfig@0.8.1(typescript@5.9.3)(vue@3.6.0-beta.6(typescript@5.9.3))':
     optionalDependencies:
       typescript: 5.9.3
+      vue: 3.6.0-beta.6(typescript@5.9.3)
+
+  '@vueuse/core@14.2.0(vue@3.6.0-beta.6(typescript@5.9.3))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.21
+      '@vueuse/metadata': 14.2.0
+      '@vueuse/shared': 14.2.0(vue@3.6.0-beta.6(typescript@5.9.3))
+      vue: 3.6.0-beta.6(typescript@5.9.3)
+
+  '@vueuse/metadata@14.2.0': {}
+
+  '@vueuse/shared@14.2.0(vue@3.6.0-beta.6(typescript@5.9.3))':
+    dependencies:
       vue: 3.6.0-beta.6(typescript@5.9.3)
 
   acorn-jsx@5.3.2(acorn@8.16.0):
@@ -2656,6 +2690,8 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
       word-wrap: 1.2.5
+
+  overlayscrollbars@2.14.0: {}
 
   oxfmt@0.35.0:
     dependencies:
