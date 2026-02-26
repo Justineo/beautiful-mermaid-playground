@@ -1,0 +1,69 @@
+name: Sync Beautiful Mermaid
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-beautiful-mermaid
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update dependency and sync generated files
+        run: |
+          pnpm up beautiful-mermaid@latest --save-exact
+          pnpm run generate:themes
+          pnpm run sync:official-samples
+
+      - name: Validate
+        run: |
+          pnpm lint
+          pnpm type-check
+          pnpm build-only
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-beautiful-mermaid
+          delete-branch: true
+          commit-message: "chore: sync beautiful-mermaid and official samples"
+          title: "chore: sync beautiful-mermaid and official samples"
+          body: |
+            Automated weekly sync:
+            - update `beautiful-mermaid` to latest
+            - regenerate theme tokens
+            - sync official samples from the live site
+          labels: dependencies, automated
+          add-paths: |
+            package.json
+            pnpm-lock.yaml
+            src/generated/beautifulThemes.ts
+            src/data/officialSamples.ts
