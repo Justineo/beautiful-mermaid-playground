@@ -1,139 +1,139 @@
 <script setup lang="ts">
-import { Scan } from 'lucide-vue-next'
-import { computed, nextTick, ref, watch } from 'vue'
-import BaseButton from '@/components/BaseButton.vue'
-import BaseDropdownMenu from '@/components/BaseDropdownMenu.vue'
-import BasePanel from '@/components/BasePanel.vue'
-import BaseSegmentedControl from '@/components/BaseSegmentedControl.vue'
-import { RENDER_OUTPUT_MODE_OPTIONS } from '@/types/playground'
-import type { RenderOutputMode } from '@/types/playground'
+import { Scan } from "lucide-vue-next";
+import { computed, nextTick, ref, watch } from "vue";
+import BaseButton from "@/components/BaseButton.vue";
+import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
+import BasePanel from "@/components/BasePanel.vue";
+import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
+import { RENDER_OUTPUT_MODE_OPTIONS } from "@/types/playground";
+import type { RenderOutputMode } from "@/types/playground";
 
 type ViewportPoint = {
-  x: number
-  y: number
-}
+  x: number;
+  y: number;
+};
 
 type ContentSize = {
-  width: number
-  height: number
-}
+  width: number;
+  height: number;
+};
 
 const props = defineProps<{
-  outputMode: RenderOutputMode
-  fitRequestId: number
-  monoFontFamily: string
-  svg: string | null
-  ascii: string | null
-  error: string | null
-  durationMs: number | null
-  isRendering: boolean
-  canExport: boolean
-}>()
+  outputMode: RenderOutputMode;
+  fitRequestId: number;
+  monoFontFamily: string;
+  svg: string | null;
+  ascii: string | null;
+  error: string | null;
+  durationMs: number | null;
+  isRendering: boolean;
+  canExport: boolean;
+}>();
 
-type TextOutputMode = Exclude<RenderOutputMode, 'svg'>
+type TextOutputMode = Exclude<RenderOutputMode, "svg">;
 
 const emit = defineEmits<{
-  'export:copy-svg': []
-  'export:copy-png': []
-  'export:download-svg': []
-  'export:download-png': []
-  'export:copy-text': [mode: TextOutputMode]
-  'export:download-text': [mode: TextOutputMode]
-  'update:outputMode': [value: RenderOutputMode]
-}>()
+  "export:copy-svg": [];
+  "export:copy-png": [];
+  "export:download-svg": [];
+  "export:download-png": [];
+  "export:copy-text": [mode: TextOutputMode];
+  "export:download-text": [mode: TextOutputMode];
+  "update:outputMode": [value: RenderOutputMode];
+}>();
 
-const viewportRef = ref<HTMLElement | null>(null)
-const svgHostRef = ref<HTMLElement | null>(null)
-const textCanvasRef = ref<HTMLElement | null>(null)
+const viewportRef = ref<HTMLElement | null>(null);
+const svgHostRef = ref<HTMLElement | null>(null);
+const textCanvasRef = ref<HTMLElement | null>(null);
 
-const MIN_SCALE = 0.1
-const MAX_SCALE = 8
-const FIT_MAX_SCALE = 1
-const WHEEL_ZOOM_SPEED = 0.0018
-const FIT_PADDING = 36
+const MIN_SCALE = 0.1;
+const MAX_SCALE = 8;
+const FIT_MAX_SCALE = 1;
+const WHEEL_ZOOM_SPEED = 0.0018;
+const FIT_PADDING = 36;
 
-const scale = ref(1)
-const offsetX = ref(0)
-const offsetY = ref(0)
-const activePointerIds = ref<Set<number>>(new Set())
-let pointerPositions = new Map<number, ViewportPoint>()
-let isDragging = false
-let dragStartPointer: ViewportPoint | null = null
-let dragStartOffset: ViewportPoint | null = null
-let pinchStartDistance = 0
-let pinchStartScale = 1
-let pinchStartWorldAnchor: ViewportPoint | null = null
-let hasInitialFit = false
-const currentContentSize = ref<ContentSize | null>(null)
+const scale = ref(1);
+const offsetX = ref(0);
+const offsetY = ref(0);
+const activePointerIds = ref<Set<number>>(new Set());
+let pointerPositions = new Map<number, ViewportPoint>();
+let isDragging = false;
+let dragStartPointer: ViewportPoint | null = null;
+let dragStartOffset: ViewportPoint | null = null;
+let pinchStartDistance = 0;
+let pinchStartScale = 1;
+let pinchStartWorldAnchor: ViewportPoint | null = null;
+let hasInitialFit = false;
+const currentContentSize = ref<ContentSize | null>(null);
 
 function snapToDevicePixel(value: number): number {
-  const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1)
-  const step = 1 / devicePixelRatio
-  return Math.round(value / step) * step
+  const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
+  const step = 1 / devicePixelRatio;
+  return Math.round(value / step) * step;
 }
 
 const renderedOffsetX = computed(() =>
-  props.outputMode === 'svg' ? snapToDevicePixel(offsetX.value) : offsetX.value,
-)
+  props.outputMode === "svg" ? snapToDevicePixel(offsetX.value) : offsetX.value,
+);
 const renderedOffsetY = computed(() =>
-  props.outputMode === 'svg' ? snapToDevicePixel(offsetY.value) : offsetY.value,
-)
+  props.outputMode === "svg" ? snapToDevicePixel(offsetY.value) : offsetY.value,
+);
 
 const canvasTransformStyle = computed(() => ({
   transform: `translate(${renderedOffsetX.value}px, ${renderedOffsetY.value}px) scale(${scale.value})`,
-}))
+}));
 
-const zoomLabel = computed(() => `${Math.round(scale.value * 100)}%`)
+const zoomLabel = computed(() => `${Math.round(scale.value * 100)}%`);
 
 const hasCurrentOutput = computed(() =>
-  props.outputMode === 'svg' ? Boolean(props.svg) : Boolean(props.ascii),
-)
+  props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.ascii),
+);
 
 const statusText = computed(() => {
   if (props.isRendering) {
-    return 'Rendering...'
+    return "Rendering...";
   }
 
   if (props.error) {
-    return 'Render failed'
+    return "Render failed";
   }
 
   if (props.durationMs !== null) {
-    return `Rendered in ${props.durationMs}ms`
+    return `Rendered in ${props.durationMs}ms`;
   }
 
-  return 'Ready'
-})
+  return "Ready";
+});
 
 const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
-  if (props.outputMode === 'svg') {
+  if (props.outputMode === "svg") {
     return [
-      { key: 'copy-svg', label: 'Copy SVG' },
-      { key: 'copy-png', label: 'Copy PNG' },
-      { key: 'download-svg', label: 'Download SVG' },
-      { key: 'download-png', label: 'Download PNG' },
-    ]
+      { key: "copy-svg", label: "Copy SVG" },
+      { key: "copy-png", label: "Copy PNG" },
+      { key: "download-svg", label: "Download SVG" },
+      { key: "download-png", label: "Download PNG" },
+    ];
   }
 
-  const label = props.outputMode === 'unicode' ? 'Unicode text' : 'ASCII text'
+  const label = props.outputMode === "unicode" ? "Unicode text" : "ASCII text";
   return [
-    { key: 'copy-text', label: `Copy ${label}` },
-    { key: 'download-text', label: `Download ${label}` },
-  ]
-})
+    { key: "copy-text", label: `Copy ${label}` },
+    { key: "download-text", label: `Download ${label}` },
+  ];
+});
 const outputModeItems: Array<{ key: string; label: string }> = RENDER_OUTPUT_MODE_OPTIONS.map(
   (item) => ({
     key: item.value,
     label: item.label,
   }),
-)
+);
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
+  return Math.max(min, Math.min(max, value));
 }
 
 function getSvgIntrinsicSize(svgElement: SVGSVGElement): ContentSize {
-  const viewBox = svgElement.viewBox?.baseVal
+  const viewBox = svgElement.viewBox?.baseVal;
   if (
     viewBox &&
     Number.isFinite(viewBox.width) &&
@@ -144,348 +144,352 @@ function getSvgIntrinsicSize(svgElement: SVGSVGElement): ContentSize {
     return {
       width: viewBox.width,
       height: viewBox.height,
-    }
+    };
   }
 
-  const width = Number.parseFloat(svgElement.getAttribute('width') ?? '')
-  const height = Number.parseFloat(svgElement.getAttribute('height') ?? '')
+  const width = Number.parseFloat(svgElement.getAttribute("width") ?? "");
+  const height = Number.parseFloat(svgElement.getAttribute("height") ?? "");
   if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-    return { width, height }
+    return { width, height };
   }
 
-  const rect = svgElement.getBoundingClientRect()
+  const rect = svgElement.getBoundingClientRect();
   if (rect.width > 0 && rect.height > 0) {
     return {
       width: rect.width,
       height: rect.height,
-    }
+    };
   }
 
   return {
     width: 1200,
     height: 800,
-  }
+  };
 }
 
 function readCurrentContentSize(outputMode: RenderOutputMode): ContentSize | null {
-  if (outputMode === 'svg') {
-    const svgElement = svgHostRef.value?.querySelector('svg')
+  if (outputMode === "svg") {
+    const svgElement = svgHostRef.value?.querySelector("svg");
     if (!(svgElement instanceof SVGSVGElement)) {
-      return null
+      return null;
     }
 
-    return getSvgIntrinsicSize(svgElement)
+    return getSvgIntrinsicSize(svgElement);
   }
 
-  const textElement = textCanvasRef.value
+  const textElement = textCanvasRef.value;
   if (!textElement) {
-    return null
+    return null;
   }
 
-  const width = Math.max(1, Math.ceil(textElement.scrollWidth))
-  const height = Math.max(1, Math.ceil(textElement.scrollHeight))
+  const width = Math.max(1, Math.ceil(textElement.scrollWidth));
+  const height = Math.max(1, Math.ceil(textElement.scrollHeight));
   if (width <= 1 && height <= 1 && !props.ascii) {
-    return null
+    return null;
   }
 
-  return { width, height }
+  return { width, height };
 }
 
 function centerAtScale(nextScale: number): void {
-  const viewport = viewportRef.value
-  const size = currentContentSize.value
+  const viewport = viewportRef.value;
+  const size = currentContentSize.value;
   if (!viewport || !size) {
-    return
+    return;
   }
 
-  const viewportRect = viewport.getBoundingClientRect()
-  offsetX.value = (viewportRect.width - size.width * nextScale) / 2
-  offsetY.value = (viewportRect.height - size.height * nextScale) / 2
+  const viewportRect = viewport.getBoundingClientRect();
+  offsetX.value = (viewportRect.width - size.width * nextScale) / 2;
+  offsetY.value = (viewportRect.height - size.height * nextScale) / 2;
 }
 
 function zoomToFit(): void {
-  const viewport = viewportRef.value
-  const size = currentContentSize.value
+  const viewport = viewportRef.value;
+  const size = currentContentSize.value;
   if (!viewport || !size) {
-    return
+    return;
   }
 
-  const viewportRect = viewport.getBoundingClientRect()
-  const availableWidth = Math.max(1, viewportRect.width - FIT_PADDING * 2)
-  const availableHeight = Math.max(1, viewportRect.height - FIT_PADDING * 2)
+  const viewportRect = viewport.getBoundingClientRect();
+  const availableWidth = Math.max(1, viewportRect.width - FIT_PADDING * 2);
+  const availableHeight = Math.max(1, viewportRect.height - FIT_PADDING * 2);
   const fitScale = clamp(
     Math.min(availableWidth / size.width, availableHeight / size.height),
     MIN_SCALE,
     FIT_MAX_SCALE,
-  )
+  );
 
-  scale.value = fitScale
-  centerAtScale(fitScale)
+  scale.value = fitScale;
+  centerAtScale(fitScale);
 }
 
 function zoomToOneHundredPercent(): void {
-  const nextScale = 1
-  scale.value = nextScale
-  centerAtScale(nextScale)
+  const nextScale = 1;
+  scale.value = nextScale;
+  centerAtScale(nextScale);
 }
 
 function clearPointerState(): void {
-  pointerPositions = new Map()
-  activePointerIds.value = new Set()
-  isDragging = false
-  dragStartPointer = null
-  dragStartOffset = null
-  pinchStartDistance = 0
-  pinchStartScale = scale.value
-  pinchStartWorldAnchor = null
+  pointerPositions = new Map();
+  activePointerIds.value = new Set();
+  isDragging = false;
+  dragStartPointer = null;
+  dragStartOffset = null;
+  pinchStartDistance = 0;
+  pinchStartScale = scale.value;
+  pinchStartWorldAnchor = null;
 }
 
 function getLocalPoint(event: PointerEvent | WheelEvent): ViewportPoint | null {
-  const viewport = viewportRef.value
+  const viewport = viewportRef.value;
   if (!viewport) {
-    return null
+    return null;
   }
 
-  const rect = viewport.getBoundingClientRect()
+  const rect = viewport.getBoundingClientRect();
   return {
     x: event.clientX - rect.left,
     y: event.clientY - rect.top,
-  }
+  };
 }
 
 function zoomAt(localX: number, localY: number, nextScale: number): void {
-  const clampedScale = clamp(nextScale, MIN_SCALE, MAX_SCALE)
+  const clampedScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
   if (Math.abs(clampedScale - scale.value) < 0.0001) {
-    return
+    return;
   }
 
-  const worldX = (localX - offsetX.value) / scale.value
-  const worldY = (localY - offsetY.value) / scale.value
-  scale.value = clampedScale
-  offsetX.value = localX - worldX * clampedScale
-  offsetY.value = localY - worldY * clampedScale
+  const worldX = (localX - offsetX.value) / scale.value;
+  const worldY = (localY - offsetY.value) / scale.value;
+  scale.value = clampedScale;
+  offsetX.value = localX - worldX * clampedScale;
+  offsetY.value = localY - worldY * clampedScale;
 }
 
 function getPointerPairMidpoint(): ViewportPoint | null {
-  const entries = Array.from(pointerPositions.values())
+  const entries = Array.from(pointerPositions.values());
   if (entries.length < 2) {
-    return null
+    return null;
   }
 
-  const first = entries[0]
-  const second = entries[1]
+  const first = entries[0];
+  const second = entries[1];
   if (!first || !second) {
-    return null
+    return null;
   }
 
   return {
     x: (first.x + second.x) / 2,
     y: (first.y + second.y) / 2,
-  }
+  };
 }
 
 function getPointerPairDistance(): number {
-  const entries = Array.from(pointerPositions.values())
+  const entries = Array.from(pointerPositions.values());
   if (entries.length < 2) {
-    return 0
+    return 0;
   }
 
-  const first = entries[0]
-  const second = entries[1]
+  const first = entries[0];
+  const second = entries[1];
   if (!first || !second) {
-    return 0
+    return 0;
   }
 
-  return Math.hypot(second.x - first.x, second.y - first.y)
+  return Math.hypot(second.x - first.x, second.y - first.y);
 }
 
 function beginPinch(): void {
   if (pointerPositions.size < 2) {
-    return
+    return;
   }
 
-  const midpoint = getPointerPairMidpoint()
-  const distance = getPointerPairDistance()
+  const midpoint = getPointerPairMidpoint();
+  const distance = getPointerPairDistance();
   if (!midpoint || distance <= 0) {
-    return
+    return;
   }
 
-  pinchStartDistance = distance
-  pinchStartScale = scale.value
+  pinchStartDistance = distance;
+  pinchStartScale = scale.value;
   pinchStartWorldAnchor = {
     x: (midpoint.x - offsetX.value) / scale.value,
     y: (midpoint.y - offsetY.value) / scale.value,
-  }
+  };
 }
 
 function onViewportPointerDown(event: PointerEvent): void {
   if (!hasCurrentOutput.value) {
-    return
+    return;
   }
 
-  const localPoint = getLocalPoint(event)
+  const localPoint = getLocalPoint(event);
   if (!localPoint) {
-    return
+    return;
   }
 
-  viewportRef.value?.setPointerCapture(event.pointerId)
-  pointerPositions.set(event.pointerId, localPoint)
-  const nextIds = new Set(activePointerIds.value)
-  nextIds.add(event.pointerId)
-  activePointerIds.value = nextIds
+  viewportRef.value?.setPointerCapture(event.pointerId);
+  pointerPositions.set(event.pointerId, localPoint);
+  const nextIds = new Set(activePointerIds.value);
+  nextIds.add(event.pointerId);
+  activePointerIds.value = nextIds;
 
   if (pointerPositions.size >= 2) {
-    isDragging = false
-    dragStartPointer = null
-    dragStartOffset = null
-    beginPinch()
-    return
+    isDragging = false;
+    dragStartPointer = null;
+    dragStartOffset = null;
+    beginPinch();
+    return;
   }
 
-  isDragging = true
-  dragStartPointer = localPoint
+  isDragging = true;
+  dragStartPointer = localPoint;
   dragStartOffset = {
     x: offsetX.value,
     y: offsetY.value,
-  }
+  };
 }
 
 function onViewportPointerMove(event: PointerEvent): void {
   if (!hasCurrentOutput.value) {
-    return
+    return;
   }
 
   if (!activePointerIds.value.has(event.pointerId)) {
-    return
+    return;
   }
 
-  const localPoint = getLocalPoint(event)
+  const localPoint = getLocalPoint(event);
   if (!localPoint) {
-    return
+    return;
   }
 
-  pointerPositions.set(event.pointerId, localPoint)
+  pointerPositions.set(event.pointerId, localPoint);
 
   if (pointerPositions.size >= 2) {
-    const midpoint = getPointerPairMidpoint()
-    const distance = getPointerPairDistance()
+    const midpoint = getPointerPairMidpoint();
+    const distance = getPointerPairDistance();
     if (!midpoint || distance <= 0 || pinchStartDistance <= 0 || !pinchStartWorldAnchor) {
-      return
+      return;
     }
 
-    const nextScale = clamp((pinchStartScale * distance) / pinchStartDistance, MIN_SCALE, MAX_SCALE)
-    scale.value = nextScale
-    offsetX.value = midpoint.x - pinchStartWorldAnchor.x * nextScale
-    offsetY.value = midpoint.y - pinchStartWorldAnchor.y * nextScale
-    return
+    const nextScale = clamp(
+      (pinchStartScale * distance) / pinchStartDistance,
+      MIN_SCALE,
+      MAX_SCALE,
+    );
+    scale.value = nextScale;
+    offsetX.value = midpoint.x - pinchStartWorldAnchor.x * nextScale;
+    offsetY.value = midpoint.y - pinchStartWorldAnchor.y * nextScale;
+    return;
   }
 
   if (!isDragging || !dragStartPointer || !dragStartOffset) {
-    return
+    return;
   }
 
-  offsetX.value = dragStartOffset.x + (localPoint.x - dragStartPointer.x)
-  offsetY.value = dragStartOffset.y + (localPoint.y - dragStartPointer.y)
+  offsetX.value = dragStartOffset.x + (localPoint.x - dragStartPointer.x);
+  offsetY.value = dragStartOffset.y + (localPoint.y - dragStartPointer.y);
 }
 
 function onViewportPointerUp(event: PointerEvent): void {
   if (!activePointerIds.value.has(event.pointerId)) {
-    return
+    return;
   }
 
-  pointerPositions.delete(event.pointerId)
-  const nextIds = new Set(activePointerIds.value)
-  nextIds.delete(event.pointerId)
-  activePointerIds.value = nextIds
+  pointerPositions.delete(event.pointerId);
+  const nextIds = new Set(activePointerIds.value);
+  nextIds.delete(event.pointerId);
+  activePointerIds.value = nextIds;
 
   if (pointerPositions.size >= 2) {
-    beginPinch()
-    return
+    beginPinch();
+    return;
   }
 
-  isDragging = false
-  dragStartPointer = null
-  dragStartOffset = null
-  pinchStartDistance = 0
-  pinchStartWorldAnchor = null
+  isDragging = false;
+  dragStartPointer = null;
+  dragStartOffset = null;
+  pinchStartDistance = 0;
+  pinchStartWorldAnchor = null;
 }
 
 function onViewportPointerCancel(event: PointerEvent): void {
   if (!activePointerIds.value.has(event.pointerId)) {
-    return
+    return;
   }
 
-  onViewportPointerUp(event)
+  onViewportPointerUp(event);
 }
 
 function onViewportWheel(event: WheelEvent): void {
   if (!hasCurrentOutput.value) {
-    return
+    return;
   }
 
-  event.preventDefault()
+  event.preventDefault();
 
-  const localPoint = getLocalPoint(event)
+  const localPoint = getLocalPoint(event);
   if (!localPoint) {
-    return
+    return;
   }
 
   if (event.metaKey || event.ctrlKey) {
-    const nextScale = scale.value * Math.exp(-event.deltaY * WHEEL_ZOOM_SPEED)
-    zoomAt(localPoint.x, localPoint.y, nextScale)
-    return
+    const nextScale = scale.value * Math.exp(-event.deltaY * WHEEL_ZOOM_SPEED);
+    zoomAt(localPoint.x, localPoint.y, nextScale);
+    return;
   }
 
-  offsetX.value -= event.deltaX
-  offsetY.value -= event.deltaY
+  offsetX.value -= event.deltaX;
+  offsetY.value -= event.deltaY;
 }
 
 function onGraphExportSelect(key: string): void {
-  if (key === 'copy-svg') {
-    emit('export:copy-svg')
-    return
+  if (key === "copy-svg") {
+    emit("export:copy-svg");
+    return;
   }
 
-  if (key === 'download-svg') {
-    emit('export:download-svg')
-    return
+  if (key === "download-svg") {
+    emit("export:download-svg");
+    return;
   }
 
-  if (key === 'copy-png') {
-    emit('export:copy-png')
-    return
+  if (key === "copy-png") {
+    emit("export:copy-png");
+    return;
   }
 
-  if (key === 'download-png') {
-    emit('export:download-png')
-    return
+  if (key === "download-png") {
+    emit("export:download-png");
+    return;
   }
 
-  if (key === 'copy-text' && props.outputMode !== 'svg') {
-    emit('export:copy-text', props.outputMode)
-    return
+  if (key === "copy-text" && props.outputMode !== "svg") {
+    emit("export:copy-text", props.outputMode);
+    return;
   }
 
-  if (key === 'download-text' && props.outputMode !== 'svg') {
-    emit('export:download-text', props.outputMode)
+  if (key === "download-text" && props.outputMode !== "svg") {
+    emit("export:download-text", props.outputMode);
   }
 }
 
 function updateOutputMode(value: RenderOutputMode): void {
-  emit('update:outputMode', value)
+  emit("update:outputMode", value);
 }
 
 function onOutputModeSelect(value: string): void {
-  updateOutputMode(value as RenderOutputMode)
+  updateOutputMode(value as RenderOutputMode);
 }
 
 defineExpose<{
-  zoomToFit: () => void
-  zoomToOneHundredPercent: () => void
+  zoomToFit: () => void;
+  zoomToOneHundredPercent: () => void;
 }>({
   zoomToFit,
   zoomToOneHundredPercent,
-})
+});
 
 watch(
   () => ({
@@ -495,37 +499,44 @@ watch(
     fitRequestId: props.fitRequestId,
   }),
   async (newValue, oldValue) => {
-    const { svg, ascii, outputMode, fitRequestId } = newValue
-    const previousMode = oldValue?.outputMode
-    const currentContent = outputMode === 'svg' ? svg : ascii
-    const modeChanged = previousMode !== undefined && previousMode !== outputMode
-    const fitRequested = fitRequestId !== (oldValue?.fitRequestId ?? 0)
+    const { svg, ascii, outputMode, fitRequestId } = newValue;
+    const previousMode = oldValue?.outputMode;
+    const currentContent = outputMode === "svg" ? svg : ascii;
+    const modeChanged = previousMode !== undefined && previousMode !== outputMode;
+    const fitRequested = fitRequestId !== (oldValue?.fitRequestId ?? 0);
 
-    if (outputMode === 'svg' && svgHostRef.value) {
-      svgHostRef.value.innerHTML = svg ?? ''
+    if (outputMode === "svg" && svgHostRef.value) {
+      svgHostRef.value.innerHTML = svg ?? "";
     }
 
-    await nextTick()
+    await nextTick();
 
-    currentContentSize.value = readCurrentContentSize(outputMode)
+    // When the preview panel is re-mounted, the first immediate watcher run can happen
+    // before svgHostRef is bound. Re-apply once refs are ready to avoid a blank canvas.
+    if (outputMode === "svg" && svgHostRef.value) {
+      svgHostRef.value.innerHTML = svg ?? "";
+      await nextTick();
+    }
+
+    currentContentSize.value = readCurrentContentSize(outputMode);
     if (!currentContent || !currentContentSize.value) {
-      clearPointerState()
-      hasInitialFit = false
-      return
+      clearPointerState();
+      hasInitialFit = false;
+      return;
     }
 
     if (!hasInitialFit) {
-      zoomToFit()
-      hasInitialFit = true
-      return
+      zoomToFit();
+      hasInitialFit = true;
+      return;
     }
 
     if (modeChanged || fitRequested) {
-      zoomToFit()
+      zoomToFit();
     }
   },
-  { immediate: true, flush: 'post' },
-)
+  { immediate: true, flush: "post" },
+);
 </script>
 
 <template>
@@ -671,8 +682,8 @@ watch(
   padding-inline: 0.2rem;
   font-variant-numeric: tabular-nums;
   font-feature-settings:
-    'tnum' 1,
-    'lnum' 1;
+    "tnum" 1,
+    "lnum" 1;
 }
 
 .preview-viewport {
