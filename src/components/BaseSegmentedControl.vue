@@ -7,6 +7,8 @@ import type { ComponentPublicInstance } from "vue";
 type SegmentedControlItem = {
   key: string;
   label: string;
+  title?: string;
+  labelClass?: string;
   disabled?: boolean;
   icon?: Component;
   iconOnly?: boolean;
@@ -213,7 +215,7 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
       :tabindex="getTabIndex(item, index)"
       :aria-selected="props.asTabs ? isActive(item.key) : undefined"
       :aria-pressed="!props.asTabs && props.multiple ? isActive(item.key) : undefined"
-      :title="item.label"
+      :title="item.title ?? item.label"
       :aria-label="item.iconOnly ? item.label : undefined"
       @click="onSelect(item)"
       @keydown="onButtonKeydown($event, item.key)"
@@ -237,7 +239,9 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
           :style="item.previewInnerStyle"
         />
       </span>
-      <span v-if="!item.iconOnly">{{ item.label }}</span>
+      <span v-if="!item.iconOnly" :class="['segmented-label', item.labelClass]">{{
+        item.label
+      }}</span>
     </button>
   </div>
 </template>
@@ -290,6 +294,12 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
 
 .segmented-icon {
   flex: 0 0 auto;
+}
+
+.segmented-label.inactive {
+  text-decoration-line: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-primary) 72%, currentColor);
+  text-decoration-thickness: 1px;
 }
 
 .segmented-preview {

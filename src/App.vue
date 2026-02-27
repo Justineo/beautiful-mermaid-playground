@@ -9,7 +9,7 @@ import { preloadRenderer, useBeautifulRenderer } from "@/composables/useBeautifu
 import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
 import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
-import { BASE_FONT_OPTIONS } from "@/types/playground";
+import { BASE_FONT_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
 import type {
@@ -318,16 +318,14 @@ const editorRef = ref<MermaidEditorExpose | null>(null);
 const editorFocusToEndToken = ref(0);
 const shouldFitPreviewAfterRender = ref(false);
 const previewFitRequestId = ref(0);
+const appliedPreviewTransparency = ref(false);
 const isBaseCustomFontLoading = ref(false);
 const isMonoCustomFontLoading = ref(false);
 let baseCustomFontLoadToken = 0;
 let monoCustomFontLoadToken = 0;
 const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, splitRatio);
-const { isRendering, renderState, renderNow, scheduleRender } = useBeautifulRenderer(
-  codeRef,
-  configRef,
-  300,
-);
+const { isRendering, renderState, renderNow, renderTextByColorMode, scheduleRender } =
+  useBeautifulRenderer(codeRef, configRef, 300);
 type EditorFocusMode = "focus" | "focusToEnd";
 const pendingEditorFocusMode = ref<EditorFocusMode | null>(null);
 
@@ -490,6 +488,10 @@ watch(
       return;
     }
 
+    if (state.value.config.outputMode === "svg" && renderState.value.svg) {
+      appliedPreviewTransparency.value = state.value.config.transparent;
+    }
+
     appliedUiPalette.value = resolveUiPalette();
 
     if (!shouldFitPreviewAfterRender.value) {
@@ -503,7 +505,7 @@ watch(
 const canExportCurrentOutput = computed(() =>
   state.value.config.outputMode === "svg"
     ? Boolean(renderState.value.svg)
-    : Boolean(renderState.value.ascii),
+    : Boolean(renderState.value.asciiHtml),
 );
 const isEditorVisible = computed(() =>
   isMobile.value ? state.value.mobilePane === "editor" : state.value.desktopPanes.editor,
@@ -517,6 +519,14 @@ const hasDesktopEditorPreview = computed(
 const showDesktopDivider = computed(
   () => state.value.desktopPanes.editor && state.value.desktopPanes.preview,
 );
+function stripPreviewOnlyConfig(
+  config: typeof state.value.config,
+): Omit<typeof state.value.config, "transparent"> {
+  const { transparent, ...panelConfig } = config;
+  void transparent;
+  return panelConfig;
+}
+const optionsPanelConfig = computed(() => stripPreviewOnlyConfig(state.value.config));
 const editorSplitStyle = computed(() =>
   showDesktopDivider.value
     ? { flex: `0 0 ${(state.value.splitRatio * 100).toFixed(2)}%` }
@@ -554,11 +564,9 @@ const optionsPanelListeners = {
   "update:edgeWeight": updateEdgeWeight,
   "update:borderPattern": updateBorderPattern,
   "update:borderWeight": updateBorderWeight,
-  "update:textColorMode": updateTextColorMode,
   "update:textPaddingX": updateTextPaddingX,
   "update:textPaddingY": updateTextPaddingY,
   "update:textBoxBorderPadding": updateTextBoxBorderPadding,
-  "update:transparent": updateTransparent,
   "update:padding": updatePadding,
   "update:nodeSpacing": updateNodeSpacing,
   "update:layerSpacing": updateLayerSpacing,
@@ -568,7 +576,6 @@ const optionsPanelListeners = {
   "reset:layout": resetLayoutOptions,
   "reset:nodes": resetNodeOptions,
   "reset:edges": resetEdgeOptions,
-  "reset:text": resetTextOptions,
   "reset:system": resetSystemOptions,
   "invalid:google-font-url": notifyInvalidGoogleFontsUrl,
 } as const;
@@ -791,17 +798,17 @@ async function renderSvgToPngBlob(svg: string): Promise<Blob> {
   }
 }
 
-function getTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): string | null {
-  const text = renderState.value.ascii ?? "";
-  if (text.trim().length === 0) {
-    return null;
-  }
+type TextCopyPayload = {
+  mode: Exclude<RenderOutputMode, "svg">;
+  colorMode: TextColorMode;
+};
 
-  return outputMode === "unicode" || outputMode === "ascii" ? text : null;
+function getTextColorModeLabel(colorMode: TextColorMode): string {
+  return TEXT_COLOR_MODE_OPTIONS.find((option) => option.value === colorMode)?.label ?? "text";
 }
 
-async function copyTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): Promise<void> {
-  const text = getTextOutput(outputMode);
+async function copyTextOutput(payload: TextCopyPayload): Promise<void> {
+  const text = await renderTextByColorMode(payload.colorMode, payload.mode);
   if (!text) {
     return;
   }
@@ -812,21 +819,11 @@ async function copyTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): Pro
     }
 
     await navigator.clipboard.writeText(text);
-    setNotice(outputMode === "unicode" ? "Unicode text copied" : "ASCII text copied", "success");
+    const outputLabel = payload.mode === "unicode" ? "Unicode" : "ASCII";
+    setNotice(`${outputLabel} ${getTextColorModeLabel(payload.colorMode)} copied`, "success");
   } catch (error) {
     setNotice(error instanceof Error ? error.message : "Copy failed", "error");
   }
-}
-
-function downloadTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): void {
-  const text = getTextOutput(outputMode);
-  if (!text) {
-    return;
-  }
-
-  const filename = outputMode === "unicode" ? "diagram-unicode.txt" : "diagram-ascii.txt";
-  downloadBlob(filename, new Blob([text], { type: "text/plain;charset=utf-8" }));
-  setNotice(outputMode === "unicode" ? "Unicode text exported" : "ASCII text exported", "success");
 }
 
 function notifyInvalidGoogleFontsUrl(): void {
@@ -997,10 +994,6 @@ function updateBorderWeight(value: BorderWeight): void {
   state.value.config.borderWeight = value;
 }
 
-function updateTextColorMode(value: TextColorMode): void {
-  state.value.config.textColorMode = value;
-}
-
 function updateTextPaddingX(value: number): void {
   state.value.config.textPaddingX = clamp(value, 0, 60);
   requestPreviewFitAfterRender();
@@ -1047,6 +1040,9 @@ function resetLayoutOptions(): void {
   state.value.config.nodeSpacing = defaults.nodeSpacing;
   state.value.config.layerSpacing = defaults.layerSpacing;
   state.value.config.componentSpacing = defaults.componentSpacing;
+  state.value.config.textPaddingX = defaults.textPaddingX;
+  state.value.config.textPaddingY = defaults.textPaddingY;
+  state.value.config.textBoxBorderPadding = defaults.textBoxBorderPadding;
   requestPreviewFitAfterRender();
 }
 
@@ -1064,15 +1060,6 @@ function resetEdgeOptions(): void {
   state.value.config.edgePattern = defaults.edgePattern;
   state.value.config.edgeWeight = defaults.edgeWeight;
   state.value.config.edgeLabelStyle = defaults.edgeLabelStyle;
-  requestPreviewFitAfterRender();
-}
-
-function resetTextOptions(): void {
-  const defaults = defaultState.config;
-  state.value.config.textColorMode = defaults.textColorMode;
-  state.value.config.textPaddingX = defaults.textPaddingX;
-  state.value.config.textPaddingY = defaults.textPaddingY;
-  state.value.config.textBoxBorderPadding = defaults.textBoxBorderPadding;
   requestPreviewFitAfterRender();
 }
 
@@ -1128,7 +1115,6 @@ function resetAllOptions(): void {
   resetLayoutOptions();
   resetNodeOptions();
   resetEdgeOptions();
-  resetTextOptions();
   resetSystemOptions();
 }
 
@@ -1192,7 +1178,7 @@ onUnmounted(() => {
           :class="{ 'options-pane-full': !hasDesktopEditorPreview }"
         >
           <PlaygroundOptionsPanel
-            v-bind="state.config"
+            v-bind="optionsPanelConfig"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1234,19 +1220,20 @@ onUnmounted(() => {
               :fit-request-id="previewFitRequestId"
               :mono-font-family="monoFontFamily"
               :svg="renderState.svg"
-              :ascii="renderState.ascii"
               :ascii-html="renderState.asciiHtml"
               :error="renderState.error"
               :duration-ms="renderState.durationMs"
               :is-rendering="isRendering"
               :can-export="canExportCurrentOutput"
+              :transparent="state.config.transparent"
+              :transparent-applied="appliedPreviewTransparency"
               @update:output-mode="updateOutputMode"
+              @update:transparent="updateTransparent"
               @export:copy-svg="copySvg"
               @export:copy-png="copyPng"
               @export:download-svg="exportSvg"
               @export:download-png="exportPng"
               @export:copy-text="copyTextOutput"
-              @export:download-text="downloadTextOutput"
             />
           </div>
         </section>
@@ -1255,7 +1242,7 @@ onUnmounted(() => {
       <section v-else class="mobile-workspace">
         <div v-if="state.mobilePane === 'options'" class="pane mobile-pane">
           <PlaygroundOptionsPanel
-            v-bind="state.config"
+            v-bind="optionsPanelConfig"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1282,19 +1269,20 @@ onUnmounted(() => {
             :fit-request-id="previewFitRequestId"
             :mono-font-family="monoFontFamily"
             :svg="renderState.svg"
-            :ascii="renderState.ascii"
             :ascii-html="renderState.asciiHtml"
             :error="renderState.error"
             :duration-ms="renderState.durationMs"
             :is-rendering="isRendering"
             :can-export="canExportCurrentOutput"
+            :transparent="state.config.transparent"
+            :transparent-applied="appliedPreviewTransparency"
             @update:output-mode="updateOutputMode"
+            @update:transparent="updateTransparent"
             @export:copy-svg="copySvg"
             @export:copy-png="copyPng"
             @export:download-svg="exportSvg"
             @export:download-png="exportPng"
             @export:copy-text="copyTextOutput"
-            @export:download-text="downloadTextOutput"
           />
         </div>
       </section>

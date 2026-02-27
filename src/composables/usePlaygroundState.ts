@@ -11,7 +11,6 @@ import {
   ELEMENT_COLOR_ROLES,
   LINE_GEOMETRY_OPTIONS,
   RENDER_OUTPUT_MODE_OPTIONS,
-  TEXT_COLOR_MODE_OPTIONS,
   STROKE_PATTERN_OPTIONS,
   SUBGRAPH_STYLE_OPTIONS,
   MONO_FONT_OPTIONS,
@@ -33,7 +32,6 @@ import {
   type RenderOutputMode,
   type StrokePattern,
   type SubgraphStylePreset,
-  type TextColorMode,
   type MonoFont,
   type ThemeToken,
 } from "@/types/playground";
@@ -92,7 +90,6 @@ const DEFAULT_STATE: PlaygroundState = {
     edgeWeight: "default",
     borderPattern: "default",
     borderWeight: "default",
-    textColorMode: "none",
     textPaddingX: 5,
     textPaddingY: 5,
     textBoxBorderPadding: 1,
@@ -117,9 +114,6 @@ const diagramThemeSet = new Set<DiagramTheme>(
 );
 const outputModeSet = new Set<RenderOutputMode>(
   RENDER_OUTPUT_MODE_OPTIONS.map((outputModeOption) => outputModeOption.value),
-);
-const textColorModeSet = new Set<TextColorMode>(
-  TEXT_COLOR_MODE_OPTIONS.map((colorModeOption) => colorModeOption.value),
 );
 const baseFontSet = new Set<BaseFont>(BASE_FONT_OPTIONS.map((fontOption) => fontOption.value));
 const monoFontSet = new Set<MonoFont>(MONO_FONT_OPTIONS.map((fontOption) => fontOption.value));
@@ -179,10 +173,6 @@ function isRenderOutputMode(value: unknown): value is RenderOutputMode {
 
 function isBaseFont(value: unknown): value is BaseFont {
   return typeof value === "string" && baseFontSet.has(value as BaseFont);
-}
-
-function isTextColorMode(value: unknown): value is TextColorMode {
-  return typeof value === "string" && textColorModeSet.has(value as TextColorMode);
 }
 
 function isMonoFont(value: unknown): value is MonoFont {
@@ -430,9 +420,6 @@ function sanitizeState(source: unknown): PlaygroundState {
       borderWeight: isBorderWeight(rawConfig.borderWeight)
         ? rawConfig.borderWeight
         : DEFAULT_STATE.config.borderWeight,
-      textColorMode: isTextColorMode(rawConfig.textColorMode)
-        ? rawConfig.textColorMode
-        : DEFAULT_STATE.config.textColorMode,
       textPaddingX: sanitizeNumber(
         rawConfig.textPaddingX,
         DEFAULT_STATE.config.textPaddingX,

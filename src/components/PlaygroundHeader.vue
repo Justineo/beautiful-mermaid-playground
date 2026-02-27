@@ -76,10 +76,11 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 }
 
 .brand-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.48rem;
+  column-gap: 0.82rem;
+  row-gap: 0.34rem;
   min-width: 0;
 }
 
@@ -93,6 +94,7 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 .playground-header h1 {
   margin: 0;
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.3rem;
   padding: 0.02rem 0;
@@ -104,7 +106,6 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
   font-size: var(--fs-title);
   font-weight: 560;
   line-height: var(--lh-tight);
-  white-space: nowrap;
   letter-spacing: 0.002em;
 }
 
@@ -125,6 +126,7 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 .toolbar-actions {
   display: flex;
   align-items: center;
+  margin-left: auto;
   gap: 0.5rem;
   flex: 0 0 auto;
 }
@@ -177,27 +179,8 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 }
 
 @media (max-width: 959px) {
-  .brand-row {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    row-gap: 0.34rem;
-  }
-
-  .playground-header h1 {
-    white-space: normal;
-    flex-wrap: wrap;
-    row-gap: 0.06rem;
-  }
-
   .toolbar-actions {
-    width: 100%;
-    min-width: 0;
-    justify-content: flex-start;
-  }
-
-  .credit-links {
-    flex-wrap: wrap;
-    row-gap: 0.12rem;
+    margin-left: 0;
   }
 }
 </style>

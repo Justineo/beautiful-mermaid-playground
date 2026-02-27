@@ -16,7 +16,6 @@ import {
   BASE_FONT_OPTIONS,
   EDGE_LABEL_STYLE_OPTIONS,
   ELEMENT_COLOR_ROLES,
-  TEXT_COLOR_MODE_OPTIONS,
   SUBGRAPH_STYLE_OPTIONS,
   MONO_FONT_OPTIONS,
 } from "@/types/playground";
@@ -35,26 +34,29 @@ import type {
   ElementColorScope,
   ElementColorSource,
   LineGeometry,
-  TextColorMode,
+  RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
   MonoFont,
   ThemeToken,
 } from "@/types/playground";
 
-type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "text" | "system";
+type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "system";
+type OptionsTabScope = "svg" | "text" | "mixed";
 const tabs: Array<{ key: OptionsTab; label: string }> = [
   { key: "palette", label: "Theme" },
   { key: "layout", label: "Layout" },
   { key: "nodes", label: "Nodes" },
   { key: "edges", label: "Edges" },
-  { key: "text", label: "Text" },
   { key: "system", label: "Fonts" },
 ];
-const optionsTabItems: Array<{ key: string; label: string }> = tabs.map((tab) => ({
-  key: tab.key,
-  label: tab.label,
-}));
+const OPTIONS_TAB_SCOPE: Record<OptionsTab, OptionsTabScope> = {
+  palette: "mixed",
+  layout: "mixed",
+  nodes: "svg",
+  edges: "svg",
+  system: "mixed",
+};
 // Hidden for now: beautiful-mermaid currently doesn't produce reliable visual changes
 // from this control in our playground. Keep it easy to re-enable later.
 const SHOW_COMPONENT_GAP_CONTROL = false;
@@ -342,13 +344,9 @@ const ELEMENT_COLOR_ROLE_DISPLAY_ORDER: ElementColorRole[] = [
   "innerStrokes",
   "nodeStroke",
 ];
-const TEXT_COLOR_MODE_ITEMS = TEXT_COLOR_MODE_OPTIONS.map((option) => ({
-  key: option.value,
-  label: option.label,
-}));
-
 const props = defineProps<{
   diagramTheme: DiagramTheme;
+  outputMode: RenderOutputMode;
   useCustomBg: boolean;
   customBg: string;
   useCustomFg: boolean;
@@ -381,11 +379,9 @@ const props = defineProps<{
   edgeWeight: EdgeWeight;
   borderPattern: BorderPattern;
   borderWeight: BorderWeight;
-  textColorMode: TextColorMode;
   textPaddingX: number;
   textPaddingY: number;
   textBoxBorderPadding: number;
-  transparent: boolean;
   padding: number;
   nodeSpacing: number;
   layerSpacing: number;
@@ -423,11 +419,9 @@ const emit = defineEmits<{
   "update:edgeWeight": [value: EdgeWeight];
   "update:borderPattern": [value: BorderPattern];
   "update:borderWeight": [value: BorderWeight];
-  "update:textColorMode": [value: TextColorMode];
   "update:textPaddingX": [value: number];
   "update:textPaddingY": [value: number];
   "update:textBoxBorderPadding": [value: number];
-  "update:transparent": [value: boolean];
   "update:padding": [value: number];
   "update:nodeSpacing": [value: number];
   "update:layerSpacing": [value: number];
@@ -437,13 +431,29 @@ const emit = defineEmits<{
   "reset:layout": [];
   "reset:nodes": [];
   "reset:edges": [];
-  "reset:text": [];
   "reset:system": [];
   "invalid:google-font-url": [];
 }>();
 
 const activeTab = ref<OptionsTab>("palette");
 const optionsScrollHostRef = ref<HTMLElement | null>(null);
+const optionsTabItems = computed(() =>
+  tabs.map((tab) => {
+    const scope = OPTIONS_TAB_SCOPE[tab.key];
+    let inactive = false;
+    let title = tab.label;
+    if (scope !== "mixed" && !isScopeActive(scope)) {
+      inactive = true;
+      title = getScopeOnlyTitle(scope);
+    }
+    return {
+      key: tab.key,
+      label: tab.label,
+      title,
+      labelClass: inactive ? "inactive" : undefined,
+    };
+  }),
+);
 const directionSegmentActiveKey = computed<DirectionSegmentKey>(() =>
   props.directionOverride === "TD" ? "TB" : props.directionOverride,
 );
@@ -1295,26 +1305,6 @@ function onEdgeLabelStyleChange(event: Event): void {
   emit("update:edgeLabelStyle", value as EdgeLabelStylePreset);
 }
 
-function isTextColorModeValue(value: string): value is TextColorMode {
-  return (
-    value === "none" ||
-    value === "auto" ||
-    value === "ansi16" ||
-    value === "ansi256" ||
-    value === "truecolor" ||
-    value === "html"
-  );
-}
-
-function onTextColorModeChange(event: Event): void {
-  const value = getSelectValue(event);
-  if (!isTextColorModeValue(value)) {
-    return;
-  }
-
-  emit("update:textColorMode", value);
-}
-
 function resetAllOptions(): void {
   emit("reset:all");
 }
@@ -1337,11 +1327,6 @@ function resetActiveTab(): void {
 
   if (activeTab.value === "edges") {
     emit("reset:edges");
-    return;
-  }
-
-  if (activeTab.value === "text") {
-    emit("reset:text");
     return;
   }
 
@@ -1488,20 +1473,28 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   return (value: string) => getElementOptionSwatchColor(role, value);
 }
 
-function isSingleScope(scope: ElementColorScope): scope is Exclude<ElementColorScope, "both"> {
-  return scope !== "both";
+function isScopeActive(scope: ElementColorScope): boolean {
+  if (scope === "both") {
+    return true;
+  }
+
+  if (scope === "svg") {
+    return props.outputMode === "svg";
+  }
+
+  return props.outputMode !== "svg";
 }
 
-function getElementScopeBadgeLabel(scope: ElementColorScope): string {
-  return scope === "svg" ? "SVG" : "Text";
+function getScopeOnlyTitle(scope: Exclude<ElementColorScope, "both">): string {
+  return scope === "svg" ? "Applies to SVG output only" : "Applies to Unicode/ASCII output only";
 }
 
-function getElementScopeBadgeTitle(scope: ElementColorScope): string {
-  return scope === "svg" ? "Affects SVG output only." : "Affects text output only (Unicode/ASCII).";
-}
+function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
+  if (scope === "both" || isScopeActive(scope)) {
+    return undefined;
+  }
 
-function getElementScopeBadgeClass(scope: ElementColorScope): string {
-  return scope === "svg" ? "scope-badge-svg" : "scope-badge-text";
+  return getScopeOnlyTitle(scope);
 }
 </script>
 
@@ -1607,11 +1600,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
             </div>
 
             <div class="channel-row">
-              <label for="muted-channel-toggle" class="token-label">
+              <label
+                for="muted-channel-toggle"
+                class="token-label"
+                :class="{ 'scope-inactive': !isScopeActive('svg') }"
+                :title="getScopeInactiveTitle('svg')"
+              >
                 <span class="token-key">muted</span>
-                <span class="scope-badge scope-badge-svg" title="Affects SVG output only.">
-                  SVG
-                </span>
               </label>
               <BaseCheckbox
                 id="muted-channel-toggle"
@@ -1631,11 +1626,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
             </div>
 
             <div class="channel-row">
-              <label for="surface-channel-toggle" class="token-label">
+              <label
+                for="surface-channel-toggle"
+                class="token-label"
+                :class="{ 'scope-inactive': !isScopeActive('svg') }"
+                :title="getScopeInactiveTitle('svg')"
+              >
                 <span class="token-key">surface</span>
-                <span class="scope-badge scope-badge-svg" title="Affects SVG output only.">
-                  SVG
-                </span>
               </label>
               <BaseCheckbox
                 id="surface-channel-toggle"
@@ -1683,16 +1680,12 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
               :key="roleMeta.role"
               class="setting-row element-setting-row"
             >
-              <span class="setting-row-label">
+              <span
+                class="setting-row-label"
+                :class="{ 'scope-inactive': !isScopeActive(roleMeta.scope) }"
+                :title="getScopeInactiveTitle(roleMeta.scope)"
+              >
                 <span>{{ roleMeta.label }}</span>
-                <span
-                  v-if="isSingleScope(roleMeta.scope)"
-                  class="scope-badge"
-                  :class="getElementScopeBadgeClass(roleMeta.scope)"
-                  :title="getElementScopeBadgeTitle(roleMeta.scope)"
-                >
-                  {{ getElementScopeBadgeLabel(roleMeta.scope) }}
-                </span>
               </span>
               <TokenColorSelect
                 :model-value="getElementRuleSelectValue(roleMeta.role)"
@@ -1719,7 +1712,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <label class="setting-row">
-            <span>Padding</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Padding</span>
+            </span>
             <input
               type="number"
               min="0"
@@ -1731,7 +1730,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </label>
 
           <label class="setting-row">
-            <span>Node gap</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Node gap</span>
+            </span>
             <input
               type="number"
               min="4"
@@ -1743,7 +1748,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </label>
 
           <label class="setting-row">
-            <span>Layer gap</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Layer gap</span>
+            </span>
             <input
               type="number"
               min="4"
@@ -1765,11 +1776,71 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
               @input="onNumberInput($event, 'componentSpacing')"
             />
           </label>
+
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('text') }"
+              :title="getScopeInactiveTitle('text')"
+            >
+              <span>Padding X</span>
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="60"
+              step="1"
+              :value="props.textPaddingX"
+              @input="onNumberInput($event, 'textPaddingX')"
+            />
+          </label>
+
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('text') }"
+              :title="getScopeInactiveTitle('text')"
+            >
+              <span>Padding Y</span>
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="60"
+              step="1"
+              :value="props.textPaddingY"
+              @input="onNumberInput($event, 'textPaddingY')"
+            />
+          </label>
+
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('text') }"
+              :title="getScopeInactiveTitle('text')"
+            >
+              <span>Box padding</span>
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="24"
+              step="1"
+              :value="props.textBoxBorderPadding"
+              @input="onNumberInput($event, 'textBoxBorderPadding')"
+            />
+          </label>
         </div>
 
         <div v-else-if="activeTab === 'nodes'" class="setting-list">
           <label class="setting-row">
-            <span>Subgraph</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Subgraph</span>
+            </span>
             <BaseSelect
               :value="props.subgraphStyle"
               @change="emit('update:subgraphStyle', getSelectValue($event) as SubgraphStylePreset)"
@@ -1781,7 +1852,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </label>
 
           <div class="setting-row">
-            <span>Corner</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Corner</span>
+            </span>
             <BaseSegmentedControl
               class="corner-control"
               :items="cornerStyleItems"
@@ -1792,7 +1869,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <div class="setting-row">
-            <span>Border pattern</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Border pattern</span>
+            </span>
             <BaseSegmentedControl
               class="border-pattern-control"
               :items="borderPatternItems"
@@ -1803,7 +1886,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <div class="setting-row">
-            <span>Border weight</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Border weight</span>
+            </span>
             <BaseSegmentedControl
               class="border-weight-control"
               :items="borderWeightItems"
@@ -1816,7 +1905,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 
         <div v-else-if="activeTab === 'edges'" class="setting-list">
           <div class="setting-row">
-            <span>Routing</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Routing</span>
+            </span>
             <BaseSegmentedControl
               class="edge-geometry-control"
               :items="edgeGeometryItems"
@@ -1827,7 +1922,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <div class="setting-row">
-            <span>Pattern</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Pattern</span>
+            </span>
             <BaseSegmentedControl
               class="edge-pattern-control"
               :items="edgePatternItems"
@@ -1838,7 +1939,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <div class="setting-row">
-            <span>Weight</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Weight</span>
+            </span>
             <BaseSegmentedControl
               class="edge-weight-control"
               :items="edgeWeightItems"
@@ -1849,7 +1956,13 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </div>
 
           <label class="setting-row">
-            <span>Label</span>
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Label</span>
+            </span>
             <BaseSelect :value="props.edgeLabelStyle" @change="onEdgeLabelStyleChange">
               <option
                 v-for="item in EDGE_LABEL_STYLE_OPTIONS"
@@ -1862,60 +1975,15 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
           </label>
         </div>
 
-        <div v-else-if="activeTab === 'text'" class="setting-list">
-          <section class="setting-section">
-            <p class="tab-note">These options affect Unicode/ASCII output only.</p>
-
-            <div class="setting-row">
-              <span>Color mode</span>
-              <BaseSelect :value="props.textColorMode" @change="onTextColorModeChange">
-                <option v-for="item in TEXT_COLOR_MODE_ITEMS" :key="item.key" :value="item.key">
-                  {{ item.label }}
-                </option>
-              </BaseSelect>
-            </div>
-
-            <label class="setting-row">
-              <span>Padding X</span>
-              <input
-                type="number"
-                min="0"
-                max="60"
-                step="1"
-                :value="props.textPaddingX"
-                @input="onNumberInput($event, 'textPaddingX')"
-              />
-            </label>
-
-            <label class="setting-row">
-              <span>Padding Y</span>
-              <input
-                type="number"
-                min="0"
-                max="60"
-                step="1"
-                :value="props.textPaddingY"
-                @input="onNumberInput($event, 'textPaddingY')"
-              />
-            </label>
-
-            <label class="setting-row">
-              <span>Box padding</span>
-              <input
-                type="number"
-                min="0"
-                max="24"
-                step="1"
-                :value="props.textBoxBorderPadding"
-                @input="onNumberInput($event, 'textBoxBorderPadding')"
-              />
-            </label>
-          </section>
-        </div>
-
         <div v-else class="setting-list">
-          <div class="setting-row">
-            <span>Base font</span>
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isScopeActive('svg') }"
+              :title="getScopeInactiveTitle('svg')"
+            >
+              <span>Base font</span>
+            </span>
             <BaseSelect
               v-if="!isBaseCustomInputMode"
               :value="baseFontSelectValue"
@@ -1950,9 +2018,9 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
               @paste="onBaseCustomFontPaste"
               @blur="onBaseCustomFontBlur"
             />
-          </div>
+          </label>
 
-          <div class="setting-row">
+          <label class="setting-row">
             <span>Mono font</span>
             <BaseSelect
               v-if="!isMonoCustomInputMode"
@@ -1987,16 +2055,6 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
               @keydown="onMonoCustomFontKeydown"
               @paste="onMonoCustomFontPaste"
               @blur="onMonoCustomFontBlur"
-            />
-          </div>
-
-          <label class="setting-row switch-row">
-            <span>Transparent background</span>
-            <BaseCheckbox
-              id="transparent-canvas-toggle"
-              :model-value="props.transparent"
-              aria-label="Toggle transparent background"
-              @update:model-value="emit('update:transparent', $event)"
             />
           </label>
         </div>
@@ -2070,13 +2128,6 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
   margin: 0 0 0.16rem;
 }
 
-.tab-note {
-  margin: 0 0 0.22rem;
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  line-height: var(--lh-normal);
-}
-
 .section-reset {
   color: var(--text-muted);
 }
@@ -2092,6 +2143,7 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 
 .setting-row {
   grid-template-columns: minmax(0, 1fr) max-content;
+  cursor: default;
 }
 
 .element-setting-row {
@@ -2162,35 +2214,10 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
   min-width: 0;
 }
 
-.scope-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 16px;
-  padding: 0 6px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-  font-size: var(--fs-meta);
-  font-weight: 560;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-}
-
-.scope-badge-svg {
-  height: 13px;
-  padding: 0 3px;
-  border-radius: 4px;
-  font-size: calc(var(--fs-meta) - 0.14rem);
-  font-weight: 430;
-  background: transparent;
-  border-color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 18%, var(--border-color));
-  color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 40%, var(--text-primary));
-}
-
-.scope-badge-text {
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+.scope-inactive {
+  text-decoration-line: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-primary) 72%, currentColor);
+  text-decoration-thickness: 1px;
 }
 
 .token-key {
@@ -2207,7 +2234,7 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 }
 
 .channel-row > label {
-  cursor: pointer;
+  cursor: default;
 }
 
 .setting-row.switch-row {

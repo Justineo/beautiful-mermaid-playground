@@ -204,7 +204,7 @@ function normalizeHexColor(value: string | null | undefined): string | null {
 
 <style scoped>
 .token-color-select {
-  width: 156px;
+  width: 132px;
   max-width: 100%;
   display: inline-flex;
   align-items: center;

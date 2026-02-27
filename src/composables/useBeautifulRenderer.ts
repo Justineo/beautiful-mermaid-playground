@@ -9,7 +9,9 @@ import type {
   BeautifulRenderConfig,
   ElementColorRole,
   ElementColorRule,
+  RenderOutputMode,
   RenderState,
+  TextColorMode,
   ThemeToken,
 } from "@/types/playground";
 
@@ -167,6 +169,74 @@ const CORNER_RADIUS_SET = {
 } as const;
 
 const EDGE_LABEL_FONT_SIZE = 11;
+
+type RgbColor = {
+  r: number;
+  g: number;
+  b: number;
+};
+
+function clampColorChannel(value: number): number {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function parseHexColor(color: string): RgbColor | null {
+  const normalized = color.trim().replace(/^#/u, "");
+  if (!/^[\da-f]{3}$/iu.test(normalized) && !/^[\da-f]{4}$/iu.test(normalized)) {
+    if (!/^[\da-f]{6}$/iu.test(normalized) && !/^[\da-f]{8}$/iu.test(normalized)) {
+      return null;
+    }
+  }
+
+  if (normalized.length === 3 || normalized.length === 4) {
+    const [r, g, b] = normalized;
+    if (!r || !g || !b) {
+      return null;
+    }
+
+    return {
+      r: Number.parseInt(r + r, 16),
+      g: Number.parseInt(g + g, 16),
+      b: Number.parseInt(b + b, 16),
+    };
+  }
+
+  return {
+    r: Number.parseInt(normalized.slice(0, 2), 16),
+    g: Number.parseInt(normalized.slice(2, 4), 16),
+    b: Number.parseInt(normalized.slice(4, 6), 16),
+  };
+}
+
+function toHexColor(color: RgbColor): string {
+  return `#${[color.r, color.g, color.b]
+    .map((channel) => clampColorChannel(channel).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function mixHexColors(fg: string, bg: string, percent: number): string | null {
+  const fgColor = parseHexColor(fg);
+  const bgColor = parseHexColor(bg);
+  if (!fgColor || !bgColor) {
+    return null;
+  }
+
+  const ratio = percent / 100;
+  return toHexColor({
+    r: fgColor.r * ratio + bgColor.r * (1 - ratio),
+    g: fgColor.g * ratio + bgColor.g * (1 - ratio),
+    b: fgColor.b * ratio + bgColor.b * (1 - ratio),
+  });
+}
+
+function resolveHexColor(color: string): string | null {
+  if (color.trim().toLowerCase() === "transparent") {
+    return null;
+  }
+
+  const rgb = parseHexColor(color);
+  return rgb ? toHexColor(rgb) : null;
+}
 
 function mixFrom(base: ThemeChannels, percent: number): string {
   return `color-mix(in srgb, ${base.fg} ${percent}%, ${base.bg})`;
@@ -397,6 +467,29 @@ function buildAsciiThemeFromTokens(tokens: ThemeTokenValues): AsciiThemeValues {
   };
 }
 
+function sanitizeAsciiTheme(theme: AsciiThemeValues): AsciiThemeValues {
+  const bg = resolveHexColor(theme.bg) ?? "#ffffff";
+  const fg = resolveHexColor(theme.fg) ?? "#111111";
+  const lineFallback = mixHexColors(fg, bg, 50) ?? fg;
+  const borderFallback = mixHexColors(fg, bg, 20) ?? fg;
+  const arrowFallback = mixHexColors(fg, bg, 85) ?? fg;
+
+  const line = resolveHexColor(theme.line) ?? lineFallback;
+  const border = resolveHexColor(theme.border) ?? borderFallback;
+  const arrow = resolveHexColor(theme.arrow) ?? arrowFallback;
+
+  return {
+    fg,
+    border,
+    line,
+    arrow,
+    accent: arrow,
+    bg,
+    corner: line,
+    junction: border,
+  };
+}
+
 function resolveElementScopedOverrides(
   config: BeautifulRenderConfig,
   tokens: ThemeTokenValues,
@@ -454,16 +547,57 @@ function applyTextThemeOverrides(
 function buildAsciiRenderOptions(
   config: BeautifulRenderConfig,
   theme: AsciiThemeValues,
-  previewMode: boolean,
+  colorMode: TextColorMode,
+  outputMode: Exclude<RenderOutputMode, "svg">,
 ): AsciiRenderOptions {
   return {
-    useAscii: config.outputMode === "ascii",
-    colorMode: previewMode ? "html" : config.textColorMode,
+    useAscii: outputMode === "ascii",
+    colorMode,
     paddingX: config.textPaddingX,
     paddingY: config.textPaddingY,
     boxBorderPadding: config.textBoxBorderPadding,
     theme,
   };
+}
+
+function resolveTextTheme(config: BeautifulRenderConfig): AsciiThemeValues {
+  const baseTokens = resolveThemeTokenValues(config);
+  const tokenOverrides = resolveMermaidOptionTokenOverrides(config, baseTokens);
+  const effectiveTokens = applyOptionTokenOverrides(baseTokens, tokenOverrides);
+  const scopedOverrides = resolveElementScopedOverrides(config, effectiveTokens);
+  const rawTheme = applyTextThemeOverrides(
+    buildAsciiThemeFromTokens(effectiveTokens),
+    scopedOverrides.textOverrides,
+  );
+  return sanitizeAsciiTheme(rawTheme);
+}
+
+function resolveRenderSource(
+  codeValue: string,
+  directionOverride: BeautifulRenderConfig["directionOverride"],
+): {
+  source: string;
+  originalSource: string;
+} {
+  const originalSource = stripCommonLeadingIndent(codeValue.trim());
+  const source = stripCommonLeadingIndent(forceDirection(originalSource, directionOverride));
+  return {
+    source,
+    originalSource,
+  };
+}
+
+function renderTextOutput(
+  runtime: BeautifulMermaidRuntime,
+  source: string,
+  config: BeautifulRenderConfig,
+  colorMode: TextColorMode,
+  outputMode: Exclude<RenderOutputMode, "svg">,
+): string {
+  return runtime.renderMermaidASCII(
+    source,
+    buildAsciiRenderOptions(config, resolveTextTheme(config), colorMode, outputMode),
+  );
 }
 
 function stripCommonLeadingIndent(source: string): string {
@@ -1229,7 +1363,6 @@ export function useBeautifulRenderer(
 ) {
   const renderState = ref<RenderState>({
     svg: null,
-    ascii: null,
     asciiHtml: null,
     error: null,
     durationMs: null,
@@ -1245,9 +1378,9 @@ export function useBeautifulRenderer(
     latestRenderToken = renderToken;
 
     const startedAt = performance.now();
-    const originalSource = stripCommonLeadingIndent(code.value.trim());
-    const source = stripCommonLeadingIndent(
-      forceDirection(originalSource, config.value.directionOverride),
+    const { source, originalSource } = resolveRenderSource(
+      code.value,
+      config.value.directionOverride,
     );
 
     if (!source) {
@@ -1257,7 +1390,6 @@ export function useBeautifulRenderer(
 
       renderState.value = {
         svg: null,
-        ascii: null,
         asciiHtml: null,
         error: null,
         durationMs: Math.round(performance.now() - startedAt),
@@ -1267,7 +1399,6 @@ export function useBeautifulRenderer(
     }
 
     const previousSvg = renderState.value.svg;
-    const previousAscii = renderState.value.ascii;
     const previousAsciiHtml = renderState.value.asciiHtml;
 
     try {
@@ -1299,7 +1430,6 @@ export function useBeautifulRenderer(
 
         renderState.value = {
           svg: styledSvg,
-          ascii: previousAscii,
           asciiHtml: previousAsciiHtml,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
@@ -1310,20 +1440,13 @@ export function useBeautifulRenderer(
           buildAsciiThemeFromTokens(effectiveTokens),
           scopedOverrides.textOverrides,
         );
-        const ascii = stripCommonLeadingIndent(
-          runtime.renderMermaidASCII(
-            source,
-            buildAsciiRenderOptions(config.value, asciiTheme, false),
-          ),
-        );
         const asciiHtml = runtime.renderMermaidASCII(
           source,
-          buildAsciiRenderOptions(config.value, asciiTheme, true),
+          buildAsciiRenderOptions(config.value, asciiTheme, "html", config.value.outputMode),
         );
 
         renderState.value = {
           svg: previousSvg,
-          ascii,
           asciiHtml,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
@@ -1340,7 +1463,6 @@ export function useBeautifulRenderer(
         : getErrorMessage(error);
       renderState.value = {
         svg: previousSvg,
-        ascii: previousAscii,
         asciiHtml: previousAsciiHtml,
         error: errorMessage,
         durationMs: Math.round(performance.now() - startedAt),
@@ -1371,6 +1493,20 @@ export function useBeautifulRenderer(
     void scheduleDebouncedRender(scheduleToken);
   }
 
+  async function renderTextByColorMode(
+    colorMode: TextColorMode,
+    outputMode: Exclude<RenderOutputMode, "svg">,
+  ): Promise<string | null> {
+    const { source } = resolveRenderSource(code.value, config.value.directionOverride);
+    if (!source) {
+      return null;
+    }
+
+    const runtime = await loadBeautifulMermaid();
+    const text = renderTextOutput(runtime, source, config.value, colorMode, outputMode);
+    return colorMode === "html" ? text : stripCommonLeadingIndent(text);
+  }
+
   onUnmounted(() => {
     cancelScheduledRender();
     latestRenderToken += 1;
@@ -1381,6 +1517,7 @@ export function useBeautifulRenderer(
     isRendering: computed(() => isRendering.value),
     renderState,
     renderNow,
+    renderTextByColorMode,
     scheduleRender,
     cancelScheduledRender,
   };

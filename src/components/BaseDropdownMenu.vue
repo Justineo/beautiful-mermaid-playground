@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { ChevronDown, Download, MoreHorizontal } from "lucide-vue-next";
+import { ChevronDown, Copy, Download, MoreHorizontal } from "lucide-vue-next";
 import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
 import { POPOVER_ROOT_SELECTOR } from "@/constants/overlay";
 import type { ComponentPublicInstance } from "vue";
@@ -29,7 +29,7 @@ const {
   disabled?: boolean;
   align?: "left" | "right";
   iconOnly?: boolean;
-  triggerIcon?: "chevron-down" | "ellipsis" | "download";
+  triggerIcon?: "chevron-down" | "ellipsis" | "download" | "copy";
 }>();
 
 const emit = defineEmits<{
@@ -58,7 +58,13 @@ useOverlayScrollbars(popoverRef, {
 
 const hasEnabledItem = computed(() => items.some((item) => !item.disabled && !item.separator));
 const triggerIconComponent = computed(() =>
-  triggerIcon === "ellipsis" ? MoreHorizontal : triggerIcon === "download" ? Download : ChevronDown,
+  triggerIcon === "ellipsis"
+    ? MoreHorizontal
+    : triggerIcon === "download"
+      ? Download
+      : triggerIcon === "copy"
+        ? Copy
+        : ChevronDown,
 );
 
 function findFirstEnabledIndex(): number {

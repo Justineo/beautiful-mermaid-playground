@@ -5,7 +5,7 @@ import type { UnofficialDiagramThemeName } from "@/generated/unofficialThemes";
 export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
-export type TextColorMode = "none" | "auto" | "ansi16" | "ansi256" | "truecolor" | "html";
+export type TextColorMode = "none" | "ansi16" | "ansi256" | "truecolor" | "html";
 
 export type ActiveMobilePane = "options" | "editor" | "preview";
 export type DesktopPaneKey = "options" | "editor" | "preview";
@@ -191,7 +191,6 @@ export interface BeautifulRenderConfig {
   edgeWeight: EdgeWeight;
   borderPattern: BorderPattern;
   borderWeight: BorderWeight;
-  textColorMode: TextColorMode;
   textPaddingX: number;
   textPaddingY: number;
   textBoxBorderPadding: number;
@@ -213,7 +212,6 @@ export interface PlaygroundState {
 
 export interface RenderState {
   svg: string | null;
-  ascii: string | null;
   asciiHtml: string | null;
   error: string | null;
   durationMs: number | null;
@@ -227,11 +225,10 @@ export const RENDER_OUTPUT_MODE_OPTIONS: Array<{ label: string; value: RenderOut
 ];
 
 export const TEXT_COLOR_MODE_OPTIONS: Array<{ label: string; value: TextColorMode }> = [
-  { label: "None", value: "none" },
-  { label: "Default", value: "auto" },
+  { label: "plain text", value: "none" },
   { label: "ANSI 16", value: "ansi16" },
   { label: "ANSI 256", value: "ansi256" },
-  { label: "Truecolor", value: "truecolor" },
+  { label: "true color", value: "truecolor" },
   { label: "HTML", value: "html" },
 ];
 

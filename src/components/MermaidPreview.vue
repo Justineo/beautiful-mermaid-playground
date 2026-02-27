@@ -3,11 +3,12 @@ import { Scan } from "lucide-vue-next";
 import { useResizeObserver } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import BaseButton from "@/components/BaseButton.vue";
+import BaseCheckbox from "@/components/BaseCheckbox.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
-import { RENDER_OUTPUT_MODE_OPTIONS } from "@/types/playground";
-import type { RenderOutputMode } from "@/types/playground";
+import { RENDER_OUTPUT_MODE_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
+import type { RenderOutputMode, TextColorMode } from "@/types/playground";
 
 type ViewportPoint = {
   x: number;
@@ -24,12 +25,13 @@ const props = defineProps<{
   fitRequestId: number;
   monoFontFamily: string;
   svg: string | null;
-  ascii: string | null;
   asciiHtml: string | null;
   error: string | null;
   durationMs: number | null;
   isRendering: boolean;
   canExport: boolean;
+  transparent: boolean;
+  transparentApplied: boolean;
 }>();
 
 type TextOutputMode = Exclude<RenderOutputMode, "svg">;
@@ -39,9 +41,9 @@ const emit = defineEmits<{
   "export:copy-png": [];
   "export:download-svg": [];
   "export:download-png": [];
-  "export:copy-text": [mode: TextOutputMode];
-  "export:download-text": [mode: TextOutputMode];
+  "export:copy-text": [payload: { mode: TextOutputMode; colorMode: TextColorMode }];
   "update:outputMode": [value: RenderOutputMode];
+  "update:transparent": [value: boolean];
 }>();
 
 const viewportRef = ref<HTMLElement | null>(null);
@@ -88,14 +90,15 @@ const canvasTransformStyle = computed(() => ({
 const zoomLabel = computed(() => `${Math.round(scale.value * 100)}%`);
 
 const hasCurrentOutput = computed(() =>
-  props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.ascii),
+  props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.asciiHtml),
 );
+const isTransparentPreview = computed(() => props.outputMode === "svg" && props.transparentApplied);
 const renderDurationText = computed(() => {
   if (props.isRendering || props.error || props.durationMs === null) {
     return null;
   }
 
-  return `${props.durationMs}ms`;
+  return `Rendered in ${props.durationMs}ms`;
 });
 const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   if (props.outputMode === "svg") {
@@ -107,12 +110,12 @@ const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
     ];
   }
 
-  const label = props.outputMode === "unicode" ? "Unicode text" : "ASCII text";
-  return [
-    { key: "copy-text", label: `Copy ${label}` },
-    { key: "download-text", label: `Download ${label}` },
-  ];
+  return TEXT_COLOR_MODE_OPTIONS.map((option) => ({
+    key: `copy-text-${option.value}`,
+    label: `Copy ${option.label}`,
+  }));
 });
+const exportTriggerIcon = "copy" as const;
 const outputModeItems: Array<{ key: string; label: string }> = RENDER_OUTPUT_MODE_OPTIONS.map(
   (item) => ({
     key: item.value,
@@ -176,7 +179,7 @@ function readCurrentContentSize(outputMode: RenderOutputMode): ContentSize | nul
 
   const width = Math.max(1, Math.ceil(textElement.scrollWidth));
   const height = Math.max(1, Math.ceil(textElement.scrollHeight));
-  if (width <= 1 && height <= 1 && !props.ascii) {
+  if (width <= 1 && height <= 1 && !props.asciiHtml) {
     return null;
   }
 
@@ -478,13 +481,15 @@ function onGraphExportSelect(key: string): void {
     return;
   }
 
-  if (key === "copy-text" && props.outputMode !== "svg") {
-    emit("export:copy-text", props.outputMode);
-    return;
-  }
-
-  if (key === "download-text" && props.outputMode !== "svg") {
-    emit("export:download-text", props.outputMode);
+  if (key.startsWith("copy-text-") && props.outputMode !== "svg") {
+    const colorMode = key.replace("copy-text-", "") as TextColorMode;
+    if (!TEXT_COLOR_MODE_OPTIONS.some((option) => option.value === colorMode)) {
+      return;
+    }
+    emit("export:copy-text", {
+      mode: props.outputMode,
+      colorMode,
+    });
   }
 }
 
@@ -522,18 +527,18 @@ defineExpose<{
 watch(
   () => ({
     svg: props.svg,
-    ascii: props.ascii,
+    asciiHtml: props.asciiHtml,
     outputMode: props.outputMode,
     fitRequestId: props.fitRequestId,
   }),
   (newValue, oldValue) => {
-    const { svg, ascii, outputMode, fitRequestId } = newValue;
+    const { svg, asciiHtml, outputMode, fitRequestId } = newValue;
     const previousMode = oldValue?.outputMode;
-    const currentContent = outputMode === "svg" ? svg : ascii;
+    const currentContent = outputMode === "svg" ? svg : asciiHtml;
     const previousContent = oldValue
       ? oldValue.outputMode === "svg"
         ? oldValue.svg
-        : oldValue.ascii
+        : oldValue.asciiHtml
       : null;
     const contentBecameRenderable = Boolean(currentContent) && !previousContent;
     const modeChanged = previousMode !== undefined && previousMode !== outputMode;
@@ -590,7 +595,7 @@ useResizeObserver(textCanvasRef, () => {
           :items="graphExportItems"
           :disabled="!props.canExport"
           :icon-only="true"
-          trigger-icon="download"
+          :trigger-icon="exportTriggerIcon"
           @select="onGraphExportSelect"
         />
       </div>
@@ -620,6 +625,15 @@ useResizeObserver(textCanvasRef, () => {
         >
           {{ zoomLabel }}
         </BaseButton>
+        <label v-if="props.outputMode === 'svg'" class="preview-transparent-toggle">
+          <span>Transparent background</span>
+          <BaseCheckbox
+            id="preview-transparent-toggle"
+            :model-value="props.transparent"
+            aria-label="Toggle transparent background"
+            @update:model-value="emit('update:transparent', $event)"
+          />
+        </label>
       </div>
 
       <div class="preview-floating-controls">
@@ -636,6 +650,7 @@ useResizeObserver(textCanvasRef, () => {
       <div
         ref="viewportRef"
         class="preview-viewport"
+        :class="{ 'preview-viewport-transparent': isTransparentPreview }"
         @pointerdown="onViewportPointerDown"
         @pointermove="onViewportPointerMove"
         @pointerup="onViewportPointerUp"
@@ -655,7 +670,7 @@ useResizeObserver(textCanvasRef, () => {
             ref="textCanvasRef"
             class="ascii-canvas"
             :style="{ fontFamily: props.monoFontFamily }"
-            v-html="props.asciiHtml ?? props.ascii ?? ''"
+            v-html="props.asciiHtml ?? ''"
           />
         </div>
         <pre v-if="props.error" class="error-block">{{ props.error }}</pre>
@@ -682,6 +697,32 @@ useResizeObserver(textCanvasRef, () => {
   white-space: nowrap;
 }
 
+.preview-transparent-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--preview-toolbar-control-fg);
+  font-size: var(--fs-control);
+  line-height: var(--lh-tight);
+  white-space: nowrap;
+  pointer-events: auto;
+  margin-left: 0;
+  min-height: var(--ui-control-height);
+  padding: 0 0.42rem;
+  border-radius: 6px;
+  background: var(--preview-toolbar-control-bg);
+  border: 1px solid var(--preview-toolbar-control-border);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.preview-transparent-toggle:hover {
+  border-color: var(--preview-toolbar-control-border-hover);
+  background: var(--preview-toolbar-control-bg-hover);
+}
+
 .preview-stage {
   position: relative;
   height: 100%;
@@ -704,6 +745,15 @@ useResizeObserver(textCanvasRef, () => {
 }
 
 .preview-toolbar-left {
+  --preview-toolbar-control-fg: var(--text-secondary);
+  --preview-toolbar-control-border: color-mix(in srgb, var(--border-color) 90%, transparent);
+  --preview-toolbar-control-border-hover: color-mix(in srgb, var(--border-strong) 92%, transparent);
+  --preview-toolbar-control-bg: var(--surface);
+  --preview-toolbar-control-bg-hover: color-mix(
+    in srgb,
+    var(--surface-elevated) 84%,
+    var(--surface)
+  );
   position: absolute;
   top: 0.58rem;
   left: 0.6rem;
@@ -716,12 +766,21 @@ useResizeObserver(textCanvasRef, () => {
 
 .zoom-toolbar-button {
   min-height: var(--ui-control-height);
+  color: var(--preview-toolbar-control-fg);
+  border-color: var(--preview-toolbar-control-border);
+  background: var(--preview-toolbar-control-bg);
 }
 
-.zoom-percent-button {
+.zoom-toolbar-button:hover:enabled {
+  border-color: var(--preview-toolbar-control-border-hover);
+  background: var(--preview-toolbar-control-bg-hover);
+}
+
+.zoom-toolbar-button.zoom-percent-button {
   box-sizing: content-box;
   width: 4ch;
   min-width: 4ch;
+  min-height: calc(var(--ui-control-height) - 2px);
   justify-content: center;
   padding-inline: 0.2rem;
   font-variant-numeric: tabular-nums;
@@ -740,6 +799,10 @@ useResizeObserver(textCanvasRef, () => {
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.preview-viewport:not(.preview-viewport-transparent) {
   background:
     radial-gradient(
         circle at 1px 1px,
@@ -748,6 +811,35 @@ useResizeObserver(textCanvasRef, () => {
       )
       0 0 / 20px 20px,
     color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.preview-viewport.preview-viewport-transparent {
+  background:
+    linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--border-subtle) 36%, transparent) 25%,
+        transparent 25%
+      )
+      0 0 / 16px 16px,
+    linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--border-subtle) 36%, transparent) 25%,
+        transparent 25%
+      )
+      0 8px / 16px 16px,
+    linear-gradient(
+        45deg,
+        transparent 75%,
+        color-mix(in srgb, var(--border-subtle) 36%, transparent) 75%
+      )
+      8px -8px / 16px 16px,
+    linear-gradient(
+        -45deg,
+        transparent 75%,
+        color-mix(in srgb, var(--border-subtle) 36%, transparent) 75%
+      ) -8px
+      0 / 16px 16px,
+    color-mix(in srgb, var(--surface) 90%, var(--surface-muted));
 }
 
 .preview-viewport:active {
