@@ -313,6 +313,9 @@ const splitRatio = computed({
 });
 
 const splitPaneRef = ref<HTMLElement | null>(null);
+const DESKTOP_EDITOR_MIN_WIDTH = 240;
+// Recalculated after moving "Transparent background" to bottom controls.
+const DESKTOP_PREVIEW_MIN_WIDTH = 344;
 type MermaidEditorExpose = { focus: () => void; focusToEnd: () => void };
 const editorRef = ref<MermaidEditorExpose | null>(null);
 const editorFocusToEndToken = ref(0);
@@ -323,7 +326,10 @@ const isBaseCustomFontLoading = ref(false);
 const isMonoCustomFontLoading = ref(false);
 let baseCustomFontLoadToken = 0;
 let monoCustomFontLoadToken = 0;
-const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, splitRatio);
+const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, splitRatio, {
+  minLeftPx: DESKTOP_EDITOR_MIN_WIDTH,
+  minRightPx: DESKTOP_PREVIEW_MIN_WIDTH,
+});
 const { isRendering, renderState, renderNow, renderTextByColorMode, scheduleRender } =
   useBeautifulRenderer(codeRef, configRef, 300);
 type EditorFocusMode = "focus" | "focusToEnd";
@@ -1378,10 +1384,12 @@ onUnmounted(() => {
 
 .editor-preview-workspace:not(.single) .editor-pane {
   border-right: 0;
+  min-width: 240px;
 }
 
 .editor-preview-workspace:not(.single) .preview-pane {
   flex: 1 1 0;
+  min-width: 344px;
 }
 
 .editor-preview-workspace.single .editor-pane,
