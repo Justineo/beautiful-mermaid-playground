@@ -25,14 +25,29 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         codeSplitting: {
-          minSize: 20_000,
+          // Raise split threshold to reduce small fragmented chunks.
+          minSize: 80_000,
           groups: [
             {
               name: "editor-monaco",
-              test: /node_modules[\\/]monaco-editor/,
+              // Keep Monaco core + tiny virtual bridge together for stable editor cacheability.
+              test: /(node_modules[\\/]monaco-editor|virtual:monaco-editor|_virtual_monaco-editor)/,
               priority: 100,
             },
             {
+              // Merge all Shiki theme modules into one chunk, independent from Shiki runtime.
+              name: "editor-shiki-themes",
+              test: /node_modules[\\/]@shikijs[\\/]themes/,
+              priority: 98,
+            },
+            {
+              // Shiki runtime stays separate from theme payload.
+              name: "editor-shiki-runtime",
+              test: /(virtual:shiki|_virtual_shiki|node_modules[\\/](@shikijs(?![\\/]themes)|shiki|shiki-codegen))/,
+              priority: 96,
+            },
+            {
+              // beautiful-mermaid currently statically imports elkjs, so they must stay together.
               name: "renderer-core",
               test: /node_modules[\\/](beautiful-mermaid|elkjs|entities)/,
               priority: 90,
