@@ -6,7 +6,6 @@ import BaseButton from "@/components/BaseButton.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
-import BaseSkeleton from "@/components/BaseSkeleton.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS } from "@/types/playground";
 import type { RenderOutputMode } from "@/types/playground";
 
@@ -68,7 +67,6 @@ let pinchStartScale = 1;
 let pinchStartWorldAnchor: ViewportPoint | null = null;
 const autoFit = ref(true);
 const needsFit = ref(false);
-const outputModeTransitionPending = ref(false);
 
 function snapToDevicePixel(value: number): number {
   const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
@@ -92,32 +90,13 @@ const zoomLabel = computed(() => `${Math.round(scale.value * 100)}%`);
 const hasCurrentOutput = computed(() =>
   props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.ascii),
 );
-const showLoadingSkeleton = computed(
-  () =>
-    !props.error &&
-    !hasCurrentOutput.value &&
-    (props.isRendering || outputModeTransitionPending.value),
-);
-const showPlaceholder = computed(
-  () => !props.error && !hasCurrentOutput.value && !showLoadingSkeleton.value,
-);
-
-const statusText = computed(() => {
-  if (props.isRendering) {
-    return "Rendering...";
+const renderDurationText = computed(() => {
+  if (props.isRendering || props.error || props.durationMs === null) {
+    return null;
   }
 
-  if (props.error) {
-    return "Render failed";
-  }
-
-  if (props.durationMs !== null) {
-    return `Rendered in ${props.durationMs}ms`;
-  }
-
-  return "Ready";
+  return `${props.durationMs}ms`;
 });
-
 const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   if (props.outputMode === "svg") {
     return [
@@ -541,26 +520,6 @@ defineExpose<{
 });
 
 watch(
-  () => props.outputMode,
-  (nextOutputMode, previousOutputMode) => {
-    if (previousOutputMode === undefined || nextOutputMode === previousOutputMode) {
-      return;
-    }
-
-    outputModeTransitionPending.value = true;
-  },
-);
-
-watch(
-  () => [hasCurrentOutput.value, props.error] as const,
-  ([hasOutput, error]) => {
-    if (hasOutput || Boolean(error)) {
-      outputModeTransitionPending.value = false;
-    }
-  },
-);
-
-watch(
   () => ({
     svg: props.svg,
     ascii: props.ascii,
@@ -624,7 +583,7 @@ useResizeObserver(textCanvasRef, () => {
   <BasePanel title="Preview" aria-label="Diagram preview">
     <template #info>
       <div class="preview-info">
-        <span class="preview-status">{{ statusText }}</span>
+        <span v-if="renderDurationText" class="preview-duration">{{ renderDurationText }}</span>
         <BaseDropdownMenu
           aria-label="Preview export"
           menu-label="Preview export menu"
@@ -699,17 +658,6 @@ useResizeObserver(textCanvasRef, () => {
             v-html="props.asciiHtml ?? props.ascii ?? ''"
           />
         </div>
-
-        <p v-if="showPlaceholder" class="placeholder">Preview will appear here.</p>
-        <div
-          v-if="showLoadingSkeleton"
-          class="preview-skeleton"
-          aria-busy="true"
-          aria-live="polite"
-        >
-          <BaseSkeleton :rows="[58, 74, 46, 64]" row-height="10px" gap="0.32rem" />
-        </div>
-
         <pre v-if="props.error" class="error-block">{{ props.error }}</pre>
       </div>
     </div>
@@ -723,10 +671,14 @@ useResizeObserver(textCanvasRef, () => {
   gap: 0.34rem;
 }
 
-.preview-status {
+.preview-duration {
   color: var(--text-muted);
   font-size: var(--fs-meta);
   line-height: var(--lh-tight);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
   white-space: nowrap;
 }
 
@@ -828,30 +780,6 @@ useResizeObserver(textCanvasRef, () => {
   line-height: 1.38;
   color: var(--text-primary);
   white-space: pre;
-}
-
-.placeholder {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--fs-body);
-  line-height: var(--lh-normal);
-}
-
-.preview-skeleton {
-  position: absolute;
-  inset: 0;
-  padding: 0.88rem;
-  display: grid;
-  place-items: center;
-  z-index: 2;
-}
-
-.preview-skeleton > * {
-  width: min(92%, 560px);
 }
 
 .error-block {
