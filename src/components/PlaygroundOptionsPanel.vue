@@ -330,6 +330,18 @@ const directionSegmentItems: Array<{
 ];
 
 const THEME_TOKENS: ThemeToken[] = ["bg", "fg", "line", "accent", "muted", "surface", "border"];
+const ELEMENT_COLOR_ROLE_DISPLAY_ORDER: ElementColorRole[] = [
+  "text",
+  "secondaryText",
+  "edgeLabels",
+  "faintText",
+  "connectors",
+  "arrowHeads",
+  "nodeFill",
+  "groupHeader",
+  "innerStrokes",
+  "nodeStroke",
+];
 const TEXT_COLOR_MODE_ITEMS = TEXT_COLOR_MODE_OPTIONS.map((option) => ({
   key: option.value,
   label: option.label,
@@ -435,6 +447,17 @@ const optionsScrollHostRef = ref<HTMLElement | null>(null);
 const directionSegmentActiveKey = computed<DirectionSegmentKey>(() =>
   props.directionOverride === "TD" ? "TB" : props.directionOverride,
 );
+const orderedElementColorRoles = computed(() => {
+  const orderIndex = new Map(
+    ELEMENT_COLOR_ROLE_DISPLAY_ORDER.map((role, index) => [role, index] as const),
+  );
+  const ordered = [...ELEMENT_COLOR_ROLES].sort((left, right) => {
+    const leftOrder = orderIndex.get(left.role) ?? Number.POSITIVE_INFINITY;
+    const rightOrder = orderIndex.get(right.role) ?? Number.POSITIVE_INFINITY;
+    return leftOrder - rightOrder;
+  });
+  return ordered;
+});
 
 const BASE_FONT_FAMILY: Record<BaseFont, string> = {
   Inter: '"Inter", sans-serif',
@@ -1496,14 +1519,16 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
     </template>
 
     <div class="options-layout">
-      <BaseSegmentedControl
-        class="options-tabs"
-        :items="optionsTabItems"
-        :active-key="activeTab"
-        :as-tabs="true"
-        aria-label="Options groups"
-        @select="onOptionsTabSelect"
-      />
+      <div class="options-tabs-wrap">
+        <BaseSegmentedControl
+          class="options-tabs"
+          :items="optionsTabItems"
+          :active-key="activeTab"
+          :as-tabs="true"
+          aria-label="Options groups"
+          @select="onOptionsTabSelect"
+        />
+      </div>
 
       <div ref="optionsScrollHostRef" class="options-content" data-overlayscrollbars-initialize>
         <div v-if="activeTab === 'palette'" class="setting-list">
@@ -1582,7 +1607,12 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
             </div>
 
             <div class="channel-row">
-              <label for="muted-channel-toggle" class="token-key">muted</label>
+              <label for="muted-channel-toggle" class="token-label">
+                <span class="token-key">muted</span>
+                <span class="scope-badge scope-badge-svg" title="Affects SVG output only.">
+                  SVG
+                </span>
+              </label>
               <BaseCheckbox
                 id="muted-channel-toggle"
                 :model-value="props.useCustomMuted"
@@ -1601,7 +1631,12 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
             </div>
 
             <div class="channel-row">
-              <label for="surface-channel-toggle" class="token-key">surface</label>
+              <label for="surface-channel-toggle" class="token-label">
+                <span class="token-key">surface</span>
+                <span class="scope-badge scope-badge-svg" title="Affects SVG output only.">
+                  SVG
+                </span>
+              </label>
               <BaseCheckbox
                 id="surface-channel-toggle"
                 :model-value="props.useCustomSurface"
@@ -1643,7 +1678,11 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
             <header class="section-header">
               <p class="section-title">Elements</p>
             </header>
-            <label v-for="roleMeta in ELEMENT_COLOR_ROLES" :key="roleMeta.role" class="setting-row">
+            <label
+              v-for="roleMeta in orderedElementColorRoles"
+              :key="roleMeta.role"
+              class="setting-row element-setting-row"
+            >
               <span class="setting-row-label">
                 <span>{{ roleMeta.label }}</span>
                 <span
@@ -1980,11 +2019,15 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
   min-height: 0;
 }
 
-.options-tabs {
+.options-tabs-wrap {
   margin: 0.56rem 0.64rem 0.34rem;
   width: max-content;
   max-width: calc(100% - 1.28rem);
   justify-self: start;
+}
+
+.options-tabs {
+  margin: 0;
 }
 
 .options-content {
@@ -2051,6 +2094,10 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
   grid-template-columns: minmax(0, 1fr) max-content;
 }
 
+.element-setting-row {
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
 .direction-control {
   justify-self: end;
 }
@@ -2081,6 +2128,10 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 
 .setting-row :deep(.ui-select-trigger) {
   width: 100%;
+}
+
+.element-setting-row :deep(.ui-select-control) {
+  justify-self: end;
 }
 
 .channel-row {
@@ -2128,9 +2179,14 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 }
 
 .scope-badge-svg {
+  height: 13px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-size: calc(var(--fs-meta) - 0.14rem);
+  font-weight: 430;
   background: transparent;
-  border-color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 32%, var(--border-color));
-  color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 78%, var(--text-primary));
+  border-color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 18%, var(--border-color));
+  color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 40%, var(--text-primary));
 }
 
 .scope-badge-text {
@@ -2142,6 +2198,12 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
   font-size: calc(var(--fs-meta) - 0.01rem);
   letter-spacing: 0;
   text-transform: none;
+}
+
+.token-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
 }
 
 .channel-row > label {
@@ -2183,10 +2245,14 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
 }
 
 @media (max-width: 959px) {
-  .options-tabs {
+  .options-tabs-wrap {
     margin: 0.46rem auto 0.3rem;
     width: calc(100% - 1.04rem);
     max-width: calc(100% - 1.04rem);
+  }
+
+  .options-tabs {
+    width: 100%;
     justify-content: center;
   }
 
@@ -2202,6 +2268,10 @@ function getElementScopeBadgeClass(scope: ElementColorScope): string {
     grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
     gap: 0.34rem;
+  }
+
+  .element-setting-row {
+    grid-template-columns: max-content minmax(0, 1fr);
   }
 
   .channel-row {

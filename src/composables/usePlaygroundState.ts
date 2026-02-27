@@ -101,7 +101,7 @@ const DEFAULT_STATE: PlaygroundState = {
     nodeSpacing: 24,
     layerSpacing: 40,
     componentSpacing: 24,
-    editorFontSize: 11,
+    editorFontSize: 12,
   },
   splitRatio: 0.5,
   desktopPanes: {

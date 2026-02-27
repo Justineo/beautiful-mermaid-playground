@@ -160,7 +160,7 @@ const BASE_FONT_GOOGLE_QUERY = Object.values(BASE_FONT_GOOGLE_FAMILY)
   .join("&");
 let hasScheduledBaseFontWarmup = false;
 const EDITOR_FONT_FAMILY = '"Geist Mono"';
-const EDITOR_FONT_SIZE = 11;
+const EDITOR_FONT_SIZE = 12;
 const EDITOR_FONT_GOOGLE_FAMILY = "Geist+Mono:wght@400;500;700";
 
 function warmupBaseFontsInBackground(): void {
@@ -1341,10 +1341,8 @@ onUnmounted(() => {
 }
 
 .options-pane {
-  --options-pane-width: 320px;
-  width: var(--options-pane-width);
-  flex: 0 0 var(--options-pane-width);
-  min-width: var(--options-pane-width);
+  width: fit-content;
+  flex: 0 0 auto;
   border-right: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
 }
 

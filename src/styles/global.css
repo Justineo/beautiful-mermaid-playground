@@ -28,14 +28,14 @@
   --ui-control-pad-x: 0.42rem;
 
   /* Type scale */
-  --fs-title: 0.8rem;
-  --fs-section: 0.75rem;
-  --fs-control: 0.68rem;
-  --fs-label: 0.61rem;
-  --fs-meta: 0.64rem;
-  --fs-code: 0.74rem;
-  --fs-body: 0.72rem;
-  --fs-toast: 0.67rem;
+  --fs-title: 0.9375rem;
+  --fs-section: 0.8125rem;
+  --fs-control: 0.75rem;
+  --fs-label: 0.6875rem;
+  --fs-meta: 0.6875rem;
+  --fs-code: 0.75rem;
+  --fs-body: 0.75rem;
+  --fs-toast: 0.6875rem;
   --lh-tight: 1.08;
   --lh-normal: 1.32;
 }
@@ -63,6 +63,7 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
+  font-size: var(--fs-body);
   color: var(--text-primary);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
