@@ -601,50 +601,43 @@ useResizeObserver(textCanvasRef, () => {
       </div>
     </template>
     <div class="preview-stage">
-      <div class="preview-toolbar-left">
-        <BaseButton
-          variant="solid"
-          size="sm"
-          :icon-only="true"
-          class="zoom-toolbar-button"
-          :disabled="!hasCurrentOutput"
-          aria-label="Zoom to fit"
-          title="Zoom to fit"
-          @click="zoomToFit"
-        >
-          <Scan :size="14" :stroke-width="1.7" />
-        </BaseButton>
-        <BaseButton
-          variant="solid"
-          size="sm"
-          class="zoom-toolbar-button zoom-percent-button"
-          :disabled="!hasCurrentOutput"
-          aria-label="Zoom to 100%"
-          title="Zoom to 100%"
-          @click="zoomToOneHundredPercent"
-        >
-          {{ zoomLabel }}
-        </BaseButton>
-        <label v-if="props.outputMode === 'svg'" class="preview-transparent-toggle">
-          <span>Transparent background</span>
-          <BaseCheckbox
-            id="preview-transparent-toggle"
-            :model-value="props.transparent"
-            aria-label="Toggle transparent background"
-            @update:model-value="emit('update:transparent', $event)"
-          />
-        </label>
-      </div>
+      <div class="preview-toolbar-row">
+        <div class="preview-toolbar-left">
+          <BaseButton
+            variant="solid"
+            size="sm"
+            :icon-only="true"
+            class="zoom-toolbar-button"
+            :disabled="!hasCurrentOutput"
+            aria-label="Zoom to fit"
+            title="Zoom to fit"
+            @click="zoomToFit()"
+          >
+            <Scan :size="14" :stroke-width="1.7" />
+          </BaseButton>
+          <BaseButton
+            variant="solid"
+            size="sm"
+            class="zoom-toolbar-button zoom-percent-button"
+            :disabled="!hasCurrentOutput"
+            aria-label="Zoom to 100%"
+            title="Zoom to 100%"
+            @click="zoomToOneHundredPercent"
+          >
+            {{ zoomLabel }}
+          </BaseButton>
+        </div>
 
-      <div class="preview-floating-controls">
-        <BaseSegmentedControl
-          class="output-toggles"
-          :items="outputModeItems"
-          :active-key="props.outputMode"
-          :as-tabs="true"
-          aria-label="Output mode"
-          @select="onOutputModeSelect"
-        />
+        <div class="preview-toolbar-right">
+          <BaseSegmentedControl
+            class="output-toggles"
+            :items="outputModeItems"
+            :active-key="props.outputMode"
+            :as-tabs="true"
+            aria-label="Output mode"
+            @select="onOutputModeSelect"
+          />
+        </div>
       </div>
 
       <div
@@ -674,6 +667,18 @@ useResizeObserver(textCanvasRef, () => {
           />
         </div>
         <pre v-if="props.error" class="error-block">{{ props.error }}</pre>
+      </div>
+
+      <div v-if="props.outputMode === 'svg'" class="preview-bottom-controls">
+        <label class="preview-transparent-toggle">
+          <span>Transparent background</span>
+          <BaseCheckbox
+            id="preview-transparent-toggle"
+            :model-value="props.transparent"
+            aria-label="Toggle transparent background"
+            @update:model-value="emit('update:transparent', $event)"
+          />
+        </label>
       </div>
     </div>
   </BasePanel>
@@ -718,33 +723,31 @@ useResizeObserver(textCanvasRef, () => {
     background-color 120ms ease;
 }
 
+.preview-transparent-toggle > span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
 .preview-transparent-toggle:hover {
   border-color: var(--preview-toolbar-control-border-hover);
   background: var(--preview-toolbar-control-bg-hover);
 }
 
-.preview-stage {
-  position: relative;
-  height: 100%;
-  min-height: 0;
-}
-
-.preview-floating-controls {
+.preview-bottom-controls {
   position: absolute;
-  top: 0.58rem;
-  right: 0.6rem;
+  left: 50%;
+  bottom: 0.58rem;
+  transform: translateX(-50%);
   z-index: 6;
   pointer-events: none;
-  display: grid;
-  justify-items: end;
-  gap: 0;
 }
 
-.output-toggles {
+.preview-bottom-controls .preview-transparent-toggle {
   pointer-events: auto;
 }
 
-.preview-toolbar-left {
+.preview-stage {
   --preview-toolbar-control-fg: var(--text-secondary);
   --preview-toolbar-control-border: color-mix(in srgb, var(--border-color) 90%, transparent);
   --preview-toolbar-control-border-hover: color-mix(in srgb, var(--border-strong) 92%, transparent);
@@ -754,14 +757,48 @@ useResizeObserver(textCanvasRef, () => {
     var(--surface-elevated) 84%,
     var(--surface)
   );
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+
+.preview-toolbar-row {
   position: absolute;
   top: 0.58rem;
   left: 0.6rem;
+  right: 0.6rem;
   z-index: 6;
+  min-height: var(--ui-control-height);
+  pointer-events: none;
+}
+
+.preview-toolbar-left {
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
   pointer-events: auto;
+  min-width: max-content;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.preview-toolbar-right {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: auto;
+  min-width: max-content;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.output-toggles {
+  pointer-events: auto;
+  max-width: 100%;
 }
 
 .zoom-toolbar-button {

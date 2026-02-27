@@ -11,13 +11,51 @@ export function useSplitPane(
   options?: {
     min?: number;
     max?: number;
+    minLeftPx?: number;
+    minRightPx?: number;
   },
 ) {
   const min = options?.min ?? 0.25;
   const max = options?.max ?? 0.75;
+  const minLeftPx = options?.minLeftPx ?? 0;
+  const minRightPx = options?.minRightPx ?? 0;
   const isDragging = ref(false);
   const activePointerId = ref<number | null>(null);
   let captureElement: HTMLElement | null = null;
+
+  function resolveRatioBounds(containerWidth: number): {
+    minRatio: number;
+    maxRatio: number;
+  } {
+    let minRatio = min;
+    let maxRatio = max;
+    if (containerWidth > 0) {
+      minRatio = Math.max(minRatio, minLeftPx / containerWidth);
+      maxRatio = Math.min(maxRatio, 1 - minRightPx / containerWidth);
+    }
+
+    if (minRatio <= maxRatio) {
+      return { minRatio, maxRatio };
+    }
+
+    const locked = clamp(0.5, min, max);
+    return { minRatio: locked, maxRatio: locked };
+  }
+
+  function clampRatioToBounds(): void {
+    const container = containerRef.value;
+    if (!container) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    if (rect.width <= 0) {
+      return;
+    }
+
+    const { minRatio, maxRatio } = resolveRatioBounds(rect.width);
+    ratio.value = clamp(ratio.value, minRatio, maxRatio);
+  }
 
   function updateRatio(clientX: number): void {
     const container = containerRef.value;
@@ -31,7 +69,8 @@ export function useSplitPane(
     }
 
     const nextRatio = (clientX - rect.left) / rect.width;
-    ratio.value = clamp(nextRatio, min, max);
+    const { minRatio, maxRatio } = resolveRatioBounds(rect.width);
+    ratio.value = clamp(nextRatio, minRatio, maxRatio);
   }
 
   function handleDividerPointerDown(event: PointerEvent): void {
@@ -85,12 +124,15 @@ export function useSplitPane(
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", stopDragging);
     window.addEventListener("pointercancel", stopDragging);
+    window.addEventListener("resize", clampRatioToBounds);
+    clampRatioToBounds();
   });
 
   onUnmounted(() => {
     window.removeEventListener("pointermove", onPointerMove);
     window.removeEventListener("pointerup", stopDragging);
     window.removeEventListener("pointercancel", stopDragging);
+    window.removeEventListener("resize", clampRatioToBounds);
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
   });
