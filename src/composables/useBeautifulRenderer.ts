@@ -1,5 +1,6 @@
 import { computed, onUnmounted, ref } from "vue";
 import { useDebounceFn } from "@vueuse/core";
+import type { AsciiRenderOptions as BeautifulAsciiRenderOptions } from "beautiful-mermaid";
 import type { RenderOptions as BeautifulRenderOptions } from "beautiful-mermaid";
 import type { Ref } from "vue";
 import { ELEMENT_COLOR_ROLES } from "@/types/playground";
@@ -31,6 +32,7 @@ function isRendererLoadError(error: unknown): boolean {
 }
 
 type BeautifulMermaidRuntime = typeof import("beautiful-mermaid");
+type AsciiRenderOptions = BeautifulAsciiRenderOptions;
 type RenderOptions = BeautifulRenderOptions;
 
 type Point = {
@@ -49,6 +51,7 @@ type ThemeChannels = {
 };
 
 type ThemeTokenValues = Record<ThemeToken, string>;
+type AsciiThemeValues = Required<NonNullable<AsciiRenderOptions["theme"]>>;
 
 type MermaidOptionTokenValues = {
   line?: string;
@@ -82,6 +85,7 @@ const SUBGRAPH_HEADER_SELECTOR =
 
 const ELEMENT_ROLE_CSS_VAR: Record<ElementColorRole, string> = {
   text: "--_text",
+  arrowHeads: "--_arrow",
   secondaryText: "--_text-sec",
   edgeLabels: "--_text-muted",
   faintText: "--_text-faint",
@@ -92,13 +96,12 @@ const ELEMENT_ROLE_CSS_VAR: Record<ElementColorRole, string> = {
   nodeStroke: "--_node-stroke",
 };
 
-const ELEMENT_ROLE_TOKEN_BRIDGE: Partial<Record<ElementColorRole, keyof MermaidOptionTokenValues>> =
-  {
-    edgeLabels: "muted",
-    connectors: "line",
-    nodeFill: "surface",
-    nodeStroke: "border",
-  };
+const ELEMENT_ROLE_TEXT_THEME_FIELD: Partial<Record<ElementColorRole, keyof AsciiThemeValues>> = {
+  text: "fg",
+  arrowHeads: "arrow",
+  connectors: "line",
+  nodeStroke: "border",
+};
 
 const EDGE_WIDTH_MULTIPLIER = {
   normal: 1,
@@ -279,6 +282,10 @@ function resolveElementCustomColor(
     return tokens.fg;
   }
 
+  if (role === "arrowHeads") {
+    return tokens.accent;
+  }
+
   if (role === "secondaryText") {
     return mixFrom(tokens, 60);
   }
@@ -307,7 +314,21 @@ function resolveElementCustomColor(
     return mixFrom(tokens, 12);
   }
 
-  return mixFrom(tokens, 20);
+  if (role === "nodeStroke") {
+    return mixFrom(tokens, 20);
+  }
+
+  return tokens.fg;
+}
+
+function isMermaidOptionTokenValue(token: ThemeToken): token is keyof MermaidOptionTokenValues {
+  return (
+    token === "line" ||
+    token === "accent" ||
+    token === "muted" ||
+    token === "surface" ||
+    token === "border"
+  );
 }
 
 function resolveMermaidOptionTokenOverrides(
@@ -333,8 +354,8 @@ function resolveMermaidOptionTokenOverrides(
   }
 
   for (const roleMeta of ELEMENT_COLOR_ROLES) {
-    const bridge = ELEMENT_ROLE_TOKEN_BRIDGE[roleMeta.role];
-    if (!bridge) {
+    const bridge = roleMeta.tokenBridge;
+    if (!bridge || roleMeta.scope === "text" || !isMermaidOptionTokenValue(bridge)) {
       continue;
     }
 
@@ -360,6 +381,88 @@ function applyOptionTokenOverrides(
     muted: overrides.muted ?? tokens.muted,
     surface: overrides.surface ?? tokens.surface,
     border: overrides.border ?? tokens.border,
+  };
+}
+
+function buildAsciiThemeFromTokens(tokens: ThemeTokenValues): AsciiThemeValues {
+  return {
+    fg: tokens.fg,
+    border: tokens.border,
+    line: tokens.line,
+    arrow: tokens.accent,
+    accent: tokens.accent,
+    bg: tokens.bg,
+    corner: tokens.line,
+    junction: tokens.border,
+  };
+}
+
+function resolveElementScopedOverrides(
+  config: BeautifulRenderConfig,
+  tokens: ThemeTokenValues,
+): {
+  svgDeclarations: string[];
+  textOverrides: Partial<AsciiThemeValues>;
+} {
+  const svgDeclarations: string[] = [];
+  const textOverrides: Partial<AsciiThemeValues> = {};
+
+  for (const roleMeta of ELEMENT_COLOR_ROLES) {
+    const rule = config.elementColors[roleMeta.role];
+    if (rule.source === "default") {
+      continue;
+    }
+
+    const color = resolveElementCustomColor(roleMeta.role, rule, tokens);
+    if (roleMeta.scope !== "text") {
+      const cssVar = ELEMENT_ROLE_CSS_VAR[roleMeta.role];
+      if (cssVar) {
+        svgDeclarations.push(`${cssVar}: ${color};`);
+      }
+    }
+
+    if (roleMeta.scope !== "svg") {
+      const field = ELEMENT_ROLE_TEXT_THEME_FIELD[roleMeta.role];
+      if (field) {
+        textOverrides[field] = color;
+      }
+    }
+  }
+
+  return {
+    svgDeclarations,
+    textOverrides,
+  };
+}
+
+function applyTextThemeOverrides(
+  baseTheme: AsciiThemeValues,
+  overrides: Partial<AsciiThemeValues>,
+): AsciiThemeValues {
+  const nextTheme: AsciiThemeValues = {
+    ...baseTheme,
+    ...overrides,
+  };
+
+  nextTheme.accent = nextTheme.arrow;
+  nextTheme.corner = nextTheme.line;
+  nextTheme.junction = nextTheme.border;
+
+  return nextTheme;
+}
+
+function buildAsciiRenderOptions(
+  config: BeautifulRenderConfig,
+  theme: AsciiThemeValues,
+  previewMode: boolean,
+): AsciiRenderOptions {
+  return {
+    useAscii: config.outputMode === "ascii",
+    colorMode: previewMode ? "html" : config.textColorMode,
+    paddingX: config.textPaddingX,
+    paddingY: config.textPaddingY,
+    boxBorderPadding: config.textBoxBorderPadding,
+    theme,
   };
 }
 
@@ -405,10 +508,19 @@ function toCssSingleQuotedFont(fontFamily: string): string {
   return `'${fontFamily.replace(/\\/gu, "\\\\").replace(/'/gu, "\\'")}'`;
 }
 
-export function buildBeautifulMermaidOptions(config: BeautifulRenderConfig): RenderOptions {
-  const resolvedTokens = resolveThemeTokenValues(config);
-  const tokenOverrides = resolveMermaidOptionTokenOverrides(config, resolvedTokens);
-  const effectiveTokens = applyOptionTokenOverrides(resolvedTokens, tokenOverrides);
+export function buildBeautifulMermaidOptions(
+  config: BeautifulRenderConfig,
+  tokens?: ThemeTokenValues,
+): RenderOptions {
+  const effectiveTokens = (() => {
+    if (tokens) {
+      return tokens;
+    }
+
+    const resolvedTokens = resolveThemeTokenValues(config);
+    const tokenOverrides = resolveMermaidOptionTokenOverrides(config, resolvedTokens);
+    return applyOptionTokenOverrides(resolvedTokens, tokenOverrides);
+  })();
 
   return {
     bg: effectiveTokens.bg,
@@ -976,23 +1088,7 @@ function applyEdgeLabelStyle(doc: XMLDocument, config: BeautifulRenderConfig): v
   }
 }
 
-function buildElementCssVariableBlock(
-  config: BeautifulRenderConfig,
-  tokens: ThemeTokenValues,
-): string {
-  const declarations: string[] = [];
-
-  for (const roleMeta of ELEMENT_COLOR_ROLES) {
-    const rule = config.elementColors[roleMeta.role];
-    if (rule.source === "default") {
-      continue;
-    }
-
-    const cssVar = ELEMENT_ROLE_CSS_VAR[roleMeta.role];
-    const color = resolveElementCustomColor(roleMeta.role, rule, tokens);
-    declarations.push(`${cssVar}: ${color};`);
-  }
-
+function buildElementCssVariableBlock(declarations: string[]): string {
   if (declarations.length === 0) {
     return "";
   }
@@ -1004,15 +1100,12 @@ function buildElementCssVariableBlock(
 `;
 }
 
-function buildVisualCss(config: BeautifulRenderConfig): string {
+function buildVisualCss(config: BeautifulRenderConfig, cssVariableDeclarations: string[]): string {
   const edgeWidthMultiplier =
     config.edgeWeight === "default" ? null : EDGE_WIDTH_MULTIPLIER[config.edgeWeight];
   const borderWidthMultiplier =
     config.borderWeight === "default" ? null : BORDER_WIDTH_MULTIPLIER[config.borderWeight];
-  const baseTokens = resolveThemeTokenValues(config);
-  const tokenOverrides = resolveMermaidOptionTokenOverrides(config, baseTokens);
-  const effectiveTokens = applyOptionTokenOverrides(baseTokens, tokenOverrides);
-  const cssVariableBlock = buildElementCssVariableBlock(config, effectiveTokens);
+  const cssVariableBlock = buildElementCssVariableBlock(cssVariableDeclarations);
   const monoFontFamily = toCssSingleQuotedFont(resolveMonoFont(config));
 
   const edgeWidthCss = edgeWidthMultiplier
@@ -1090,7 +1183,7 @@ function buildVisualCss(config: BeautifulRenderConfig): string {
   .node > line,
   .class-node > line,
   .entity > line {
-    stroke: var(--_node-stroke) !important;
+    stroke: var(--_inner-stroke) !important;
     ${borderLineWidthCss}
     ${borderDash}
   }
@@ -1098,7 +1191,11 @@ function buildVisualCss(config: BeautifulRenderConfig): string {
   ${subgraphPresetRules(config.subgraphStyle)}`;
 }
 
-function applyVisualOverrides(svg: string, config: BeautifulRenderConfig): string {
+function applyVisualOverrides(
+  svg: string,
+  config: BeautifulRenderConfig,
+  cssVariableDeclarations: string[],
+): string {
   const parser = new DOMParser();
   const document = parser.parseFromString(svg, "image/svg+xml");
   if (document.querySelector("parsererror")) {
@@ -1119,7 +1216,7 @@ function applyVisualOverrides(svg: string, config: BeautifulRenderConfig): strin
 
   const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
   styleElement.setAttribute("data-playground-visual-overrides", "");
-  styleElement.textContent = buildVisualCss(config);
+  styleElement.textContent = buildVisualCss(config, cssVariableDeclarations);
   root.append(styleElement);
 
   return new XMLSerializer().serializeToString(document);
@@ -1180,12 +1277,20 @@ export function useBeautifulRenderer(
         return;
       }
 
-      const renderOptions = buildBeautifulMermaidOptions(config.value);
+      const baseTokens = resolveThemeTokenValues(config.value);
+      const tokenOverrides = resolveMermaidOptionTokenOverrides(config.value, baseTokens);
+      const effectiveTokens = applyOptionTokenOverrides(baseTokens, tokenOverrides);
+      const scopedOverrides = resolveElementScopedOverrides(config.value, effectiveTokens);
+      const renderOptions = buildBeautifulMermaidOptions(config.value, effectiveTokens);
 
       if (config.value.outputMode === "svg") {
         const result = renderSvgWithFallback(runtime, source, originalSource, renderOptions);
         const rawSvg = result.svg;
-        const styledSvg = applyVisualOverrides(rawSvg, config.value);
+        const styledSvg = applyVisualOverrides(
+          rawSvg,
+          config.value,
+          scopedOverrides.svgDeclarations,
+        );
 
         if (result.usedFallback) {
           // Keep this visible in devtools without interrupting successful output.
@@ -1201,28 +1306,20 @@ export function useBeautifulRenderer(
           renderId: renderToken,
         };
       } else {
-        const asciiTheme = {
-          fg: renderOptions.fg ?? "#27272A",
-          border: renderOptions.border ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
-          line: renderOptions.line ?? renderOptions.fg ?? "#27272A",
-          arrow: renderOptions.accent ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
-          accent: renderOptions.accent,
-          bg: renderOptions.bg,
-          corner: renderOptions.line ?? renderOptions.fg ?? "#27272A",
-          junction: renderOptions.border ?? renderOptions.line ?? renderOptions.fg ?? "#27272A",
-        };
-        const ascii = stripCommonLeadingIndent(
-          runtime.renderMermaidASCII(source, {
-            useAscii: config.value.outputMode === "ascii",
-            colorMode: "none",
-            theme: asciiTheme,
-          }),
+        const asciiTheme = applyTextThemeOverrides(
+          buildAsciiThemeFromTokens(effectiveTokens),
+          scopedOverrides.textOverrides,
         );
-        const asciiHtml = runtime.renderMermaidASCII(source, {
-          useAscii: config.value.outputMode === "ascii",
-          colorMode: "html",
-          theme: asciiTheme,
-        });
+        const ascii = stripCommonLeadingIndent(
+          runtime.renderMermaidASCII(
+            source,
+            buildAsciiRenderOptions(config.value, asciiTheme, false),
+          ),
+        );
+        const asciiHtml = runtime.renderMermaidASCII(
+          source,
+          buildAsciiRenderOptions(config.value, asciiTheme, true),
+        );
 
         renderState.value = {
           svg: previousSvg,

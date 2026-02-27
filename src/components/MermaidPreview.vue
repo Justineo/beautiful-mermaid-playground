@@ -68,6 +68,7 @@ let pinchStartScale = 1;
 let pinchStartWorldAnchor: ViewportPoint | null = null;
 const autoFit = ref(true);
 const needsFit = ref(false);
+const outputModeTransitionPending = ref(false);
 
 function snapToDevicePixel(value: number): number {
   const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
@@ -90,6 +91,15 @@ const zoomLabel = computed(() => `${Math.round(scale.value * 100)}%`);
 
 const hasCurrentOutput = computed(() =>
   props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.ascii),
+);
+const showLoadingSkeleton = computed(
+  () =>
+    !props.error &&
+    !hasCurrentOutput.value &&
+    (props.isRendering || outputModeTransitionPending.value),
+);
+const showPlaceholder = computed(
+  () => !props.error && !hasCurrentOutput.value && !showLoadingSkeleton.value,
 );
 
 const statusText = computed(() => {
@@ -531,6 +541,26 @@ defineExpose<{
 });
 
 watch(
+  () => props.outputMode,
+  (nextOutputMode, previousOutputMode) => {
+    if (previousOutputMode === undefined || nextOutputMode === previousOutputMode) {
+      return;
+    }
+
+    outputModeTransitionPending.value = true;
+  },
+);
+
+watch(
+  () => [hasCurrentOutput.value, props.error] as const,
+  ([hasOutput, error]) => {
+    if (hasOutput || Boolean(error)) {
+      outputModeTransitionPending.value = false;
+    }
+  },
+);
+
+watch(
   () => ({
     svg: props.svg,
     ascii: props.ascii,
@@ -670,11 +700,9 @@ useResizeObserver(textCanvasRef, () => {
           />
         </div>
 
-        <p v-if="!hasCurrentOutput && !props.error && !props.isRendering" class="placeholder">
-          Preview will appear here.
-        </p>
+        <p v-if="showPlaceholder" class="placeholder">Preview will appear here.</p>
         <div
-          v-if="!hasCurrentOutput && !props.error && props.isRendering"
+          v-if="showLoadingSkeleton"
           class="preview-skeleton"
           aria-busy="true"
           aria-live="polite"
@@ -817,9 +845,8 @@ useResizeObserver(textCanvasRef, () => {
   position: absolute;
   inset: 0;
   padding: 0.88rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  display: grid;
+  place-items: center;
   z-index: 2;
 }
 

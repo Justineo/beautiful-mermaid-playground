@@ -175,4 +175,29 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
   text-underline-offset: 1.5px;
   text-decoration-color: color-mix(in srgb, var(--text-primary) 46%, transparent);
 }
+
+@media (max-width: 959px) {
+  .brand-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    row-gap: 0.34rem;
+  }
+
+  .playground-header h1 {
+    white-space: normal;
+    flex-wrap: wrap;
+    row-gap: 0.06rem;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .credit-links {
+    flex-wrap: wrap;
+    row-gap: 0.12rem;
+  }
+}
 </style>

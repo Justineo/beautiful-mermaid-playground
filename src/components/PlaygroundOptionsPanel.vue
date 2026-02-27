@@ -16,6 +16,7 @@ import {
   BASE_FONT_OPTIONS,
   EDGE_LABEL_STYLE_OPTIONS,
   ELEMENT_COLOR_ROLES,
+  TEXT_COLOR_MODE_OPTIONS,
   SUBGRAPH_STYLE_OPTIONS,
   MONO_FONT_OPTIONS,
 } from "@/types/playground";
@@ -31,21 +32,24 @@ import type {
   EdgeWeight,
   ElementColorConfig,
   ElementColorRole,
+  ElementColorScope,
   ElementColorSource,
   LineGeometry,
+  TextColorMode,
   StrokePattern,
   SubgraphStylePreset,
   MonoFont,
   ThemeToken,
 } from "@/types/playground";
 
-type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "system";
+type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "text" | "system";
 const tabs: Array<{ key: OptionsTab; label: string }> = [
   { key: "palette", label: "Theme" },
   { key: "layout", label: "Layout" },
   { key: "nodes", label: "Nodes" },
   { key: "edges", label: "Edges" },
-  { key: "system", label: "Other" },
+  { key: "text", label: "Text" },
+  { key: "system", label: "Fonts" },
 ];
 const optionsTabItems: Array<{ key: string; label: string }> = tabs.map((tab) => ({
   key: tab.key,
@@ -326,6 +330,10 @@ const directionSegmentItems: Array<{
 ];
 
 const THEME_TOKENS: ThemeToken[] = ["bg", "fg", "line", "accent", "muted", "surface", "border"];
+const TEXT_COLOR_MODE_ITEMS = TEXT_COLOR_MODE_OPTIONS.map((option) => ({
+  key: option.value,
+  label: option.label,
+}));
 
 const props = defineProps<{
   diagramTheme: DiagramTheme;
@@ -361,6 +369,10 @@ const props = defineProps<{
   edgeWeight: EdgeWeight;
   borderPattern: BorderPattern;
   borderWeight: BorderWeight;
+  textColorMode: TextColorMode;
+  textPaddingX: number;
+  textPaddingY: number;
+  textBoxBorderPadding: number;
   transparent: boolean;
   padding: number;
   nodeSpacing: number;
@@ -399,6 +411,10 @@ const emit = defineEmits<{
   "update:edgeWeight": [value: EdgeWeight];
   "update:borderPattern": [value: BorderPattern];
   "update:borderWeight": [value: BorderWeight];
+  "update:textColorMode": [value: TextColorMode];
+  "update:textPaddingX": [value: number];
+  "update:textPaddingY": [value: number];
+  "update:textBoxBorderPadding": [value: number];
   "update:transparent": [value: boolean];
   "update:padding": [value: number];
   "update:nodeSpacing": [value: number];
@@ -409,6 +425,7 @@ const emit = defineEmits<{
   "reset:layout": [];
   "reset:nodes": [];
   "reset:edges": [];
+  "reset:text": [];
   "reset:system": [];
   "invalid:google-font-url": [];
 }>();
@@ -1118,7 +1135,14 @@ watch(
 
 function onNumberInput(
   event: Event,
-  key: "padding" | "nodeSpacing" | "layerSpacing" | "componentSpacing",
+  key:
+    | "padding"
+    | "nodeSpacing"
+    | "layerSpacing"
+    | "componentSpacing"
+    | "textPaddingX"
+    | "textPaddingY"
+    | "textBoxBorderPadding",
 ): void {
   const next = Number((event.target as HTMLInputElement).value);
   if (!Number.isFinite(next)) {
@@ -1142,6 +1166,21 @@ function onNumberInput(
 
   if (key === "componentSpacing") {
     emit("update:componentSpacing", next);
+    return;
+  }
+
+  if (key === "textPaddingX") {
+    emit("update:textPaddingX", next);
+    return;
+  }
+
+  if (key === "textPaddingY") {
+    emit("update:textPaddingY", next);
+    return;
+  }
+
+  if (key === "textBoxBorderPadding") {
+    emit("update:textBoxBorderPadding", next);
   }
 }
 
@@ -1233,6 +1272,26 @@ function onEdgeLabelStyleChange(event: Event): void {
   emit("update:edgeLabelStyle", value as EdgeLabelStylePreset);
 }
 
+function isTextColorModeValue(value: string): value is TextColorMode {
+  return (
+    value === "none" ||
+    value === "auto" ||
+    value === "ansi16" ||
+    value === "ansi256" ||
+    value === "truecolor" ||
+    value === "html"
+  );
+}
+
+function onTextColorModeChange(event: Event): void {
+  const value = getSelectValue(event);
+  if (!isTextColorModeValue(value)) {
+    return;
+  }
+
+  emit("update:textColorMode", value);
+}
+
 function resetAllOptions(): void {
   emit("reset:all");
 }
@@ -1255,6 +1314,11 @@ function resetActiveTab(): void {
 
   if (activeTab.value === "edges") {
     emit("reset:edges");
+    return;
+  }
+
+  if (activeTab.value === "text") {
+    emit("reset:text");
     return;
   }
 
@@ -1307,6 +1371,9 @@ function getElementAutoColor(role: ElementColorRole): string {
   if (role === "text") {
     return resolvedRolePalette.value.foreground;
   }
+  if (role === "arrowHeads") {
+    return resolvedRolePalette.value.accent;
+  }
   if (role === "secondaryText") {
     return mixFrom(base, 60);
   }
@@ -1328,7 +1395,10 @@ function getElementAutoColor(role: ElementColorRole): string {
   if (role === "innerStrokes") {
     return mixFrom(base, 12);
   }
-  return mixFrom(base, 20);
+  if (role === "nodeStroke") {
+    return mixFrom(base, 20);
+  }
+  return resolvedRolePalette.value.foreground;
 }
 
 function getElementRuleSelectValue(role: ElementColorRole): string {
@@ -1394,6 +1464,22 @@ function onElementCustomColorChange(role: ElementColorRole, custom: string): voi
 function getElementSwatchColorGetter(role: ElementColorRole): (value: string) => string {
   return (value: string) => getElementOptionSwatchColor(role, value);
 }
+
+function isSingleScope(scope: ElementColorScope): scope is Exclude<ElementColorScope, "both"> {
+  return scope !== "both";
+}
+
+function getElementScopeBadgeLabel(scope: ElementColorScope): string {
+  return scope === "svg" ? "SVG" : "Text";
+}
+
+function getElementScopeBadgeTitle(scope: ElementColorScope): string {
+  return scope === "svg" ? "Affects SVG output only." : "Affects text output only (Unicode/ASCII).";
+}
+
+function getElementScopeBadgeClass(scope: ElementColorScope): string {
+  return scope === "svg" ? "scope-badge-svg" : "scope-badge-text";
+}
 </script>
 
 <template>
@@ -1423,7 +1509,7 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
         <div v-if="activeTab === 'palette'" class="setting-list">
           <section class="setting-section">
             <header class="section-header">
-              <p class="section-title">Foundation</p>
+              <p class="section-title">Tokens</p>
             </header>
 
             <div class="channel-row">
@@ -1459,12 +1545,6 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
                 @update:model-value="updateCustomFgColor"
               />
             </div>
-          </section>
-
-          <section class="setting-section">
-            <header class="section-header">
-              <p class="section-title">Enriched</p>
-            </header>
             <div class="channel-row">
               <label for="line-channel-toggle" class="token-key">line</label>
               <BaseCheckbox
@@ -1564,7 +1644,17 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
               <p class="section-title">Elements</p>
             </header>
             <label v-for="roleMeta in ELEMENT_COLOR_ROLES" :key="roleMeta.role" class="setting-row">
-              <span>{{ roleMeta.label }}</span>
+              <span class="setting-row-label">
+                <span>{{ roleMeta.label }}</span>
+                <span
+                  v-if="isSingleScope(roleMeta.scope)"
+                  class="scope-badge"
+                  :class="getElementScopeBadgeClass(roleMeta.scope)"
+                  :title="getElementScopeBadgeTitle(roleMeta.scope)"
+                >
+                  {{ getElementScopeBadgeLabel(roleMeta.scope) }}
+                </span>
+              </span>
               <TokenColorSelect
                 :model-value="getElementRuleSelectValue(roleMeta.role)"
                 :custom-value="props.elementColors[roleMeta.role].custom"
@@ -1733,6 +1823,57 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
           </label>
         </div>
 
+        <div v-else-if="activeTab === 'text'" class="setting-list">
+          <section class="setting-section">
+            <p class="tab-note">These options affect Unicode/ASCII output only.</p>
+
+            <div class="setting-row">
+              <span>Color mode</span>
+              <BaseSelect :value="props.textColorMode" @change="onTextColorModeChange">
+                <option v-for="item in TEXT_COLOR_MODE_ITEMS" :key="item.key" :value="item.key">
+                  {{ item.label }}
+                </option>
+              </BaseSelect>
+            </div>
+
+            <label class="setting-row">
+              <span>Padding X</span>
+              <input
+                type="number"
+                min="0"
+                max="60"
+                step="1"
+                :value="props.textPaddingX"
+                @input="onNumberInput($event, 'textPaddingX')"
+              />
+            </label>
+
+            <label class="setting-row">
+              <span>Padding Y</span>
+              <input
+                type="number"
+                min="0"
+                max="60"
+                step="1"
+                :value="props.textPaddingY"
+                @input="onNumberInput($event, 'textPaddingY')"
+              />
+            </label>
+
+            <label class="setting-row">
+              <span>Box padding</span>
+              <input
+                type="number"
+                min="0"
+                max="24"
+                step="1"
+                :value="props.textBoxBorderPadding"
+                @input="onNumberInput($event, 'textBoxBorderPadding')"
+              />
+            </label>
+          </section>
+        </div>
+
         <div v-else class="setting-list">
           <div class="setting-row">
             <span>Base font</span>
@@ -1886,6 +2027,13 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   margin: 0 0 0.16rem;
 }
 
+.tab-note {
+  margin: 0 0 0.22rem;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-normal);
+}
+
 .section-reset {
   color: var(--text-muted);
 }
@@ -1954,6 +2102,39 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   color: var(--text-secondary);
   font-size: var(--fs-meta);
   line-height: var(--lh-tight);
+}
+
+.setting-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.scope-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  font-size: var(--fs-meta);
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.scope-badge-svg {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 32%, var(--border-color));
+  color: color-mix(in srgb, var(--accent-color, var(--t-accent)) 78%, var(--text-primary));
+}
+
+.scope-badge-text {
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .token-key {

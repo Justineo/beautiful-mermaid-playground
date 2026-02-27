@@ -29,6 +29,7 @@ import type {
   RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
+  TextColorMode,
   MonoFont,
   ThemeToken,
 } from "@/types/playground";
@@ -553,6 +554,10 @@ const optionsPanelListeners = {
   "update:edgeWeight": updateEdgeWeight,
   "update:borderPattern": updateBorderPattern,
   "update:borderWeight": updateBorderWeight,
+  "update:textColorMode": updateTextColorMode,
+  "update:textPaddingX": updateTextPaddingX,
+  "update:textPaddingY": updateTextPaddingY,
+  "update:textBoxBorderPadding": updateTextBoxBorderPadding,
   "update:transparent": updateTransparent,
   "update:padding": updatePadding,
   "update:nodeSpacing": updateNodeSpacing,
@@ -563,6 +568,7 @@ const optionsPanelListeners = {
   "reset:layout": resetLayoutOptions,
   "reset:nodes": resetNodeOptions,
   "reset:edges": resetEdgeOptions,
+  "reset:text": resetTextOptions,
   "reset:system": resetSystemOptions,
   "invalid:google-font-url": notifyInvalidGoogleFontsUrl,
 } as const;
@@ -786,8 +792,8 @@ async function renderSvgToPngBlob(svg: string): Promise<Blob> {
 }
 
 function getTextOutput(outputMode: Exclude<RenderOutputMode, "svg">): string | null {
-  const text = renderState.value.ascii?.trim() ?? "";
-  if (!text) {
+  const text = renderState.value.ascii ?? "";
+  if (text.trim().length === 0) {
     return null;
   }
 
@@ -991,6 +997,25 @@ function updateBorderWeight(value: BorderWeight): void {
   state.value.config.borderWeight = value;
 }
 
+function updateTextColorMode(value: TextColorMode): void {
+  state.value.config.textColorMode = value;
+}
+
+function updateTextPaddingX(value: number): void {
+  state.value.config.textPaddingX = clamp(value, 0, 60);
+  requestPreviewFitAfterRender();
+}
+
+function updateTextPaddingY(value: number): void {
+  state.value.config.textPaddingY = clamp(value, 0, 60);
+  requestPreviewFitAfterRender();
+}
+
+function updateTextBoxBorderPadding(value: number): void {
+  state.value.config.textBoxBorderPadding = clamp(value, 0, 24);
+  requestPreviewFitAfterRender();
+}
+
 function updateTransparent(value: boolean): void {
   state.value.config.transparent = value;
 }
@@ -1039,6 +1064,15 @@ function resetEdgeOptions(): void {
   state.value.config.edgePattern = defaults.edgePattern;
   state.value.config.edgeWeight = defaults.edgeWeight;
   state.value.config.edgeLabelStyle = defaults.edgeLabelStyle;
+  requestPreviewFitAfterRender();
+}
+
+function resetTextOptions(): void {
+  const defaults = defaultState.config;
+  state.value.config.textColorMode = defaults.textColorMode;
+  state.value.config.textPaddingX = defaults.textPaddingX;
+  state.value.config.textPaddingY = defaults.textPaddingY;
+  state.value.config.textBoxBorderPadding = defaults.textBoxBorderPadding;
   requestPreviewFitAfterRender();
 }
 
@@ -1094,6 +1128,7 @@ function resetAllOptions(): void {
   resetLayoutOptions();
   resetNodeOptions();
   resetEdgeOptions();
+  resetTextOptions();
   resetSystemOptions();
 }
 

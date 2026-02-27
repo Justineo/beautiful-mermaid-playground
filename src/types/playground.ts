@@ -5,6 +5,7 @@ import type { UnofficialDiagramThemeName } from "@/generated/unofficialThemes";
 export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
+export type TextColorMode = "none" | "auto" | "ansi16" | "ansi256" | "truecolor" | "html";
 
 export type ActiveMobilePane = "options" | "editor" | "preview";
 export type DesktopPaneKey = "options" | "editor" | "preview";
@@ -57,8 +58,10 @@ export type EdgeLabelStylePreset =
 
 export type ThemeToken = "bg" | "fg" | "line" | "accent" | "muted" | "surface" | "border";
 export type ElementColorSource = "default" | "token" | "custom" | "none";
+export type ElementColorScope = "both" | "svg" | "text";
 export type ElementColorRole =
   | "text"
+  | "arrowHeads"
   | "secondaryText"
   | "edgeLabels"
   | "faintText"
@@ -79,60 +82,77 @@ export type ElementColorConfig = Record<ElementColorRole, ElementColorRule>;
 export const ELEMENT_COLOR_ROLES: Array<{
   role: ElementColorRole;
   label: string;
+  scope: ElementColorScope;
   supportsNone: boolean;
   tokenBridge: ThemeToken | null;
 }> = [
   {
     role: "text",
     label: "Text",
+    scope: "both",
     supportsNone: false,
-    tokenBridge: null,
+    tokenBridge: "fg",
+  },
+  {
+    role: "arrowHeads",
+    label: "Arrow heads",
+    scope: "both",
+    supportsNone: true,
+    tokenBridge: "accent",
   },
   {
     role: "secondaryText",
     label: "Secondary text",
+    scope: "svg",
     supportsNone: false,
-    tokenBridge: null,
+    tokenBridge: "muted",
   },
   {
     role: "edgeLabels",
     label: "Edge labels",
+    scope: "svg",
     supportsNone: true,
     tokenBridge: "muted",
   },
   {
     role: "faintText",
     label: "Faint text",
+    scope: "svg",
     supportsNone: false,
-    tokenBridge: null,
+    tokenBridge: "muted",
   },
   {
     role: "connectors",
     label: "Connectors",
+    scope: "both",
     supportsNone: true,
     tokenBridge: "line",
   },
   {
     role: "nodeFill",
     label: "Node fill",
+    scope: "svg",
     supportsNone: true,
     tokenBridge: "surface",
   },
   {
     role: "groupHeader",
     label: "Group header",
+    scope: "svg",
     supportsNone: true,
-    tokenBridge: null,
+    tokenBridge: "surface",
   },
   {
     role: "innerStrokes",
     label: "Inner strokes",
+    scope: "svg",
     supportsNone: true,
-    tokenBridge: null,
+    tokenBridge: "border",
   },
   {
     role: "nodeStroke",
     label: "Node stroke",
+    scope: "both",
     supportsNone: true,
     tokenBridge: "border",
   },
@@ -171,6 +191,10 @@ export interface BeautifulRenderConfig {
   edgeWeight: EdgeWeight;
   borderPattern: BorderPattern;
   borderWeight: BorderWeight;
+  textColorMode: TextColorMode;
+  textPaddingX: number;
+  textPaddingY: number;
+  textBoxBorderPadding: number;
   transparent: boolean;
   padding: number;
   nodeSpacing: number;
@@ -200,6 +224,15 @@ export const RENDER_OUTPUT_MODE_OPTIONS: Array<{ label: string; value: RenderOut
   { label: "SVG", value: "svg" },
   { label: "Unicode", value: "unicode" },
   { label: "ASCII", value: "ascii" },
+];
+
+export const TEXT_COLOR_MODE_OPTIONS: Array<{ label: string; value: TextColorMode }> = [
+  { label: "None", value: "none" },
+  { label: "Default", value: "auto" },
+  { label: "ANSI 16", value: "ansi16" },
+  { label: "ANSI 256", value: "ansi256" },
+  { label: "Truecolor", value: "truecolor" },
+  { label: "HTML", value: "html" },
 ];
 
 export const OFFICIAL_DIAGRAM_THEME_OPTIONS: Array<{ label: string; value: ThemeName }> = [
