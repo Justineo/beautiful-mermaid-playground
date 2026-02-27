@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onClickOutside } from "@vueuse/core";
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { POPOVER_ROOT_SELECTOR } from "@/constants/overlay";
 
 type RgbaColor = {
   r: number;
@@ -34,9 +34,17 @@ const emit = defineEmits<{
 }>();
 
 const rootRef = ref<HTMLElement | null>(null);
+const popoverRef = ref<HTMLElement | null>(null);
 const svRef = ref<HTMLElement | null>(null);
 const isOpen = ref(false);
 const isDraggingSv = ref(false);
+const popoverStyle = ref<Record<string, string>>({});
+let viewportListenerAttached = false;
+let pointerListenerAttached = false;
+let rafId = 0;
+const MIN_POPOVER_WIDTH = 188;
+const POPOVER_MARGIN = 8;
+const POPOVER_GAP = 6;
 
 const rgba = ref<RgbaColor>(parseColor(modelValue) ?? { r: 0, g: 0, b: 0, a: 1 });
 const hsv = ref<HsvColor>(rgbToHsv(rgba.value));
@@ -58,6 +66,14 @@ const valueLabel = computed(() => formatOutputColor(rgba.value, allowAlpha));
 const valueInput = ref(valueLabel.value);
 const isValueEditing = ref(false);
 
+function hasSameRgb(a: RgbaColor, b: RgbaColor): boolean {
+  return a.r === b.r && a.g === b.g && a.b === b.b;
+}
+
+function hasSameRgba(a: RgbaColor, b: RgbaColor): boolean {
+  return hasSameRgb(a, b) && a.a === b.a;
+}
+
 watch(
   () => modelValue,
   (nextValue) => {
@@ -66,8 +82,15 @@ watch(
       return;
     }
 
+    const previous = rgba.value;
+    if (hasSameRgba(parsed, previous)) {
+      return;
+    }
+
     rgba.value = parsed;
-    hsv.value = rgbToHsv(parsed);
+    if (!hasSameRgb(parsed, previous)) {
+      hsv.value = rgbToHsvWithFallback(parsed, hsv.value.h);
+    }
   },
 );
 
@@ -78,13 +101,6 @@ watch(valueLabel, (nextValue) => {
 
   valueInput.value = nextValue;
 });
-
-onClickOutside(
-  () => rootRef.value,
-  () => {
-    isOpen.value = false;
-  },
-);
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -192,6 +208,14 @@ function rgbToHsv(color: RgbaColor): HsvColor {
   return { h, s, v };
 }
 
+function rgbToHsvWithFallback(color: RgbaColor, fallbackHue: number): HsvColor {
+  const next = rgbToHsv(color);
+  if (next.s === 0) {
+    next.h = ((fallbackHue % 360) + 360) % 360;
+  }
+  return next;
+}
+
 function hsvToRgb(color: HsvColor, alpha: number): RgbaColor {
   const h = ((color.h % 360) + 360) % 360;
   const s = clamp(color.s, 0, 1);
@@ -223,7 +247,8 @@ function hsvToRgb(color: HsvColor, alpha: number): RgbaColor {
   };
 }
 
-function emitColor(nextRgba: RgbaColor): void {
+function emitColor(nextRgba: RgbaColor, options?: { syncHsv?: boolean }): void {
+  const syncHsv = options?.syncHsv ?? true;
   const normalized: RgbaColor = {
     r: clamp(nextRgba.r, 0, 255),
     g: clamp(nextRgba.g, 0, 255),
@@ -232,7 +257,9 @@ function emitColor(nextRgba: RgbaColor): void {
   };
 
   rgba.value = normalized;
-  hsv.value = rgbToHsv(normalized);
+  if (syncHsv) {
+    hsv.value = rgbToHsvWithFallback(normalized, hsv.value.h);
+  }
   emit("update:modelValue", formatOutputColor(normalized, allowAlpha));
 }
 
@@ -254,7 +281,8 @@ function updateSvFromPointer(event: PointerEvent): void {
     s,
     v,
   };
-  emitColor(hsvToRgb(nextHsv, rgba.value.a));
+  hsv.value = nextHsv;
+  emitColor(hsvToRgb(nextHsv, rgba.value.a), { syncHsv: false });
 }
 
 function onSvPointerDown(event: PointerEvent): void {
@@ -294,7 +322,8 @@ function onHueInput(event: Event): void {
     ...hsv.value,
     h: clamp(value, 0, 359),
   };
-  emitColor(hsvToRgb(nextHsv, rgba.value.a));
+  hsv.value = nextHsv;
+  emitColor(hsvToRgb(nextHsv, rgba.value.a), { syncHsv: false });
 }
 
 function onAlphaInput(event: Event): void {
@@ -303,10 +332,13 @@ function onAlphaInput(event: Event): void {
     return;
   }
 
-  emitColor({
-    ...rgba.value,
-    a: clamp(value / 100, 0, 1),
-  });
+  emitColor(
+    {
+      ...rgba.value,
+      a: clamp(value / 100, 0, 1),
+    },
+    { syncHsv: false },
+  );
 }
 
 function onRgbInput(channel: "r" | "g" | "b", event: Event): void {
@@ -327,10 +359,13 @@ function onAlphaNumberInput(event: Event): void {
     return;
   }
 
-  emitColor({
-    ...rgba.value,
-    a: clamp(value / 100, 0, 1),
-  });
+  emitColor(
+    {
+      ...rgba.value,
+      a: clamp(value / 100, 0, 1),
+    },
+    { syncHsv: false },
+  );
 }
 
 function rollbackValueInput(): void {
@@ -396,11 +431,139 @@ function onTriggerClick(): void {
   isOpen.value = !isOpen.value;
 }
 
+function updatePopoverPosition(): void {
+  const root = rootRef.value;
+  const popover = popoverRef.value;
+  if (!isOpen.value || !root || !popover) {
+    return;
+  }
+
+  const rect = root.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const maxWidth = Math.max(MIN_POPOVER_WIDTH, viewportWidth - POPOVER_MARGIN * 2);
+  const width = Math.min(MIN_POPOVER_WIDTH, maxWidth);
+  const currentHeight = popover.offsetHeight;
+  const naturalHeight = popover.scrollHeight;
+  const spaceBelow = viewportHeight - rect.bottom - POPOVER_GAP - POPOVER_MARGIN;
+  const spaceAbove = rect.top - POPOVER_GAP - POPOVER_MARGIN;
+  const preferTop =
+    currentHeight > 0 ? spaceBelow < currentHeight && spaceAbove > spaceBelow : false;
+  const maxHeight = Math.max(120, Math.floor(preferTop ? spaceAbove : spaceBelow));
+  const height = currentHeight > 0 ? Math.min(currentHeight, maxHeight) : maxHeight;
+  const shouldClampHeight = naturalHeight > maxHeight + 1;
+
+  let left = rect.right - width;
+  if (left + width > viewportWidth - POPOVER_MARGIN) {
+    left = viewportWidth - POPOVER_MARGIN - width;
+  }
+  left = Math.max(POPOVER_MARGIN, left);
+
+  let top = preferTop ? rect.top - POPOVER_GAP - height : rect.bottom + POPOVER_GAP;
+  if (top < POPOVER_MARGIN) {
+    top = POPOVER_MARGIN;
+  }
+  if (top + height > viewportHeight - POPOVER_MARGIN) {
+    top = Math.max(POPOVER_MARGIN, viewportHeight - POPOVER_MARGIN - height);
+  }
+
+  popoverStyle.value = {
+    left: `${Math.round(left)}px`,
+    top: `${Math.round(top)}px`,
+    width: `${Math.round(width)}px`,
+    maxWidth: `${Math.round(maxWidth)}px`,
+    maxHeight: `${Math.round(maxHeight)}px`,
+    height: shouldClampHeight ? `${Math.round(maxHeight)}px` : "",
+  };
+}
+
+function schedulePopoverPosition(): void {
+  if (!isOpen.value) {
+    return;
+  }
+
+  updatePopoverPosition();
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+  }
+
+  rafId = requestAnimationFrame(() => {
+    updatePopoverPosition();
+    rafId = 0;
+  });
+}
+
+function handleViewportChange(): void {
+  updatePopoverPosition();
+}
+
 function onRootKeydown(event: KeyboardEvent): void {
   if (event.key === "Escape") {
     isOpen.value = false;
   }
 }
+
+function handleDocumentPointerDown(event: PointerEvent): void {
+  const target = event.target as Node | null;
+  if (!target) {
+    return;
+  }
+
+  if (rootRef.value?.contains(target) || popoverRef.value?.contains(target)) {
+    return;
+  }
+
+  isOpen.value = false;
+}
+
+function attachOpenListeners(): void {
+  if (!viewportListenerAttached) {
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = true;
+  }
+
+  if (!pointerListenerAttached) {
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = true;
+  }
+}
+
+function detachOpenListeners(): void {
+  if (viewportListenerAttached) {
+    window.removeEventListener("resize", handleViewportChange);
+    window.removeEventListener("scroll", handleViewportChange, true);
+    viewportListenerAttached = false;
+  }
+
+  if (pointerListenerAttached) {
+    document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+    pointerListenerAttached = false;
+  }
+}
+
+watch(isOpen, (open) => {
+  if (open) {
+    attachOpenListeners();
+    nextTick(() => {
+      schedulePopoverPosition();
+    });
+    return;
+  }
+
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+  detachOpenListeners();
+});
+
+onBeforeUnmount(() => {
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+  }
+  detachOpenListeners();
+});
 </script>
 
 <template>
@@ -424,95 +587,110 @@ function onRootKeydown(event: KeyboardEvent): void {
       </span>
     </button>
 
-    <div v-if="isOpen" class="picker-popover" role="dialog" aria-label="Color picker">
+    <Teleport :to="POPOVER_ROOT_SELECTOR">
       <div
-        ref="svRef"
-        class="sv-area"
-        :style="{ '--picker-hue': hueColor }"
-        @pointerdown="onSvPointerDown"
-        @pointermove="onSvPointerMove"
-        @pointerup="onSvPointerUp"
-        @pointercancel="onSvPointerUp"
+        v-if="isOpen"
+        ref="popoverRef"
+        class="picker-popover"
+        :style="popoverStyle"
+        role="dialog"
+        aria-label="Color picker"
       >
-        <span class="sv-cursor" :style="svCursorStyle" />
-      </div>
+        <div
+          ref="svRef"
+          class="sv-area"
+          :style="{ '--picker-hue': hueColor }"
+          @pointerdown="onSvPointerDown"
+          @pointermove="onSvPointerMove"
+          @pointerup="onSvPointerUp"
+          @pointercancel="onSvPointerUp"
+        >
+          <span class="sv-cursor" :style="svCursorStyle" />
+        </div>
 
-      <div class="slider-group">
+        <div class="slider-group">
+          <input
+            class="slider hue-slider"
+            type="range"
+            min="0"
+            max="359"
+            step="1"
+            :value="Math.min(359, Math.round(hsv.h))"
+            @input="onHueInput"
+          />
+          <input
+            v-if="allowAlpha"
+            class="slider alpha-slider"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            :value="alphaInput"
+            :style="alphaTrackStyle"
+            @input="onAlphaInput"
+          />
+        </div>
+
+        <div class="inputs-grid">
+          <label>
+            <span>R</span>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              :value="Math.round(rgba.r)"
+              @input="onRgbInput('r', $event)"
+            />
+          </label>
+          <label>
+            <span>G</span>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              :value="Math.round(rgba.g)"
+              @input="onRgbInput('g', $event)"
+            />
+          </label>
+          <label>
+            <span>B</span>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              :value="Math.round(rgba.b)"
+              @input="onRgbInput('b', $event)"
+            />
+          </label>
+          <label v-if="allowAlpha">
+            <span>A</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              :value="alphaInput"
+              @input="onAlphaNumberInput"
+            />
+          </label>
+        </div>
+
         <input
-          class="slider hue-slider"
-          type="range"
-          min="0"
-          max="359"
-          step="1"
-          :value="Math.min(359, Math.round(hsv.h))"
-          @input="onHueInput"
-        />
-        <input
-          v-if="allowAlpha"
-          class="slider alpha-slider"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          :value="alphaInput"
-          :style="alphaTrackStyle"
-          @input="onAlphaInput"
+          type="text"
+          class="value-input"
+          :value="valueInput"
+          :disabled="disabled"
+          :placeholder="allowAlpha ? '#RRGGBB or #RRGGBBAA' : '#RRGGBB'"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+          @input="onValueInput"
+          @focus="onValueFocus"
+          @change="onValueChange"
+          @blur="onValueBlur"
+          @keydown="onValueKeydown"
         />
       </div>
-
-      <div class="inputs-grid">
-        <label>
-          <span>R</span>
-          <input
-            type="number"
-            min="0"
-            max="255"
-            :value="Math.round(rgba.r)"
-            @input="onRgbInput('r', $event)"
-          />
-        </label>
-        <label>
-          <span>G</span>
-          <input
-            type="number"
-            min="0"
-            max="255"
-            :value="Math.round(rgba.g)"
-            @input="onRgbInput('g', $event)"
-          />
-        </label>
-        <label>
-          <span>B</span>
-          <input
-            type="number"
-            min="0"
-            max="255"
-            :value="Math.round(rgba.b)"
-            @input="onRgbInput('b', $event)"
-          />
-        </label>
-        <label v-if="allowAlpha">
-          <span>A</span>
-          <input type="number" min="0" max="100" :value="alphaInput" @input="onAlphaNumberInput" />
-        </label>
-      </div>
-
-      <input
-        type="text"
-        class="value-input"
-        :value="valueInput"
-        :disabled="disabled"
-        :placeholder="allowAlpha ? '#RRGGBB or #RRGGBBAA' : '#RRGGBB'"
-        spellcheck="false"
-        autocapitalize="off"
-        autocomplete="off"
-        @input="onValueInput"
-        @focus="onValueFocus"
-        @change="onValueChange"
-        @blur="onValueBlur"
-        @keydown="onValueKeydown"
-      />
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -591,14 +769,14 @@ function onRootKeydown(event: KeyboardEvent): void {
 }
 
 .picker-popover {
-  position: absolute;
-  z-index: 24;
-  top: calc(100% + 0.36rem);
-  right: 0;
+  position: fixed;
+  z-index: 10;
+  pointer-events: auto;
   width: 188px;
   display: grid;
   gap: 0.42rem;
   padding: 0.42rem;
+  overflow: hidden;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border-color) 56%, transparent);
   background: color-mix(in srgb, var(--surface) 98%, var(--surface-muted));
