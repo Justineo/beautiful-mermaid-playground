@@ -14,6 +14,8 @@ export type BaseFont =
   | "Inter"
   | "Geist"
   | "Geist Mono"
+  | "Fira Sans"
+  | "Fira Code"
   | "IBM Plex Sans"
   | "IBM Plex Mono"
   | "Roboto"
@@ -26,6 +28,7 @@ export type BaseFont =
 export type MonoFont =
   | "JetBrains Mono"
   | "Geist Mono"
+  | "Fira Code"
   | "IBM Plex Mono"
   | "Roboto Mono"
   | "Google Sans Code"
@@ -284,6 +287,8 @@ export const BASE_FONT_OPTIONS: Array<{ label: string; value: BaseFont }> = [
   { label: "Inter", value: "Inter" },
   { label: "Geist", value: "Geist" },
   { label: "Geist Mono", value: "Geist Mono" },
+  { label: "Fira Sans", value: "Fira Sans" },
+  { label: "Fira Code", value: "Fira Code" },
   { label: "IBM Plex Sans", value: "IBM Plex Sans" },
   { label: "IBM Plex Sans Mono", value: "IBM Plex Mono" },
   { label: "Roboto", value: "Roboto" },
@@ -298,6 +303,7 @@ export const BASE_FONT_OPTIONS: Array<{ label: string; value: BaseFont }> = [
 export const MONO_FONT_OPTIONS: Array<{ label: string; value: MonoFont }> = [
   { label: "JetBrains Mono", value: "JetBrains Mono" },
   { label: "Geist Mono", value: "Geist Mono" },
+  { label: "Fira Code", value: "Fira Code" },
   { label: "IBM Plex Sans Mono", value: "IBM Plex Mono" },
   { label: "Roboto Mono", value: "Roboto Mono" },
   { label: "Google Sans Code", value: "Google Sans Code" },

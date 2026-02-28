@@ -43,7 +43,6 @@ const emit = defineEmits<{
   "export:download-svg": [];
   "export:download-png": [];
   "export:copy-text": [payload: { mode: TextOutputMode; colorMode: TextColorMode }];
-  "reset:mono-font-default": [];
   "update:outputMode": [value: RenderOutputMode];
   "update:transparent": [value: boolean];
 }>();
@@ -710,17 +709,7 @@ useResizeObserver(textCanvasRef, () => {
               />
               <Info v-else :size="12" :stroke-width="1.85" class="feedback-label-icon" />
             </span>
-            <span class="feedback-message"
-              >{{ warning.message
-              }}<button
-                v-if="warning.id === 'text-font-not-strict-mono'"
-                type="button"
-                class="feedback-inline-action"
-                @click="emit('reset:mono-font-default')"
-              >
-                Reset to default
-              </button></span
-            >
+            <span class="feedback-message">{{ warning.message }}</span>
           </p>
         </div>
       </div>
@@ -1020,35 +1009,6 @@ useResizeObserver(textCanvasRef, () => {
   min-width: 0;
   cursor: text;
   white-space: normal;
-}
-
-.feedback-inline-action {
-  all: unset;
-  display: inline;
-  margin: 0;
-  margin-left: 0.34rem;
-  font: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
-  color: var(--text-muted);
-  text-decoration: underline;
-  text-underline-offset: 0.14em;
-  text-decoration-color: color-mix(in srgb, var(--text-muted) 60%, transparent);
-  vertical-align: baseline;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.feedback-inline-action:hover:enabled {
-  background: transparent !important;
-  color: var(--text-secondary);
-  text-decoration-color: color-mix(in srgb, var(--text-secondary) 70%, transparent);
-}
-
-.feedback-inline-action:active:enabled {
-  background: transparent !important;
-  color: var(--text-primary);
 }
 
 .feedback-layer,

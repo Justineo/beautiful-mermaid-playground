@@ -370,7 +370,6 @@ const props = defineProps<{
   customMonoFontUrl: string;
   customMonoFontFamily: string;
   isMonoCustomFontLoading: boolean;
-  monoFontOptionRemovalTarget: MonoFontOptionRemovalTarget | null;
   directionOverride: DirectionOverride;
   subgraphStyle: SubgraphStylePreset;
   lineGeometry: LineGeometry;
@@ -474,6 +473,8 @@ const BASE_FONT_FAMILY: Record<BaseFont, string> = {
   Inter: '"Inter", sans-serif',
   Geist: '"Geist", sans-serif',
   "Geist Mono": '"Geist Mono", monospace',
+  "Fira Sans": '"Fira Sans", sans-serif',
+  "Fira Code": '"Fira Code", monospace',
   "IBM Plex Sans": '"IBM Plex Sans", sans-serif',
   "IBM Plex Mono": '"IBM Plex Mono", monospace',
   Roboto: '"Roboto", sans-serif',
@@ -487,6 +488,7 @@ const BASE_FONT_FAMILY: Record<BaseFont, string> = {
 const MONO_FONT_FAMILY: Record<MonoFont, string> = {
   "JetBrains Mono": '"JetBrains Mono", monospace',
   "Geist Mono": '"Geist Mono", monospace',
+  "Fira Code": '"Fira Code", monospace',
   "IBM Plex Mono": '"IBM Plex Mono", monospace',
   "Roboto Mono": '"Roboto Mono", monospace',
   "Google Sans Code": '"Google Sans Code", monospace',
@@ -497,11 +499,6 @@ type CustomFontOption = {
   label: string;
   family: string;
   url: string;
-};
-type MonoFontOptionRemovalTarget = {
-  token: number;
-  url: string;
-  family: string;
 };
 const CUSTOM_FONT_OPTION_VALUE = "__add_custom_font__";
 
@@ -552,27 +549,6 @@ function upsertCustomFontOption(target: CustomFontOption[], option: CustomFontOp
     target.splice(existingIndex, 1);
   }
   target.unshift(option);
-}
-
-function removeCustomFontOption(
-  target: CustomFontOption[],
-  urlValue: string,
-  familyValue: string,
-): void {
-  const url = urlValue.trim();
-  const family = familyValue.trim().toLowerCase();
-  if (!url && !family) {
-    return;
-  }
-
-  const targetIndex = target.findIndex((item) => {
-    const sameUrl = url.length > 0 && item.url === url;
-    const sameFamily = family.length > 0 && item.family.trim().toLowerCase() === family;
-    return sameUrl || sameFamily;
-  });
-  if (targetIndex >= 0) {
-    target.splice(targetIndex, 1);
-  }
 }
 
 function createCustomFontOption(url: string, family: string): CustomFontOption {
@@ -1171,19 +1147,6 @@ watch(
   () => [props.customMonoFontUrl, props.customMonoFontFamily],
   ([url = "", family = ""]) => {
     syncCustomFontOption(monoCustomFontOptions.value, url, family, "mono");
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.monoFontOptionRemovalTarget?.token,
-  () => {
-    const removalTarget = props.monoFontOptionRemovalTarget;
-    if (!removalTarget) {
-      return;
-    }
-
-    removeCustomFontOption(monoCustomFontOptions.value, removalTarget.url, removalTarget.family);
   },
   { immediate: true },
 );

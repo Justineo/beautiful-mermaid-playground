@@ -40,11 +40,6 @@ type NoticeState = {
   message: string;
   tone: NoticeTone;
 };
-type MonoFontOptionRemovalTarget = {
-  token: number;
-  url: string;
-  family: string;
-};
 
 type NetworkInformationLike = {
   saveData?: boolean;
@@ -140,6 +135,8 @@ const BASE_FONT_GOOGLE_FAMILY: Record<PresetBaseFont, string> = {
   Inter: "Inter:wght@400;500;600;700",
   Geist: "Geist:wght@400;500;600;700",
   "Geist Mono": "Geist+Mono:wght@400;500;700",
+  "Fira Sans": "Fira+Sans:wght@400;500;600;700",
+  "Fira Code": "Fira+Code:wght@400;500;700",
   "IBM Plex Sans": "IBM+Plex+Sans:wght@400;500;600;700",
   "IBM Plex Mono": "IBM+Plex+Mono:wght@400;500;700",
   Roboto: "Roboto:wght@400;500;700",
@@ -152,9 +149,18 @@ const BASE_FONT_GOOGLE_FAMILY: Record<PresetBaseFont, string> = {
 const MONO_FONT_FAMILY: Record<PresetMonoFont, string> = {
   "JetBrains Mono": '"JetBrains Mono", monospace',
   "Geist Mono": '"Geist Mono", monospace',
+  "Fira Code": '"Fira Code", monospace',
   "IBM Plex Mono": '"IBM Plex Mono", monospace',
   "Roboto Mono": '"Roboto Mono", monospace',
   "Google Sans Code": '"Google Sans Code", monospace',
+};
+const MONO_FONT_GOOGLE_FAMILY: Record<PresetMonoFont, string> = {
+  "JetBrains Mono": "JetBrains+Mono:wght@400;500;700",
+  "Geist Mono": "Geist+Mono:wght@400;500;700",
+  "Fira Code": "Fira+Code:wght@400;500;700",
+  "IBM Plex Mono": "IBM+Plex+Mono:wght@400;500;700",
+  "Roboto Mono": "Roboto+Mono:wght@400;500;700",
+  "Google Sans Code": "Google+Sans+Code:wght@400;500;700",
 };
 const BASE_PRESET_FONT_SET = new Set<PresetBaseFont>(
   BASE_FONT_OPTIONS.map((option) => option.value).filter(
@@ -269,6 +275,14 @@ function resolveMonoFontFamily(font: MonoFont, customFamily: string): string {
   return trimmed.length > 0 ? `"${trimmed}", monospace` : "monospace";
 }
 
+function resolveMonoFontCssUrl(font: MonoFont, customUrl: string): string | null {
+  if (font !== "Custom") {
+    return `https://fonts.googleapis.com/css2?family=${MONO_FONT_GOOGLE_FAMILY[font]}&display=swap`;
+  }
+
+  return parseGoogleFontsInput(customUrl)?.cssUrl ?? null;
+}
+
 type UiPalette = {
   bg: string;
   fg: string;
@@ -295,6 +309,9 @@ const resolvedColorScheme = computed<"light" | "dark">(() =>
 const editorFontFamily = EDITOR_FONT_FAMILY;
 const monoFontFamily = computed(() =>
   resolveMonoFontFamily(state.value.config.monoFont, state.value.config.customMonoFontFamily),
+);
+const monoFontCssUrl = computed(() =>
+  resolveMonoFontCssUrl(state.value.config.monoFont, state.value.config.customMonoFontUrl),
 );
 
 const codeRef = computed({
@@ -328,8 +345,6 @@ const editorFocusToEndToken = ref(0);
 const shouldFitPreviewAfterRender = ref(false);
 const previewFitRequestId = ref(0);
 const appliedPreviewTransparency = ref(false);
-const monoFontOptionRemovalTarget = ref<MonoFontOptionRemovalTarget | null>(null);
-let monoFontOptionRemovalToken = 0;
 const isBaseCustomFontLoading = ref(false);
 const isMonoCustomFontLoading = ref(false);
 let baseCustomFontLoadToken = 0;
@@ -345,6 +360,7 @@ const textOutputWarnings = useTextOutputWarnings(
   computed(() => state.value.config.outputMode),
   computed(() => renderState.value.textOutputMode),
   monoFontFamily,
+  monoFontCssUrl,
 );
 type EditorFocusMode = "focus" | "focusToEnd";
 const pendingEditorFocusMode = ref<EditorFocusMode | null>(null);
@@ -958,24 +974,6 @@ function updateCustomMonoFontUrl(value: string): void {
   state.value.config.customMonoFontFamily = parsed?.primaryFamily ?? "";
 }
 
-function resetMonoFontToDefault(): void {
-  const previousUrl = state.value.config.customMonoFontUrl.trim();
-  const previousFamily = state.value.config.customMonoFontFamily.trim();
-  if (previousUrl || previousFamily) {
-    monoFontOptionRemovalToken += 1;
-    monoFontOptionRemovalTarget.value = {
-      token: monoFontOptionRemovalToken,
-      url: previousUrl,
-      family: previousFamily,
-    };
-  }
-
-  const defaults = defaultState.config;
-  state.value.config.monoFont = defaults.monoFont;
-  state.value.config.customMonoFontUrl = defaults.customMonoFontUrl;
-  state.value.config.customMonoFontFamily = defaults.customMonoFontFamily;
-}
-
 function requestPreviewFitAfterRender(): void {
   shouldFitPreviewAfterRender.value = true;
 }
@@ -1217,7 +1215,6 @@ onUnmounted(() => {
         >
           <PlaygroundOptionsPanel
             v-bind="optionsPanelConfig"
-            :mono-font-option-removal-target="monoFontOptionRemovalTarget"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1269,7 +1266,6 @@ onUnmounted(() => {
               :transparent-applied="appliedPreviewTransparency"
               @update:output-mode="updateOutputMode"
               @update:transparent="updateTransparent"
-              @reset:mono-font-default="resetMonoFontToDefault"
               @export:copy-svg="copySvg"
               @export:copy-png="copyPng"
               @export:download-svg="exportSvg"
@@ -1284,7 +1280,6 @@ onUnmounted(() => {
         <div v-if="state.mobilePane === 'options'" class="pane mobile-pane">
           <PlaygroundOptionsPanel
             v-bind="optionsPanelConfig"
-            :mono-font-option-removal-target="monoFontOptionRemovalTarget"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1321,7 +1316,6 @@ onUnmounted(() => {
             :transparent-applied="appliedPreviewTransparency"
             @update:output-mode="updateOutputMode"
             @update:transparent="updateTransparent"
-            @reset:mono-font-default="resetMonoFontToDefault"
             @export:copy-svg="copySvg"
             @export:copy-png="copyPng"
             @export:download-svg="exportSvg"
