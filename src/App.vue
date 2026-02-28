@@ -8,6 +8,7 @@ import PlaygroundOptionsPanel from "@/components/PlaygroundOptionsPanel.vue";
 import { preloadRenderer, useBeautifulRenderer } from "@/composables/useBeautifulRenderer";
 import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
+import { useTextOutputWarnings } from "@/composables/useTextOutputWarnings";
 import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
 import { BASE_FONT_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
@@ -38,6 +39,11 @@ type NoticeTone = "info" | "success" | "warning" | "error";
 type NoticeState = {
   message: string;
   tone: NoticeTone;
+};
+type MonoFontOptionRemovalTarget = {
+  token: number;
+  url: string;
+  family: string;
 };
 
 type NetworkInformationLike = {
@@ -322,6 +328,8 @@ const editorFocusToEndToken = ref(0);
 const shouldFitPreviewAfterRender = ref(false);
 const previewFitRequestId = ref(0);
 const appliedPreviewTransparency = ref(false);
+const monoFontOptionRemovalTarget = ref<MonoFontOptionRemovalTarget | null>(null);
+let monoFontOptionRemovalToken = 0;
 const isBaseCustomFontLoading = ref(false);
 const isMonoCustomFontLoading = ref(false);
 let baseCustomFontLoadToken = 0;
@@ -332,6 +340,12 @@ const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, spli
 });
 const { isRendering, renderState, renderNow, renderTextByColorMode, scheduleRender } =
   useBeautifulRenderer(codeRef, configRef, 300);
+const textOutputWarnings = useTextOutputWarnings(
+  computed(() => renderState.value.asciiHtml),
+  computed(() => state.value.config.outputMode),
+  computed(() => renderState.value.textOutputMode),
+  monoFontFamily,
+);
 type EditorFocusMode = "focus" | "focusToEnd";
 const pendingEditorFocusMode = ref<EditorFocusMode | null>(null);
 
@@ -944,6 +958,24 @@ function updateCustomMonoFontUrl(value: string): void {
   state.value.config.customMonoFontFamily = parsed?.primaryFamily ?? "";
 }
 
+function resetMonoFontToDefault(): void {
+  const previousUrl = state.value.config.customMonoFontUrl.trim();
+  const previousFamily = state.value.config.customMonoFontFamily.trim();
+  if (previousUrl || previousFamily) {
+    monoFontOptionRemovalToken += 1;
+    monoFontOptionRemovalTarget.value = {
+      token: monoFontOptionRemovalToken,
+      url: previousUrl,
+      family: previousFamily,
+    };
+  }
+
+  const defaults = defaultState.config;
+  state.value.config.monoFont = defaults.monoFont;
+  state.value.config.customMonoFontUrl = defaults.customMonoFontUrl;
+  state.value.config.customMonoFontFamily = defaults.customMonoFontFamily;
+}
+
 function requestPreviewFitAfterRender(): void {
   shouldFitPreviewAfterRender.value = true;
 }
@@ -1185,6 +1217,7 @@ onUnmounted(() => {
         >
           <PlaygroundOptionsPanel
             v-bind="optionsPanelConfig"
+            :mono-font-option-removal-target="monoFontOptionRemovalTarget"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1225,6 +1258,7 @@ onUnmounted(() => {
               :output-mode="state.config.outputMode"
               :fit-request-id="previewFitRequestId"
               :mono-font-family="monoFontFamily"
+              :text-warnings="textOutputWarnings"
               :svg="renderState.svg"
               :ascii-html="renderState.asciiHtml"
               :error="renderState.error"
@@ -1235,6 +1269,7 @@ onUnmounted(() => {
               :transparent-applied="appliedPreviewTransparency"
               @update:output-mode="updateOutputMode"
               @update:transparent="updateTransparent"
+              @reset:mono-font-default="resetMonoFontToDefault"
               @export:copy-svg="copySvg"
               @export:copy-png="copyPng"
               @export:download-svg="exportSvg"
@@ -1249,6 +1284,7 @@ onUnmounted(() => {
         <div v-if="state.mobilePane === 'options'" class="pane mobile-pane">
           <PlaygroundOptionsPanel
             v-bind="optionsPanelConfig"
+            :mono-font-option-removal-target="monoFontOptionRemovalTarget"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
             v-on="optionsPanelListeners"
@@ -1274,6 +1310,7 @@ onUnmounted(() => {
             :output-mode="state.config.outputMode"
             :fit-request-id="previewFitRequestId"
             :mono-font-family="monoFontFamily"
+            :text-warnings="textOutputWarnings"
             :svg="renderState.svg"
             :ascii-html="renderState.asciiHtml"
             :error="renderState.error"
@@ -1284,6 +1321,7 @@ onUnmounted(() => {
             :transparent-applied="appliedPreviewTransparency"
             @update:output-mode="updateOutputMode"
             @update:transparent="updateTransparent"
+            @reset:mono-font-default="resetMonoFontToDefault"
             @export:copy-svg="copySvg"
             @export:copy-png="copyPng"
             @export:download-svg="exportSvg"

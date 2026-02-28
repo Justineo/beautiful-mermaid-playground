@@ -213,9 +213,20 @@ export interface PlaygroundState {
 export interface RenderState {
   svg: string | null;
   asciiHtml: string | null;
+  textOutputMode: Exclude<RenderOutputMode, "svg"> | null;
   error: string | null;
   durationMs: number | null;
   renderId: number;
+}
+
+export type TextOutputWarningTone = "warning" | "info";
+
+export interface TextOutputWarning {
+  key: string;
+  id: string;
+  tone: TextOutputWarningTone;
+  message: string;
+  examples: string[];
 }
 
 export const RENDER_OUTPUT_MODE_OPTIONS: Array<{ label: string; value: RenderOutputMode }> = [

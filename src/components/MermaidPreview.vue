@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Scan } from "lucide-vue-next";
+import { AlertTriangle, CircleX, Info, Scan } from "lucide-vue-next";
 import { useResizeObserver } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import BaseButton from "@/components/BaseButton.vue";
@@ -8,7 +8,7 @@ import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
-import type { RenderOutputMode, TextColorMode } from "@/types/playground";
+import type { RenderOutputMode, TextColorMode, TextOutputWarning } from "@/types/playground";
 
 type ViewportPoint = {
   x: number;
@@ -24,6 +24,7 @@ const props = defineProps<{
   outputMode: RenderOutputMode;
   fitRequestId: number;
   monoFontFamily: string;
+  textWarnings: TextOutputWarning[];
   svg: string | null;
   asciiHtml: string | null;
   error: string | null;
@@ -42,6 +43,7 @@ const emit = defineEmits<{
   "export:download-svg": [];
   "export:download-png": [];
   "export:copy-text": [payload: { mode: TextOutputMode; colorMode: TextColorMode }];
+  "reset:mono-font-default": [];
   "update:outputMode": [value: RenderOutputMode];
   "update:transparent": [value: boolean];
 }>();
@@ -99,6 +101,13 @@ const renderDurationText = computed(() => {
   }
 
   return `Rendered in ${props.durationMs}ms`;
+});
+const visibleWarnings = computed(() => {
+  if (props.outputMode === "svg" || props.error) {
+    return [];
+  }
+
+  return props.textWarnings;
 });
 const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   if (props.outputMode === "svg") {
@@ -267,6 +276,11 @@ function getLocalPoint(event: PointerEvent | WheelEvent): ViewportPoint | null {
   };
 }
 
+function isFeedbackEvent(event: Event): boolean {
+  const target = event.target;
+  return target instanceof Element && Boolean(target.closest(".feedback-layer"));
+}
+
 function zoomAt(localX: number, localY: number, nextScale: number): void {
   const clampedScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
   if (Math.abs(clampedScale - scale.value) < 0.0001) {
@@ -333,6 +347,10 @@ function beginPinch(): void {
 }
 
 function onViewportPointerDown(event: PointerEvent): void {
+  if (isFeedbackEvent(event)) {
+    return;
+  }
+
   if (!hasCurrentOutput.value) {
     return;
   }
@@ -438,6 +456,10 @@ function onViewportPointerCancel(event: PointerEvent): void {
 }
 
 function onViewportWheel(event: WheelEvent): void {
+  if (isFeedbackEvent(event)) {
+    return;
+  }
+
   if (!hasCurrentOutput.value) {
     return;
   }
@@ -666,7 +688,41 @@ useResizeObserver(textCanvasRef, () => {
             v-html="props.asciiHtml ?? ''"
           />
         </div>
-        <pre v-if="props.error" class="error-block">{{ props.error }}</pre>
+        <p v-if="props.error" class="feedback-layer feedback-block tone-error">
+          <span class="feedback-label">
+            <CircleX :size="12" :stroke-width="1.85" class="feedback-label-icon" />
+          </span>
+          <span class="feedback-message">{{ props.error }}</span>
+        </p>
+        <div v-else-if="visibleWarnings.length > 0" class="feedback-layer feedback-stack">
+          <p
+            v-for="warning in visibleWarnings"
+            :key="warning.key"
+            class="feedback-block"
+            :class="`tone-${warning.tone}`"
+          >
+            <span class="feedback-label">
+              <AlertTriangle
+                v-if="warning.tone === 'warning'"
+                :size="12"
+                :stroke-width="1.85"
+                class="feedback-label-icon"
+              />
+              <Info v-else :size="12" :stroke-width="1.85" class="feedback-label-icon" />
+            </span>
+            <span class="feedback-message"
+              >{{ warning.message
+              }}<button
+                v-if="warning.id === 'text-font-not-strict-mono'"
+                type="button"
+                class="feedback-inline-action"
+                @click="emit('reset:mono-font-default')"
+              >
+                Reset to default
+              </button></span
+            >
+          </p>
+        </div>
       </div>
 
       <div v-if="props.outputMode === 'svg'" class="preview-bottom-controls">
@@ -911,24 +967,131 @@ useResizeObserver(textCanvasRef, () => {
   white-space: pre;
 }
 
-.error-block {
+.feedback-block {
+  --feedback-border: color-mix(in srgb, var(--border-color) 64%, transparent);
+  --feedback-bg: color-mix(in srgb, var(--surface-elevated) 94%, var(--surface));
+  --feedback-fg: var(--text-secondary);
+  --feedback-label-fg: var(--text-primary);
   margin: 0.35rem 0 0;
   padding: 0.6rem 0.68rem;
-  border: 0;
+  border: 1px solid var(--feedback-border);
   border-radius: 8px;
-  background: var(--danger-bg);
-  color: var(--danger-text);
+  background: var(--feedback-bg);
+  color: var(--feedback-fg);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
   font-size: var(--fs-meta);
   line-height: var(--lh-normal);
   white-space: pre-wrap;
+  cursor: default;
+  pointer-events: auto;
+  touch-action: auto;
 }
 
-.preview-viewport > .error-block {
+.preview-viewport > .feedback-block {
   position: absolute;
   left: 0.84rem;
   right: 0.84rem;
   bottom: 0.84rem;
   margin: 0;
   z-index: 4;
+}
+
+.feedback-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: calc((1em * var(--lh-normal) - 12px) / 2);
+  line-height: 1;
+  font-weight: 560;
+  color: var(--feedback-label-fg);
+  white-space: nowrap;
+}
+
+.feedback-label-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.feedback-message {
+  flex: 1;
+  min-width: 0;
+  cursor: text;
+  white-space: normal;
+}
+
+.feedback-inline-action {
+  all: unset;
+  display: inline;
+  margin: 0;
+  margin-left: 0.34rem;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  text-decoration-color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+  vertical-align: baseline;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.feedback-inline-action:hover:enabled {
+  background: transparent !important;
+  color: var(--text-secondary);
+  text-decoration-color: color-mix(in srgb, var(--text-secondary) 70%, transparent);
+}
+
+.feedback-inline-action:active:enabled {
+  background: transparent !important;
+  color: var(--text-primary);
+}
+
+.feedback-layer,
+.feedback-layer * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.feedback-stack {
+  position: absolute;
+  left: 0.84rem;
+  right: 0.84rem;
+  bottom: 0.84rem;
+  z-index: 4;
+  display: grid;
+  gap: 0.36rem;
+  pointer-events: auto;
+  cursor: default;
+  touch-action: auto;
+}
+
+.feedback-stack > .feedback-block {
+  margin: 0;
+}
+
+.feedback-block.tone-error {
+  --feedback-border: color-mix(in srgb, var(--danger-text) 16%, transparent);
+  --feedback-bg: var(--danger-bg);
+  --feedback-fg: var(--danger-text);
+  --feedback-label-fg: var(--danger-text);
+}
+
+.feedback-block.tone-warning {
+  --feedback-border: color-mix(in srgb, var(--warning-text) 14%, transparent);
+  --feedback-bg: var(--warning-bg);
+  --feedback-fg: var(--warning-text);
+  --feedback-label-fg: var(--warning-text);
+}
+
+.feedback-block.tone-info {
+  --feedback-border: color-mix(in srgb, var(--border-color) 64%, transparent);
+  --feedback-bg: color-mix(in srgb, var(--surface-elevated) 94%, var(--surface));
+  --feedback-fg: var(--text-secondary);
+  --feedback-label-fg: var(--text-primary);
 }
 </style>

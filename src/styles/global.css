@@ -20,6 +20,9 @@
   --button-active: color-mix(in srgb, var(--t-fg) 8%, var(--t-bg));
   --danger-bg: color-mix(in srgb, #ef4444 10%, var(--t-bg));
   --danger-text: color-mix(in srgb, #ef4444 78%, var(--t-fg));
+  --warning-bg: color-mix(in srgb, #f59e0b 12%, var(--t-bg));
+  --warning-text: color-mix(in srgb, #b45309 74%, var(--t-fg));
+  --warning-border: color-mix(in srgb, #f59e0b 46%, var(--t-fg));
   --focus-outline: color-mix(in srgb, var(--t-accent) 58%, transparent);
   --focus-inset: color-mix(in srgb, var(--t-accent) 18%, transparent);
   --panel-shadow: none;

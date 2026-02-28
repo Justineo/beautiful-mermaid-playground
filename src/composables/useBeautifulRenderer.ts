@@ -1364,6 +1364,7 @@ export function useBeautifulRenderer(
   const renderState = ref<RenderState>({
     svg: null,
     asciiHtml: null,
+    textOutputMode: null,
     error: null,
     durationMs: null,
     renderId: 0,
@@ -1390,6 +1391,7 @@ export function useBeautifulRenderer(
       renderState.value = {
         svg: null,
         asciiHtml: null,
+        textOutputMode: null,
         error: null,
         durationMs: 0,
         renderId: renderToken,
@@ -1399,6 +1401,7 @@ export function useBeautifulRenderer(
 
     const previousSvg = renderState.value.svg;
     const previousAsciiHtml = renderState.value.asciiHtml;
+    const previousTextOutputMode = renderState.value.textOutputMode;
 
     try {
       isRendering.value = true;
@@ -1431,6 +1434,7 @@ export function useBeautifulRenderer(
         renderState.value = {
           svg: styledSvg,
           asciiHtml: previousAsciiHtml,
+          textOutputMode: previousTextOutputMode,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
           renderId: renderToken,
@@ -1448,6 +1452,7 @@ export function useBeautifulRenderer(
         renderState.value = {
           svg: previousSvg,
           asciiHtml,
+          textOutputMode: config.value.outputMode,
           error: null,
           durationMs: Math.round(performance.now() - startedAt),
           renderId: renderToken,
@@ -1464,6 +1469,7 @@ export function useBeautifulRenderer(
       renderState.value = {
         svg: previousSvg,
         asciiHtml: previousAsciiHtml,
+        textOutputMode: previousTextOutputMode,
         error: errorMessage,
         durationMs: null,
         renderId: renderToken,
