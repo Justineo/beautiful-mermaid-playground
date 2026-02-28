@@ -1377,7 +1377,6 @@ export function useBeautifulRenderer(
     const renderToken = latestRenderToken + 1;
     latestRenderToken = renderToken;
 
-    const startedAt = performance.now();
     const { source, originalSource } = resolveRenderSource(
       code.value,
       config.value.directionOverride,
@@ -1392,7 +1391,7 @@ export function useBeautifulRenderer(
         svg: null,
         asciiHtml: null,
         error: null,
-        durationMs: Math.round(performance.now() - startedAt),
+        durationMs: 0,
         renderId: renderToken,
       };
       return;
@@ -1407,6 +1406,7 @@ export function useBeautifulRenderer(
       if (renderToken !== latestRenderToken) {
         return;
       }
+      const startedAt = performance.now();
 
       const baseTokens = resolveThemeTokenValues(config.value);
       const tokenOverrides = resolveMermaidOptionTokenOverrides(config.value, baseTokens);
@@ -1465,7 +1465,7 @@ export function useBeautifulRenderer(
         svg: previousSvg,
         asciiHtml: previousAsciiHtml,
         error: errorMessage,
-        durationMs: Math.round(performance.now() - startedAt),
+        durationMs: null,
         renderId: renderToken,
       };
     } finally {
