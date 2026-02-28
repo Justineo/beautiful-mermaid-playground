@@ -41,10 +41,22 @@ export default defineConfig({
               priority: 98,
             },
             {
+              // JavaScript regex engine for browsers with lookbehind support.
+              name: "editor-shiki-engine-js",
+              test: /node_modules[\\/](@shikijs[\\/]engine-javascript|oniguruma-to-es)/,
+              priority: 97,
+            },
+            {
+              // Oniguruma regex engine fallback for browsers without lookbehind support.
+              name: "editor-shiki-engine-onig",
+              test: /node_modules[\\/](@shikijs[\\/]engine-oniguruma|vscode-oniguruma|shiki[\\/]dist[\\/]engine-oniguruma)/,
+              priority: 96,
+            },
+            {
               // Shiki runtime stays separate from theme payload.
               name: "editor-shiki-runtime",
-              test: /(virtual:shiki|_virtual_shiki|node_modules[\\/](@shikijs(?![\\/]themes)|shiki|shiki-codegen))/,
-              priority: 96,
+              test: /(virtual:shiki|_virtual_shiki|node_modules[\\/](@shikijs(?![\\/]themes|[\\/]engine-javascript|[\\/]engine-oniguruma)|shiki(?![\\/]dist[\\/]engine-oniguruma)|shiki-codegen))/,
+              priority: 94,
             },
             {
               // beautiful-mermaid currently statically imports elkjs, so they must stay together.

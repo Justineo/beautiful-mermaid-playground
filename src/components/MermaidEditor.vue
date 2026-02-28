@@ -6,8 +6,10 @@ import {
   DEFAULT_MONACO_THEME_BY_SCHEME,
   MONACO_THEME_BY_DIAGRAM_THEME,
   SHIKI_MONACO_THEMES,
-  type MonacoShikiTheme,
 } from "@/constants/monacoThemes";
+import { preloadShikiEngine } from "@/utils/shikiEngine";
+import type { HighlighterGeneric } from "@shikijs/core";
+import type { MonacoShikiTheme } from "@/constants/monacoThemes";
 import type { DiagramTheme } from "@/types/playground";
 
 import type { editor as MonacoEditorNs } from "monaco-editor";
@@ -30,11 +32,12 @@ const MERMAID_LANGUAGE_ID = "mermaid";
 
 type MonacoModule = typeof import("monaco-editor");
 type MonacoEditor = MonacoEditorNs.IStandaloneCodeEditor;
-type ShikiHighlighter = Awaited<ReturnType<(typeof import("shiki"))["createHighlighter"]>>;
+type ShikiHighlighter = HighlighterGeneric<"mermaid", MonacoShikiTheme>;
 
-let monacoRuntimePromise: Promise<MonacoModule> | null = null;
-let shikiHighlighter: ShikiHighlighter | null = null;
-let isMermaidLanguageConfigured = false;
+let monacoPromise: Promise<MonacoModule> | null = null;
+let highlighter: ShikiHighlighter | null = null;
+let highlighterPromise: Promise<ShikiHighlighter> | null = null;
+let mermaidLanguageConfigured = false;
 
 function getMonacoTheme(
   diagramTheme: DiagramTheme,
@@ -44,76 +47,139 @@ function getMonacoTheme(
   return mappedTheme ?? DEFAULT_MONACO_THEME_BY_SCHEME[colorScheme];
 }
 
+const MONACO_THEME_LOADERS: Record<MonacoShikiTheme, () => Promise<{ default: unknown }>> = {
+  "one-light": () => import("@shikijs/themes/one-light"),
+  "one-dark-pro": () => import("@shikijs/themes/one-dark-pro"),
+  "github-light": () => import("@shikijs/themes/github-light"),
+  "github-dark": () => import("@shikijs/themes/github-dark"),
+  dracula: () => import("@shikijs/themes/dracula"),
+  "tokyo-night": () => import("@shikijs/themes/tokyo-night"),
+  "solarized-light": () => import("@shikijs/themes/solarized-light"),
+  "solarized-dark": () => import("@shikijs/themes/solarized-dark"),
+  nord: () => import("@shikijs/themes/nord"),
+  "catppuccin-latte": () => import("@shikijs/themes/catppuccin-latte"),
+  "catppuccin-mocha": () => import("@shikijs/themes/catppuccin-mocha"),
+  "ayu-light": () => import("@shikijs/themes/ayu-light"),
+  "ayu-dark": () => import("@shikijs/themes/ayu-dark"),
+  "everforest-light": () => import("@shikijs/themes/everforest-light"),
+  "everforest-dark": () => import("@shikijs/themes/everforest-dark"),
+  "gruvbox-light-medium": () => import("@shikijs/themes/gruvbox-light-medium"),
+  "gruvbox-dark-medium": () => import("@shikijs/themes/gruvbox-dark-medium"),
+  "material-theme-lighter": () => import("@shikijs/themes/material-theme-lighter"),
+  "material-theme": () => import("@shikijs/themes/material-theme"),
+  "night-owl-light": () => import("@shikijs/themes/night-owl-light"),
+  "night-owl": () => import("@shikijs/themes/night-owl"),
+  "rose-pine-dawn": () => import("@shikijs/themes/rose-pine-dawn"),
+  "rose-pine-moon": () => import("@shikijs/themes/rose-pine-moon"),
+  "vitesse-light": () => import("@shikijs/themes/vitesse-light"),
+  "vitesse-dark": () => import("@shikijs/themes/vitesse-dark"),
+};
+
 function ensureMermaidLanguageConfigured(monacoModule: MonacoModule): void {
-  if (!isMermaidLanguageConfigured) {
-    if (!monacoModule.languages.getLanguages().some(({ id }) => id === MERMAID_LANGUAGE_ID)) {
-      monacoModule.languages.register({ id: MERMAID_LANGUAGE_ID });
-    }
-
-    monacoModule.languages.setLanguageConfiguration(MERMAID_LANGUAGE_ID, {
-      comments: { lineComment: "%%" },
-      brackets: [
-        ["[", "]"],
-        ["(", ")"],
-        ["{", "}"],
-      ],
-      autoClosingPairs: [
-        { open: "[", close: "]" },
-        { open: "(", close: ")" },
-        { open: "{", close: "}" },
-        { open: '"', close: '"' },
-      ],
-      surroundingPairs: [
-        { open: "[", close: "]" },
-        { open: "(", close: ")" },
-        { open: "{", close: "}" },
-        { open: '"', close: '"' },
-      ],
-    });
-
-    isMermaidLanguageConfigured = true;
+  if (mermaidLanguageConfigured) {
+    return;
   }
+
+  const { languages } = monacoModule;
+  if (!languages.getLanguages().some(({ id }) => id === MERMAID_LANGUAGE_ID)) {
+    languages.register({ id: MERMAID_LANGUAGE_ID });
+  }
+
+  languages.setLanguageConfiguration(MERMAID_LANGUAGE_ID, {
+    comments: { lineComment: "%%" },
+    brackets: [
+      ["[", "]"],
+      ["(", ")"],
+      ["{", "}"],
+    ],
+    autoClosingPairs: [
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "{", close: "}" },
+      { open: '"', close: '"' },
+    ],
+    surroundingPairs: [
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: "{", close: "}" },
+      { open: '"', close: '"' },
+    ],
+  });
+
+  mermaidLanguageConfigured = true;
 }
 
-async function ensureMonacoRuntime(): Promise<MonacoModule> {
-  if (monacoRuntimePromise) {
-    return monacoRuntimePromise;
+async function loadMonacoRuntime(): Promise<MonacoModule> {
+  if (monacoPromise) {
+    return monacoPromise;
   }
 
-  monacoRuntimePromise = (async () => {
-    const [{ default: monacoInstance }, { createHighlighter }, { shikiToMonaco }, mermaidLang] =
+  monacoPromise = (async () => {
+    const [{ default: monaco }, { shikiToMonaco }, { default: mermaidLanguages }] =
       await Promise.all([
         import("monaco-editor"),
-        import("shiki"),
         import("@shikijs/monaco"),
         import("@shikijs/langs/mermaid"),
       ]);
 
-    ensureMermaidLanguageConfigured(monacoInstance);
+    ensureMermaidLanguageConfigured(monaco);
 
-    if (!shikiHighlighter) {
-      const [shikiMermaidGrammar] = mermaidLang.default;
-      const customMermaidLanguage = {
-        ...shikiMermaidGrammar,
+    if (!highlighter) {
+      const [mermaidGrammar] = mermaidLanguages;
+      if (!mermaidGrammar) {
+        throw new Error("Failed to load Mermaid grammar");
+      }
+
+      highlighter = await loadShikiHighlighter();
+      await highlighter.loadLanguage({
+        ...mermaidGrammar,
         scopeName: "source.mermaid",
         injectionSelector: undefined,
         patterns: [{ include: "#mermaid" }],
-      };
-
-      shikiHighlighter = await createHighlighter({
-        themes: SHIKI_MONACO_THEMES,
-        langs: [customMermaidLanguage as never],
-      });
-      shikiToMonaco(shikiHighlighter, monacoInstance);
+      } as never);
+      shikiToMonaco(highlighter, monaco);
     }
 
-    return monacoInstance;
+    return monaco;
   })().catch((error) => {
-    monacoRuntimePromise = null;
+    monacoPromise = null;
     throw error;
   });
 
-  return monacoRuntimePromise;
+  return monacoPromise;
+}
+
+async function loadShikiHighlighter(): Promise<ShikiHighlighter> {
+  if (highlighter) {
+    return highlighter;
+  }
+
+  if (!highlighterPromise) {
+    highlighterPromise = (async () => {
+      const [{ createBundledHighlighter }, engine] = await Promise.all([
+        import("@shikijs/core"),
+        preloadShikiEngine(),
+      ]);
+
+      const createHighlighter = createBundledHighlighter({
+        langs: {
+          mermaid: () => import("@shikijs/langs/mermaid"),
+        },
+        themes: MONACO_THEME_LOADERS as Record<MonacoShikiTheme, never>,
+        engine: () => engine,
+      });
+
+      return createHighlighter({
+        themes: SHIKI_MONACO_THEMES,
+        langs: [],
+      });
+    })().catch((error) => {
+      highlighterPromise = null;
+      throw error;
+    });
+  }
+
+  return highlighterPromise;
 }
 
 const rootRef = ref<HTMLElement | null>(null);
@@ -197,14 +263,15 @@ onMounted(async () => {
   }
 
   try {
-    const monacoInstance = await ensureMonacoRuntime();
+    const monacoInstance = await loadMonacoRuntime();
 
     if (unmounted || !rootRef.value) {
       return;
     }
 
     monacoModule.value = monacoInstance;
-    const editor = monacoInstance.editor.create(rootRef.value, {
+    const { editor: monacoEditor } = monacoInstance;
+    const editor = monacoEditor.create(rootRef.value, {
       value: props.modelValue,
       language: MERMAID_LANGUAGE_ID,
       theme: getMonacoTheme(props.diagramTheme, props.colorScheme),
@@ -236,7 +303,7 @@ onMounted(async () => {
         indentSize: 2,
         tabSize: 2,
       });
-      monacoInstance.editor.setModelLanguage(model, MERMAID_LANGUAGE_ID);
+      monacoEditor.setModelLanguage(model, MERMAID_LANGUAGE_ID);
     }
 
     editorInstance.value = editor;
