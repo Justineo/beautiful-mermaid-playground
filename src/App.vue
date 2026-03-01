@@ -743,11 +743,11 @@ async function exportPng(): Promise<void> {
   }
 
   try {
-    const pngBlob = await renderSvgToPngBlob(svg);
+    const pngBlob = await renderSvgToPngBlob(svg, 2);
     downloadBlob("diagram.png", pngBlob);
-    setNotice("PNG exported", "success");
+    setNotice("PNG (@2x) exported", "success");
   } catch (error) {
-    setNotice(error instanceof Error ? error.message : "PNG export failed", "error");
+    setNotice(error instanceof Error ? error.message : "PNG (@2x) export failed", "error");
   }
 }
 
@@ -762,13 +762,13 @@ async function copyPng(): Promise<void> {
       throw new Error("Clipboard image copy is unavailable in this browser");
     }
 
-    const pngBlob = await renderSvgToPngBlob(svg);
+    const pngBlob = await renderSvgToPngBlob(svg, 2);
     await navigator.clipboard.write([
       new ClipboardItem({
         "image/png": pngBlob,
       }),
     ]);
-    setNotice("PNG copied to clipboard", "success");
+    setNotice("PNG (@2x) copied to clipboard", "success");
   } catch (error) {
     setNotice(error instanceof Error ? error.message : "Copy failed", "error");
   }
@@ -792,7 +792,7 @@ async function copySvg(): Promise<void> {
   }
 }
 
-async function renderSvgToPngBlob(svg: string): Promise<Blob> {
+async function renderSvgToPngBlob(svg: string, scale = 1): Promise<Blob> {
   const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);
 
@@ -807,18 +807,21 @@ async function renderSvgToPngBlob(svg: string): Promise<Blob> {
     const fallbackSize = getSvgSize(svg);
     const width = Math.max(1, Math.round(image.naturalWidth || fallbackSize.width));
     const height = Math.max(1, Math.round(image.naturalHeight || fallbackSize.height));
+    const normalizedScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+    const outputWidth = Math.max(1, Math.round(width * normalizedScale));
+    const outputHeight = Math.max(1, Math.round(height * normalizedScale));
 
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
 
     const context = canvas.getContext("2d");
     if (!context) {
       throw new Error("Failed to create canvas context");
     }
 
-    context.clearRect(0, 0, width, height);
-    context.drawImage(image, 0, 0, width, height);
+    context.clearRect(0, 0, outputWidth, outputHeight);
+    context.drawImage(image, 0, 0, outputWidth, outputHeight);
 
     const pngBlob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, "image/png");

@@ -112,9 +112,9 @@ const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   if (props.outputMode === "svg") {
     return [
       { key: "copy-svg", label: "Copy SVG" },
-      { key: "copy-png", label: "Copy PNG" },
+      { key: "copy-png", label: "Copy PNG (@2x)" },
       { key: "download-svg", label: "Download SVG" },
-      { key: "download-png", label: "Download PNG" },
+      { key: "download-png", label: "Download PNG (@2x)" },
     ];
   }
 
