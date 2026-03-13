@@ -61,7 +61,7 @@
     "oxlint": "1.50.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
-    "vite": "8.0.0-beta.15",
+    "vite": "8.0.0",
     "vue-tsc": "^3.2.5"
   },
   "engines": {
