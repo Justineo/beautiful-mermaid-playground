@@ -37,9 +37,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Update dependency and sync generated files
+      - name: Check beautiful-mermaid version
+        id: beautiful-mermaid-version
+        run: pnpm exec tsx scripts/check-beautiful-mermaid-version.ts
+
+      - name: Update beautiful-mermaid
+        if: steps.beautiful-mermaid-version.outputs.should_update == 'true'
+        run: pnpm up beautiful-mermaid@${{ steps.beautiful-mermaid-version.outputs.latest_version }} --save-exact
+
+      - name: Sync generated files
         run: |
-          pnpm up beautiful-mermaid@latest --save-exact
           pnpm run-p generate:themes sync:official-samples
 
       - name: Validate
