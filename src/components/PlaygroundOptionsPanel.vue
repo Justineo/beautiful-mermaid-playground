@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CircleSlash } from "lucide-vue-next";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CircleSlash, Info } from "lucide-vue-next";
 import { computed, nextTick, ref, watch } from "vue";
 import type { Component } from "vue";
 import BaseCheckbox from "@/components/BaseCheckbox.vue";
@@ -370,6 +370,9 @@ const props = defineProps<{
   customMonoFontUrl: string;
   customMonoFontFamily: string;
   isMonoCustomFontLoading: boolean;
+  uiFallbackActive: boolean;
+  uiFallbackAdjustedToken: "bg" | "fg" | null;
+  uiFallbackMessage?: string;
   directionOverride: DirectionOverride;
   subgraphStyle: SubgraphStylePreset;
   lineGeometry: LineGeometry;
@@ -747,6 +750,15 @@ function updateCustomBgColor(value: string): void {
 
 function updateCustomFgColor(value: string): void {
   emit("update:customFg", value);
+}
+
+function shouldShowUiFallbackInfo(token: "bg" | "fg"): boolean {
+  return (
+    props.uiFallbackActive &&
+    props.uiFallbackAdjustedToken === token &&
+    typeof props.uiFallbackMessage === "string" &&
+    props.uiFallbackMessage.length > 0
+  );
 }
 
 function toggleCustomBg(enabled: boolean): void {
@@ -1535,12 +1547,22 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
 
             <div class="channel-row">
               <label for="bg-token-toggle" class="token-key">bg</label>
-              <BaseCheckbox
-                id="bg-token-toggle"
-                :model-value="props.useCustomBg"
-                aria-label="Toggle bg token override"
-                @update:model-value="toggleCustomBg"
-              />
+              <div class="channel-toggle">
+                <span
+                  class="channel-info"
+                  :class="{ active: shouldShowUiFallbackInfo('bg') }"
+                  :title="shouldShowUiFallbackInfo('bg') ? props.uiFallbackMessage : undefined"
+                  :aria-label="shouldShowUiFallbackInfo('bg') ? props.uiFallbackMessage : undefined"
+                >
+                  <Info :size="11" :stroke-width="1.9" />
+                </span>
+                <BaseCheckbox
+                  id="bg-token-toggle"
+                  :model-value="props.useCustomBg"
+                  aria-label="Toggle bg token override"
+                  @update:model-value="toggleCustomBg"
+                />
+              </div>
               <BaseColorPicker
                 class="channel-picker"
                 :model-value="props.useCustomBg ? props.customBg : resolvedRolePalette.background"
@@ -1552,12 +1574,22 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
 
             <div class="channel-row">
               <label for="fg-token-toggle" class="token-key">fg</label>
-              <BaseCheckbox
-                id="fg-token-toggle"
-                :model-value="props.useCustomFg"
-                aria-label="Toggle fg token override"
-                @update:model-value="toggleCustomFg"
-              />
+              <div class="channel-toggle">
+                <span
+                  class="channel-info"
+                  :class="{ active: shouldShowUiFallbackInfo('fg') }"
+                  :title="shouldShowUiFallbackInfo('fg') ? props.uiFallbackMessage : undefined"
+                  :aria-label="shouldShowUiFallbackInfo('fg') ? props.uiFallbackMessage : undefined"
+                >
+                  <Info :size="11" :stroke-width="1.9" />
+                </span>
+                <BaseCheckbox
+                  id="fg-token-toggle"
+                  :model-value="props.useCustomFg"
+                  aria-label="Toggle fg token override"
+                  @update:model-value="toggleCustomFg"
+                />
+              </div>
               <BaseColorPicker
                 class="channel-picker"
                 :model-value="props.useCustomFg ? props.customFg : resolvedRolePalette.foreground"
@@ -2195,6 +2227,34 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
 
 .channel-row :deep(.ui-checkbox-wrap) {
   justify-self: end;
+}
+
+.channel-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.46rem;
+}
+
+.channel-toggle :deep(.ui-checkbox-wrap) {
+  justify-self: auto;
+}
+
+.channel-info {
+  width: 16px;
+  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.channel-info.active {
+  color: var(--warning-text);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .channel-picker {

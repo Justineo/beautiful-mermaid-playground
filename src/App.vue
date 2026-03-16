@@ -13,6 +13,12 @@ import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
 import { BASE_FONT_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
+import {
+  isDarkUiBackground,
+  resolveUiPaletteWithStickyFallback,
+  type EditedUiToken,
+  type StickyUiPaletteAdjustment,
+} from "@/utils/contrast";
 import type {
   ActiveMobilePane,
   BorderPattern,
@@ -86,46 +92,6 @@ const officialSampleItems = OFFICIAL_SAMPLES.map((sample) => ({
 
 function syncIsMobile(event: MediaQueryListEvent): void {
   isMobile.value = event.matches;
-}
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const normalized = hex.trim().replace("#", "");
-  if (!/^[\da-f]{3,8}$/i.test(normalized)) {
-    return null;
-  }
-
-  if (normalized.length === 3) {
-    const [r, g, b] = normalized.split("");
-    if (!r || !g || !b) {
-      return null;
-    }
-
-    return {
-      r: Number.parseInt(r + r, 16),
-      g: Number.parseInt(g + g, 16),
-      b: Number.parseInt(b + b, 16),
-    };
-  }
-
-  if (normalized.length === 6 || normalized.length === 8) {
-    return {
-      r: Number.parseInt(normalized.slice(0, 2), 16),
-      g: Number.parseInt(normalized.slice(2, 4), 16),
-      b: Number.parseInt(normalized.slice(4, 6), 16),
-    };
-  }
-
-  return null;
-}
-
-function isDarkHex(hex: string): boolean {
-  const rgb = hexToRgb(hex);
-  if (!rgb) {
-    return false;
-  }
-
-  const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
-  return luminance < 0.53;
 }
 
 type PresetBaseFont = Exclude<BaseFont, "Custom">;
@@ -301,10 +267,51 @@ function resolveUiPalette(config = state.value.config): UiPalette {
   };
 }
 
-const appliedUiPalette = ref<UiPalette>(resolveUiPalette());
+const lastPaletteEditSource = ref<EditedUiToken>(null);
+const stickyUiAdjustment = ref<StickyUiPaletteAdjustment | null>(null);
+const rawUiPalette = computed(() => resolveUiPalette());
+const uiPaletteState = ref(
+  resolveUiPaletteWithStickyFallback({
+    ...rawUiPalette.value,
+    editedToken: lastPaletteEditSource.value,
+  }),
+);
+const appliedUiPalette = computed<UiPalette>(() => uiPaletteState.value.palette);
+const uiFallbackActive = computed(() => uiPaletteState.value.adjusted);
+const uiFallbackMessage = computed(() => {
+  if (!uiPaletteState.value.adjusted || !uiPaletteState.value.adjustedToken) {
+    return undefined;
+  }
+
+  return `UI fallback active: adjusted ${uiPaletteState.value.adjustedToken} because bg and fg got too close.`;
+});
+const uiFallbackAdjustedToken = computed<EditedUiToken>(() => uiPaletteState.value.adjustedToken);
+
+watch(
+  () =>
+    [
+      rawUiPalette.value.bg,
+      rawUiPalette.value.fg,
+      rawUiPalette.value.accent,
+      lastPaletteEditSource.value,
+    ] as const,
+  ([bg, fg, accent, editedToken]) => {
+    const nextState = resolveUiPaletteWithStickyFallback({
+      bg,
+      fg,
+      accent,
+      editedToken,
+      previousAdjustment: stickyUiAdjustment.value,
+    });
+
+    stickyUiAdjustment.value = nextState.nextAdjustment;
+    uiPaletteState.value = nextState;
+  },
+  { immediate: true },
+);
 
 const resolvedColorScheme = computed<"light" | "dark">(() =>
-  isDarkHex(appliedUiPalette.value.bg) ? "dark" : "light",
+  isDarkUiBackground(appliedUiPalette.value.bg) ? "dark" : "light",
 );
 const editorFontFamily = EDITOR_FONT_FAMILY;
 const monoFontFamily = computed(() =>
@@ -441,7 +448,7 @@ function applyUiPalette(palette: UiPalette): void {
   root.style.setProperty("--t-bg", palette.bg);
   root.style.setProperty("--t-fg", palette.fg);
   root.style.setProperty("--t-accent", palette.accent);
-  root.dataset.theme = isDarkHex(palette.bg) ? "dark" : "light";
+  root.dataset.theme = isDarkUiBackground(palette.bg) ? "dark" : "light";
 }
 
 watch(
@@ -527,8 +534,6 @@ watch(
     if (state.value.config.outputMode === "svg" && renderState.value.svg) {
       appliedPreviewTransparency.value = state.value.config.transparent;
     }
-
-    appliedUiPalette.value = resolveUiPalette();
 
     if (!shouldFitPreviewAfterRender.value) {
       return;
@@ -897,23 +902,41 @@ function applySample(sampleId: number): void {
 }
 
 function updateDiagramTheme(value: DiagramTheme): void {
+  lastPaletteEditSource.value = null;
+  stickyUiAdjustment.value = null;
   state.value.config.diagramTheme = value;
   resetAllColorSections();
 }
 
 function updateUseCustomBg(value: boolean): void {
+  if (!value) {
+    lastPaletteEditSource.value = null;
+    stickyUiAdjustment.value = null;
+  }
   state.value.config.useCustomBg = value;
 }
 
 function updateCustomBg(value: string): void {
+  if (lastPaletteEditSource.value !== "bg") {
+    stickyUiAdjustment.value = null;
+  }
+  lastPaletteEditSource.value = "bg";
   state.value.config.customBg = value;
 }
 
 function updateUseCustomFg(value: boolean): void {
+  if (!value) {
+    lastPaletteEditSource.value = null;
+    stickyUiAdjustment.value = null;
+  }
   state.value.config.useCustomFg = value;
 }
 
 function updateCustomFg(value: string): void {
+  if (lastPaletteEditSource.value !== "fg") {
+    stickyUiAdjustment.value = null;
+  }
+  lastPaletteEditSource.value = "fg";
   state.value.config.customFg = value;
 }
 
@@ -1115,6 +1138,8 @@ function resetSystemOptions(): void {
 
 function resetFoundationColors(): void {
   const defaults = defaultState.config;
+  lastPaletteEditSource.value = null;
+  stickyUiAdjustment.value = null;
   state.value.config.useCustomBg = defaults.useCustomBg;
   state.value.config.customBg = defaults.customBg;
   state.value.config.useCustomFg = defaults.useCustomFg;
@@ -1220,6 +1245,9 @@ onUnmounted(() => {
             v-bind="optionsPanelConfig"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
+            :ui-fallback-active="uiFallbackActive"
+            :ui-fallback-adjusted-token="uiFallbackAdjustedToken"
+            :ui-fallback-message="uiFallbackMessage"
             v-on="optionsPanelListeners"
           />
         </div>
@@ -1285,6 +1313,9 @@ onUnmounted(() => {
             v-bind="optionsPanelConfig"
             :is-base-custom-font-loading="isBaseCustomFontLoading"
             :is-mono-custom-font-loading="isMonoCustomFontLoading"
+            :ui-fallback-active="uiFallbackActive"
+            :ui-fallback-adjusted-token="uiFallbackAdjustedToken"
+            :ui-fallback-message="uiFallbackMessage"
             v-on="optionsPanelListeners"
           />
         </div>
