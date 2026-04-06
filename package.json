@@ -31,11 +31,11 @@
     "format": "oxfmt --config .oxfmtrc.json src/"
   },
   "dependencies": {
-    "@shikijs/core": "3.23.0",
-    "@shikijs/engine-javascript": "3.23.0",
-    "@shikijs/langs": "3.23.0",
-    "@shikijs/monaco": "3.23.0",
-    "@shikijs/themes": "3.23.0",
+    "@shikijs/core": "4.0.2",
+    "@shikijs/engine-javascript": "4.0.2",
+    "@shikijs/langs": "4.0.2",
+    "@shikijs/monaco": "4.0.2",
+    "@shikijs/themes": "4.0.2",
     "@vercel/analytics": "^1.6.1",
     "@vueuse/core": "14.2.1",
     "apca-w3": "^0.1.9",
@@ -43,7 +43,7 @@
     "lucide-vue-next": "^0.577.0",
     "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.14.0",
-    "shiki": "3.23.0",
+    "shiki": "4.0.2",
     "vue": "3.6.0-beta.9"
   },
   "devDependencies": {
