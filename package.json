@@ -36,7 +36,7 @@
     "@shikijs/langs": "3.23.0",
     "@shikijs/monaco": "3.23.0",
     "@shikijs/themes": "3.23.0",
-    "@vercel/analytics": "^1.6.1",
+    "@vercel/analytics": "^2.0.0",
     "@vueuse/core": "14.2.1",
     "apca-w3": "^0.1.9",
     "beautiful-mermaid": "1.1.3",
