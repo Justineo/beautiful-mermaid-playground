@@ -44,7 +44,7 @@
     "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.14.0",
     "shiki": "4.0.2",
-    "vue": "3.6.0-beta.9"
+    "vue": "3.6.0-beta.10"
   },
   "devDependencies": {
     "@kong-ui-public/monaco-editor": "0.20.4",
@@ -63,7 +63,7 @@
     "oxlint": "1.57.0",
     "tsx": "^4.20.6",
     "typescript": "~6.0.0",
-    "vite": "8.0.5",
+    "vite": "8.0.8",
     "vue-tsc": "^3.2.5"
   },
   "engines": {
