@@ -57,6 +57,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "1.62.0",
     "eslint-plugin-vue": "~10.9.0",
+    "jiti": "^2.7.0",
     "lefthook": "2.1.6",
     "npm-run-all2": "^8.0.4",
     "oxfmt": "0.47.0",
