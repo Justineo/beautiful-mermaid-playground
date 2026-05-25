@@ -4,8 +4,8 @@ allowBuilds:
   vue-demi: true
 
 overrides:
-  '@vue/compiler-dom': '3.6.0-beta.11'
-  '@vue/shared': '3.6.0-beta.11'
+  '@vue/compiler-dom': '3.6.0-beta.12'
+  '@vue/shared': '3.6.0-beta.12'
 
 peerDependencyRules:
   allowAny:
