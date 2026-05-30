@@ -19,6 +19,14 @@
       "matchUpdateTypes": ["major"],
       "groupName": null,
       "automerge": false
+    },
+    {
+      "matchDepTypes": ["dependencies", "devDependencies"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
     }
   ]
 }
