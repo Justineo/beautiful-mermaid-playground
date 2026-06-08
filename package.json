@@ -44,28 +44,28 @@
     "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.16.0",
     "shiki": "4.1.0",
-    "vue": "3.6.0-beta.12"
+    "vue": "3.6.0-beta.13"
   },
   "devDependencies": {
-    "@kong-ui-public/monaco-editor": "0.22.11",
+    "@kong-ui-public/monaco-editor": "0.22.14",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^25.9.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/eslint-config-typescript": "^14.7.0",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-oxlint": "1.67.0",
+    "eslint-plugin-oxlint": "1.68.0",
     "eslint-plugin-vue": "~10.9.1",
     "jiti": "^2.7.0",
-    "lefthook": "2.1.8",
+    "lefthook": "2.1.9",
     "npm-run-all2": "^8.0.4",
-    "oxfmt": "0.52.0",
-    "oxlint": "1.67.0",
-    "tsx": "^4.22.3",
+    "oxfmt": "0.53.0",
+    "oxlint": "1.68.0",
+    "tsx": "^4.22.4",
     "typescript": "~6.0.3",
-    "vite": "8.0.14",
-    "vue-tsc": "^3.3.2"
+    "vite": "8.0.16",
+    "vue-tsc": "^3.3.3"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
