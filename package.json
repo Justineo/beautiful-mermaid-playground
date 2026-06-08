@@ -59,7 +59,7 @@
     "eslint-plugin-vue": "~10.9.1",
     "jiti": "^2.7.0",
     "lefthook": "2.1.9",
-    "npm-run-all2": "^8.0.4",
+    "npm-run-all2": "^9.0.1",
     "oxfmt": "0.53.0",
     "oxlint": "1.68.0",
     "tsx": "^4.22.4",
