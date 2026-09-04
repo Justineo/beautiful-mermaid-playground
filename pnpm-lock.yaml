@@ -43,8 +43,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(vue@3.6.0-rc.5(typescript@6.0.3))
       monaco-editor:
-        specifier: 0.56.0
-        version: 0.56.0
+        specifier: 0.55.1
+        version: 0.55.1
       overlayscrollbars:
         specifier: 2.16.0
         version: 2.16.0
@@ -57,7 +57,7 @@ importers:
     devDependencies:
       '@kong-ui-public/monaco-editor':
         specifier: 0.24.17
-        version: 0.24.17(@kong-ui-public/i18n@2.5.1(typescript@6.0.3)(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/icons@1.61.2(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.5(typescript@6.0.3)))(vue@3.6.0-rc.5(typescript@6.0.3)))(monaco-editor@0.56.0)(shiki@4.4.3)(vue@3.6.0-rc.5(typescript@6.0.3))
+        version: 0.24.17(@kong-ui-public/i18n@2.5.1(typescript@6.0.3)(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/icons@1.62.1(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.5(typescript@6.0.3)))(vue@3.6.0-rc.5(typescript@6.0.3)))(monaco-editor@0.55.1)(shiki@4.4.3)(vue@3.6.0-rc.5(typescript@6.0.3))
       '@tsconfig/node24':
         specifier: ^24.0.5
         version: 24.0.5
@@ -415,12 +415,6 @@ packages:
       monaco-editor: '>=0.52.0 <1.0.0'
       shiki: '>=3.0.0 <5.0.0'
       vue: ^3.5.35
-
-  '@kong/icons@1.61.2':
-    resolution: {integrity: sha512-Q8fWPdrMIDQeFoNaA+cgtxRXooBp2P3HLjoGmmZkRd4TEYSrXh5rqXMGPWQ9HCxrEXJSHYKmIa4YMhVdhiE+jw==}
-    engines: {node: '>=18.17.0', pnpm: '>=10.28.2'}
-    peerDependencies:
-      vue: '>= 3.3.4 < 4'
 
   '@kong/icons@1.62.1':
     resolution: {integrity: sha512-RB+WWaQ7OglHPkKquB65bN9gy5cqEWTepYz/ZqaVW/QgENzV5Fitp+IjXokgopTKpvDSlkHJl191Bx/Zj1pxfw==}
@@ -977,11 +971,6 @@ packages:
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@vue/compiler-core@3.6.0-rc.5':
     resolution: {integrity: sha512-OSOzR/4Mk8TMStNxFLFwcVjgFvvMGvlKEpboxv9W4ikQhsVLKEMTtzBVY5A11qwb6zGuwWJdCOeME5npmpURiQ==}
@@ -1167,8 +1156,8 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
-  dompurify@3.4.8:
-    resolution: {integrity: sha512-yb1cEmaOum7wFvOCSQxyfgVlv5D47Rc30iZWoMpbDIWTnJ6grDDQyu2KFJzB2k7u0pMuJcQ1zphH//fFnw2tjQ==}
+  dompurify@3.2.7:
+    resolution: {integrity: sha512-WhL/YuveyGXJaerVlMYGWhvQswa7myDG17P7Vu65EWC05o8vfeNbvNf4d/BOvH99+ZW+LlQsc1GDKMa1vNK6dw==}
 
   elkjs@0.11.0:
     resolution: {integrity: sha512-u4J8h9mwEDaYMqo0RYJpqNMFDoMK7f+pu4GjcV+N8jIC7TRdORgzkfSjTJemhqONFfH6fBI3wpysgWbhgVWIXw==}
@@ -1586,8 +1575,8 @@ packages:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
     engines: {node: 18 || 20 || >=22}
 
-  monaco-editor@0.56.0:
-    resolution: {integrity: sha512-sXboRm3BeBeLm938eaiyLMe0OxzfXIlZvbv4ir/jVgQy1zDhWjgmny0WoN45fuDKhCCQsYMbBJrv/A6jd8aCUg==}
+  monaco-editor@0.55.1:
+    resolution: {integrity: sha512-jz4x+TJNFHwHtwuV9vA9rMujcZRb0CEilTEwG2rRSpe/A7Jdkuj8xPKttCgOh+v/lkHy7HsZ64oj+q3xoAFl9A==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -1745,11 +1734,6 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
-
-  semver@7.8.0:
-    resolution: {integrity: sha512-AcM7dV/5ul4EekoQ29Agm5vri8JNqRyj39o0qpX6vDF2GZrtutZl5RwgD1XnZjiTAfncsJhMI48QQH3sN87YNA==}
-    engines: {node: '>=10'}
-    hasBin: true
 
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -2269,20 +2253,16 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@kong-ui-public/monaco-editor@0.24.17(@kong-ui-public/i18n@2.5.1(typescript@6.0.3)(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/icons@1.61.2(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.5(typescript@6.0.3)))(vue@3.6.0-rc.5(typescript@6.0.3)))(monaco-editor@0.56.0)(shiki@4.4.3)(vue@3.6.0-rc.5(typescript@6.0.3))':
+  '@kong-ui-public/monaco-editor@0.24.17(@kong-ui-public/i18n@2.5.1(typescript@6.0.3)(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/icons@1.62.1(vue@3.6.0-rc.5(typescript@6.0.3)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.5(typescript@6.0.3)))(vue@3.6.0-rc.5(typescript@6.0.3)))(monaco-editor@0.55.1)(shiki@4.4.3)(vue@3.6.0-rc.5(typescript@6.0.3))':
     dependencies:
       '@kong-ui-public/i18n': 2.5.1(typescript@6.0.3)(vue@3.6.0-rc.5(typescript@6.0.3))
-      '@kong/icons': 1.61.2(vue@3.6.0-rc.5(typescript@6.0.3))
+      '@kong/icons': 1.62.1(vue@3.6.0-rc.5(typescript@6.0.3))
       '@kong/kongponents': 9.64.14(vue-router@4.6.4(vue@3.6.0-rc.5(typescript@6.0.3)))(vue@3.6.0-rc.5(typescript@6.0.3))
       '@shikijs/monaco': 4.4.3
       '@vueuse/core': 14.4.0(vue@3.6.0-rc.5(typescript@6.0.3))
-      monaco-editor: 0.56.0
+      monaco-editor: 0.55.1
       shiki: 4.4.3
       shiki-codegen: 4.4.3
-      vue: 3.6.0-rc.5(typescript@6.0.3)
-
-  '@kong/icons@1.61.2(vue@3.6.0-rc.5(typescript@6.0.3))':
-    dependencies:
       vue: 3.6.0-rc.5(typescript@6.0.3)
 
   '@kong/icons@1.62.1(vue@3.6.0-rc.5(typescript@6.0.3))':
@@ -2641,7 +2621,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.61.0
       debug: 4.4.3
       minimatch: 10.2.5
-      semver: 7.8.0
+      semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.5.0(typescript@6.0.3)
       typescript: 6.0.3
@@ -2683,13 +2663,11 @@ snapshots:
 
   '@volar/source-map@2.4.28': {}
 
-  '@volar/typescript@2.4.28(typescript@6.0.3)':
+  '@volar/typescript@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
-    optionalDependencies:
-      typescript: 6.0.3
 
   '@vue/compiler-core@3.6.0-rc.5':
     dependencies:
@@ -2887,7 +2865,7 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  dompurify@3.4.8:
+  dompurify@3.2.7:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -3305,9 +3283,9 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.6
 
-  monaco-editor@0.56.0:
+  monaco-editor@0.55.1:
     dependencies:
-      dompurify: 3.4.8
+      dompurify: 3.2.7
       marked: 14.0.0
 
   ms@2.1.3: {}
@@ -3486,8 +3464,6 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
-
-  semver@7.8.0: {}
 
   semver@7.8.5: {}
 
@@ -3668,7 +3644,7 @@ snapshots:
       eslint-visitor-keys: 5.0.1
       espree: 11.2.0
       esquery: 1.7.0
-      semver: 7.8.0
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
 
@@ -3683,7 +3659,7 @@ snapshots:
 
   vue-tsc@3.3.11(typescript@6.0.3):
     dependencies:
-      '@volar/typescript': 2.4.28(typescript@6.0.3)
+      '@volar/typescript': 2.4.28
       '@vue/language-core': 3.3.11
       typescript: 6.0.3
 
