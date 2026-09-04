@@ -3,9 +3,20 @@ allowBuilds:
   lefthook: true
   vue-demi: true
 
+minimumReleaseAgeExclude:
+  - '@typescript-native-bridge/darwin-arm64@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/darwin-x64@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/linux-arm64@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/linux-arm@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/linux-x64@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/win32-arm64@6.0.3-bridge.16.tsgo.7.0.2'
+  - '@typescript-native-bridge/win32-x64@6.0.3-bridge.16.tsgo.7.0.2'
+  - typescript-native-bridge@6.0.3-bridge.16.tsgo.7.0.2
+
 overrides:
   '@vue/compiler-dom': '3.6.0-rc.5'
   '@vue/shared': '3.6.0-rc.5'
+  typescript: 'npm:typescript-native-bridge@6.0.3-bridge.16.tsgo.7.0.2'
 
 peerDependencyRules:
   allowAny:
