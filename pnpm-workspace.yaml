@@ -14,9 +14,9 @@ minimumReleaseAgeExclude:
   - typescript-native-bridge@6.0.3-bridge.16.tsgo.7.0.2
 
 overrides:
-  '@vue/compiler-dom': '3.6.0-rc.5'
-  '@vue/shared': '3.6.0-rc.5'
-  typescript: 'npm:typescript-native-bridge@6.0.3-bridge.16.tsgo.7.0.2'
+  '@vue/compiler-dom': '3.6.0-rc.9'
+  '@vue/shared': '3.6.0-rc.9'
+  typescript: 'npm:typescript-native-bridge@6.0.3-bridge.17.tsgo.7.0.2'
 
 peerDependencyRules:
   allowAny:
