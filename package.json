@@ -67,14 +67,8 @@
     "vite": "8.3.0",
     "vue-tsc": "^3.3.11"
   },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "12.6.0",
-      "onFail": "download"
-    }
-  },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
-  }
+  },
+  "packageManager": "pnpm@12.5.1"
 }
