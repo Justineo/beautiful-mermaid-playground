@@ -11,6 +11,11 @@
   "separateMultipleMajor": true,
   "packageRules": [
     {
+      "description": "The Monaco Vite plugin imports legacy esm paths that Monaco 0.56 no longer exports.",
+      "matchPackageNames": ["monaco-editor"],
+      "allowedVersions": "<0.56.0"
+    },
+    {
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non-major dependencies",
       "automerge": true
