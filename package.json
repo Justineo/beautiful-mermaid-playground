@@ -37,7 +37,7 @@
     "@shikijs/monaco": "4.4.3",
     "@shikijs/themes": "4.4.3",
     "@vercel/analytics": "^2.0.1",
-    "@vueuse/core": "14.4.0",
+    "@vueuse/core": "15.0.0",
     "apca-w3": "^0.1.9",
     "beautiful-mermaid": "1.1.3",
     "lucide-vue-next": "^1.0.0",
