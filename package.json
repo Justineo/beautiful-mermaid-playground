@@ -44,24 +44,24 @@
     "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.16.0",
     "shiki": "4.5.0",
-    "vue": "3.6.0-rc.11"
+    "vue": "3.6.0-rc.12"
   },
   "devDependencies": {
-    "@kong-ui-public/monaco-editor": "0.26.6",
+    "@kong-ui-public/monaco-editor": "0.27.1",
     "@tsconfig/node24": "^24.0.5",
     "@types/node": "^25.9.9",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/eslint-config-typescript": "^14.9.0",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-oxlint": "1.88.0",
+    "eslint-plugin-oxlint": "1.89.0",
     "eslint-plugin-vue": "~10.11.1",
     "jiti": "^2.7.0",
     "lefthook": "2.2.2",
     "npm-run-all2": "^9.0.3",
-    "oxfmt": "0.73.0",
-    "oxlint": "1.88.0",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
     "tsx": "^4.23.15",
     "typescript": "~7.0.2",
     "vite": "8.3.4",
@@ -70,5 +70,5 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@12.13.0"
+  "packageManager": "pnpm@12.14.0"
 }

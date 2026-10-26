@@ -7,153 +7,153 @@ importers:
     configDependencies: {}
     packageManagerDependencies:
       pnpm:
-        specifier: 12.13.0
-        version: 12.13.0
+        specifier: 12.14.0
+        version: 12.14.0
 
 packages:
 
-  '@pnpm/exe.android-arm64@12.13.0':
-    resolution: {integrity: sha512-BI++xXYAk3lTLQ1695b3pAAaLwzUTQqKyT5UukVd1NU5qv7h/rUfVCiV5hrLksdbgPMWcic8gf9uXMiqTlerzg==}
+  '@pnpm/exe.android-arm64@12.14.0':
+    resolution: {integrity: sha512-+iSh7x21C3A2hqc+Z0ZmbKTcn6YNlzrXM142PsnQH/dLj0DYxFzoBvc6XAnL/yfQ5nnH2ebBiRj/zVxr61fZbQ==}
     cpu: [arm64]
     os: [android]
 
-  '@pnpm/exe.android-x64@12.13.0':
-    resolution: {integrity: sha512-bFq6cnbSB3fezJ0siOtuoRqLiR3VXFCZvUUFa0wlZ4a3EaJYsnnDli4ZTe8/bDfX1UhNMFxAAiSAKg7xITu+Zw==}
+  '@pnpm/exe.android-x64@12.14.0':
+    resolution: {integrity: sha512-qT+0LqEr2wBVaxcG2T8cX/R8SSRz2Rvpp8nRR4fh8tnGUZRch87gFmsHUAoSQh7w6j1h0qTjrA384j4xi8frvw==}
     cpu: [x64]
     os: [android]
 
-  '@pnpm/exe.darwin-arm64@12.13.0':
-    resolution: {integrity: sha512-9rRpaMGxxrv5YbptsRTIeG+q2IzQyrkRKXkD30pb7weCC6Xz6vQzfkItzrUZsb2bXyYd7fSsq+luTsreXBQYyQ==}
+  '@pnpm/exe.darwin-arm64@12.14.0':
+    resolution: {integrity: sha512-tnrdUB8ecJoehuKKqi1YHCBVl61xtJ9XVGcx5EviC6fWO4DeGI8GtXrjvJxDBM3nuVjJeWistgsUp/N142x4sw==}
     cpu: [arm64]
     os: [darwin]
 
-  '@pnpm/exe.darwin-x64@12.13.0':
-    resolution: {integrity: sha512-A+VFQakozmXIo8kxtcP9sZCKIi94f9uB5jLXRvwnNSA5G6/G6Iq/8E17+fIPf4bm7xvR+qeM794Nz98Q52lutQ==}
+  '@pnpm/exe.darwin-x64@12.14.0':
+    resolution: {integrity: sha512-vlBfGkruqQRsEHTW43cPwpYd7QlbIJ//cvpAdb3bVXkI8SgTPoXhCnc05m+ZNiPrrEkBsX/t7KHw9aXpkzPm3Q==}
     cpu: [x64]
     os: [darwin]
 
-  '@pnpm/exe.freebsd-x64@12.13.0':
-    resolution: {integrity: sha512-HqT2ppLDxmpO8jTgl44BLdrBQoQXE73HHBElYRKvxL47d4maQ0sfk+fI+bfeDpRTqKzc5JZfj85yjRo7anqioA==}
+  '@pnpm/exe.freebsd-x64@12.14.0':
+    resolution: {integrity: sha512-Qg5rxBrGYl6Tfso+EyygPf84fY1Fzy55E/0or+iuYKtnf0vc0MlHJfVIlT7pBukMRntQHRik7hUi0Z4s7AlJsw==}
     cpu: [x64]
     os: [freebsd]
 
-  '@pnpm/exe.linux-arm64-musl@12.13.0':
-    resolution: {integrity: sha512-yZfm/7h1Kdd1XTNf9+F2Gt5R4WuQKMRbkMIpbzCtxpzniPEKGo/2kymNxdHq3jIcfnzHnP+KBR/YONZ+4Icq+g==}
+  '@pnpm/exe.linux-arm64-musl@12.14.0':
+    resolution: {integrity: sha512-DRIe4yQkXBGA/PhVJdzlbnllxBdAtnMMvTVLLcGpsK5FvJz9kxD2Hyxtn68ovmNkVX06f6p45cQwfm3wx2jn1A==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@pnpm/exe.linux-arm64@12.13.0':
-    resolution: {integrity: sha512-jp29ia+fTNhheXzt4FRUw5CwFW9caPNEdLRuy7/Dlbv3sj+iHldfJXfCojkPE4g71NPVwMpY5Eoc7nkfWexqrA==}
+  '@pnpm/exe.linux-arm64@12.14.0':
+    resolution: {integrity: sha512-7joGShZ44Nk3WpNU+60JoOPjCXlgxhJAq11S2UiVtwCUDgTer1yTPPfxGW8pxaD6046actYLIYDbZNlubHWs0A==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-ppc64@12.13.0':
-    resolution: {integrity: sha512-BO8Nz70baL6KV0G9p+Lx8l6BQYFE11KDEOTTjSNZdiUMMyN1byeDlls10ZgCIaIq5ELlLJ0F/LKieNjubOC7BA==}
+  '@pnpm/exe.linux-ppc64@12.14.0':
+    resolution: {integrity: sha512-gSoryn7ySdXd//gjgf3MvvA8ZerJayaSbuMZMtAWq4vb2/wlVEgpl0Kvqt54y58TRj533Qjq2txKgnxd4JyoAQ==}
     cpu: [ppc64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-riscv64@12.13.0':
-    resolution: {integrity: sha512-LrGM+VzpNghXuHK1XSMNEsochaLscAYkllSPLF3Y4CQpaOFYmiZoX+G3TN+T3pYRxdgvwWJCqbbdwRJZFykrig==}
+  '@pnpm/exe.linux-riscv64@12.14.0':
+    resolution: {integrity: sha512-EMjew1H9WqQ7pL+tYqCPwiuB+0PeCiJRV7fyWeuFw0wwYUajFBjcaPO3IGAVu9sdmJDU+e+HYv/Zey6aKae0Vw==}
     cpu: [riscv64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-s390x@12.13.0':
-    resolution: {integrity: sha512-0Xetcb9OJpXYmJ7rMDh3oFszIvbQl0F8UNh7oJnbLJY1K5PtDgYVkjqwb1JpjU0mkr0b4HKkFdZhlYh7XEGTvw==}
+  '@pnpm/exe.linux-s390x@12.14.0':
+    resolution: {integrity: sha512-shYOj/SFoXD35fHe0pWr2JofwSXulC0BnEIXLj2QokDi0EF//AfKsui35yKIkTEl+s2VJybc3PO4iJNhKIj5Qw==}
     cpu: [s390x]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-x64-musl@12.13.0':
-    resolution: {integrity: sha512-LSD/snRsouEGA52HrTfEbGrCGdkkr5gXfQym26Ogu3I7sc5dJHUHyp8GnA7ewXrFOSRCJXH25mnmQ6Jpit572Q==}
+  '@pnpm/exe.linux-x64-musl@12.14.0':
+    resolution: {integrity: sha512-btZiZ2Ot0llKK1ndSfA5i3IRX7/S0VrmzseNH/BJ4c+Cady+S81H6vvU1zByggHMyqQhC8OgxO5PiIY7D9bH0Q==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@pnpm/exe.linux-x64@12.13.0':
-    resolution: {integrity: sha512-t4EYUFG4SPYaJJVQToWIPq/lLBquCPCxMtt9vV//HirSDl332dnxDnwgvdW29sqLg3Ob2x7zFQ69HZLyoCyfpQ==}
+  '@pnpm/exe.linux-x64@12.14.0':
+    resolution: {integrity: sha512-F6K8e/jWxiuEYJaQtRRUG9ynBSTEHa+t7Lf86MKuOO5UA7WVVMbi+oB8nY6iKW++ncWS2yG6T9faXZGxqNsfoQ==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.win32-arm64@12.13.0':
-    resolution: {integrity: sha512-aDzzll9stgP+p6KKYHNzuShZhBCaxabv481xK5BjfvSnyFbjzu7ksKUIVlsiAw4xAXnrIqvEj0lQarsbBRcIQA==}
+  '@pnpm/exe.win32-arm64@12.14.0':
+    resolution: {integrity: sha512-DOjlkVB6TtTKeAAe0hNZXn5S7YqESmo1Z6SGbR4BZNQ4isRg31XVHjX2RFTbY8gnZq68IwzyLmPqlEjMmYxofg==}
     cpu: [arm64]
     os: [win32]
 
-  '@pnpm/exe.win32-x64@12.13.0':
-    resolution: {integrity: sha512-Nkw4hDJTcmuO6zDjkTo4Dz7pG2ojEifSBGC4QbFJFIfBoRbN88GIMu/Lm1woxd7ONhJFlfJ+dJeiDyuP0NKtSA==}
+  '@pnpm/exe.win32-x64@12.14.0':
+    resolution: {integrity: sha512-/LSX6mew/sLf08XqcjemuklNKf1K/Ftpgj4//hK/HKzI2dKbmxDB27a/2OaQ5a0O3/3OFzlssXDziZsi+yVBwQ==}
     cpu: [x64]
     os: [win32]
 
-  pnpm@12.13.0:
-    resolution: {integrity: sha512-HlVxm/JugJ3OXFCE/euqZO+z2pA4rl1oqfimgxHxpFhByMO3ajcpjDtm9rzIBAmpt/M8eKcWij6Q+2Wl2CNa5A==}
+  pnpm@12.14.0:
+    resolution: {integrity: sha512-wYum2HmT09Fky16JSPMrLAbuhUSH4GzY2GeBNC+z5btGNDZwNHEehoArqpw3vqkGzhkprQjXCITJfYAd8TOJpg==}
     engines: {node: '>=18.*'}
     hasBin: true
 
 snapshots:
 
-  '@pnpm/exe.android-arm64@12.13.0':
+  '@pnpm/exe.android-arm64@12.14.0':
     optional: true
 
-  '@pnpm/exe.android-x64@12.13.0':
+  '@pnpm/exe.android-x64@12.14.0':
     optional: true
 
-  '@pnpm/exe.darwin-arm64@12.13.0':
+  '@pnpm/exe.darwin-arm64@12.14.0':
     optional: true
 
-  '@pnpm/exe.darwin-x64@12.13.0':
+  '@pnpm/exe.darwin-x64@12.14.0':
     optional: true
 
-  '@pnpm/exe.freebsd-x64@12.13.0':
+  '@pnpm/exe.freebsd-x64@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-arm64-musl@12.13.0':
+  '@pnpm/exe.linux-arm64-musl@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-arm64@12.13.0':
+  '@pnpm/exe.linux-arm64@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-ppc64@12.13.0':
+  '@pnpm/exe.linux-ppc64@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-riscv64@12.13.0':
+  '@pnpm/exe.linux-riscv64@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-s390x@12.13.0':
+  '@pnpm/exe.linux-s390x@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-x64-musl@12.13.0':
+  '@pnpm/exe.linux-x64-musl@12.14.0':
     optional: true
 
-  '@pnpm/exe.linux-x64@12.13.0':
+  '@pnpm/exe.linux-x64@12.14.0':
     optional: true
 
-  '@pnpm/exe.win32-arm64@12.13.0':
+  '@pnpm/exe.win32-arm64@12.14.0':
     optional: true
 
-  '@pnpm/exe.win32-x64@12.13.0':
+  '@pnpm/exe.win32-x64@12.14.0':
     optional: true
 
-  pnpm@12.13.0:
+  pnpm@12.14.0:
     optionalDependencies:
-      '@pnpm/exe.android-arm64': 12.13.0
-      '@pnpm/exe.android-x64': 12.13.0
-      '@pnpm/exe.darwin-arm64': 12.13.0
-      '@pnpm/exe.darwin-x64': 12.13.0
-      '@pnpm/exe.freebsd-x64': 12.13.0
-      '@pnpm/exe.linux-arm64': 12.13.0
-      '@pnpm/exe.linux-arm64-musl': 12.13.0
-      '@pnpm/exe.linux-ppc64': 12.13.0
-      '@pnpm/exe.linux-riscv64': 12.13.0
-      '@pnpm/exe.linux-s390x': 12.13.0
-      '@pnpm/exe.linux-x64': 12.13.0
-      '@pnpm/exe.linux-x64-musl': 12.13.0
-      '@pnpm/exe.win32-arm64': 12.13.0
-      '@pnpm/exe.win32-x64': 12.13.0
+      '@pnpm/exe.android-arm64': 12.14.0
+      '@pnpm/exe.android-x64': 12.14.0
+      '@pnpm/exe.darwin-arm64': 12.14.0
+      '@pnpm/exe.darwin-x64': 12.14.0
+      '@pnpm/exe.freebsd-x64': 12.14.0
+      '@pnpm/exe.linux-arm64': 12.14.0
+      '@pnpm/exe.linux-arm64-musl': 12.14.0
+      '@pnpm/exe.linux-ppc64': 12.14.0
+      '@pnpm/exe.linux-riscv64': 12.14.0
+      '@pnpm/exe.linux-s390x': 12.14.0
+      '@pnpm/exe.linux-x64': 12.14.0
+      '@pnpm/exe.linux-x64-musl': 12.14.0
+      '@pnpm/exe.win32-arm64': 12.14.0
+      '@pnpm/exe.win32-x64': 12.14.0
 
 ---
 lockfileVersion: '9.0'
@@ -163,8 +163,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@vue/compiler-dom': 3.6.0-rc.11
-  '@vue/shared': 3.6.0-rc.11
+  '@vue/compiler-dom': 3.6.0-rc.12
+  '@vue/shared': 3.6.0-rc.12
   typescript: npm:typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
 
 importers:
@@ -188,10 +188,10 @@ importers:
         version: 4.5.0
       '@vercel/analytics':
         specifier: ^2.0.1
-        version: 2.0.1(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+        version: 2.0.1(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       '@vueuse/core':
         specifier: 15.0.0
-        version: 15.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+        version: 15.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       apca-w3:
         specifier: ^0.1.9
         version: 0.1.9
@@ -200,7 +200,7 @@ importers:
         version: 1.1.3
       lucide-vue-next:
         specifier: ^1.0.0
-        version: 1.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+        version: 1.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       monaco-editor:
         specifier: 0.55.1
         version: 0.55.1
@@ -211,12 +211,12 @@ importers:
         specifier: 4.5.0
         version: 4.5.0
       vue:
-        specifier: 3.6.0-rc.11
-        version: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+        specifier: 3.6.0-rc.12
+        version: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
     devDependencies:
       '@kong-ui-public/monaco-editor':
-        specifier: 0.26.6
-        version: 0.26.6(@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/icons@1.62.1(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(monaco-editor@0.55.1)(shiki@4.5.0)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(zod@4.6.5)
+        specifier: 0.27.1
+        version: 0.27.1(@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/icons@1.62.1(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(monaco-editor@0.55.1)(shiki@4.5.0)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(zod@4.6.5)
       '@tsconfig/node24':
         specifier: ^24.0.5
         version: 24.0.5
@@ -225,25 +225,25 @@ importers:
         version: 25.9.9
       '@vitejs/plugin-vue':
         specifier: ^6.0.10
-        version: 6.0.10(vite@8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+        version: 6.0.10(vite@8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       '@vue/eslint-config-typescript':
         specifier: ^14.9.0
-        version: 14.9.0(eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0))))(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+        version: 14.9.0(eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0))))(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       '@vue/tsconfig':
         specifier: ^0.9.1
-        version: 0.9.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+        version: 0.9.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       eslint:
-        specifier: ^10.12.0
-        version: 10.12.0(jiti@2.7.0)
+        specifier: ^10.13.0
+        version: 10.13.0(jiti@2.7.0)
       eslint-config-prettier:
         specifier: ^10.1.8
-        version: 10.1.8(eslint@10.12.0(jiti@2.7.0))
+        version: 10.1.8(eslint@10.13.0(jiti@2.7.0))
       eslint-plugin-oxlint:
-        specifier: 1.88.0
-        version: 1.88.0(oxlint@1.88.0)
+        specifier: 1.89.0
+        version: 1.89.0(oxlint@1.89.0)
       eslint-plugin-vue:
         specifier: ~10.11.1
-        version: 10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0)))
+        version: 10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0)))
       jiti:
         specifier: ^2.7.0
         version: 2.7.0
@@ -254,11 +254,11 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       oxfmt:
-        specifier: 0.73.0
-        version: 0.73.0
+        specifier: 0.74.0
+        version: 0.74.0
       oxlint:
-        specifier: 1.88.0
-        version: 1.88.0
+        specifier: 1.89.0
+        version: 1.89.0
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -274,16 +274,16 @@ importers:
 
 packages:
 
-  '@babel/helper-string-parser@7.29.7':
-    resolution: {integrity: sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==}
+  '@babel/helper-string-parser@7.29.11':
+    resolution: {integrity: sha512-snZbO7MEDOof+hvNa97EjEY7qD7h2kwvQr5AJC3ZhQudKW5dnej6k3kP9NQV88hJwaS8vDqRLFo9rivLEhle2g==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.29.7':
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/parser@7.29.8':
-    resolution: {integrity: sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==}
+  '@babel/parser@7.29.11':
+    resolution: {integrity: sha512-OZ6+oaK7GMyg3IfCpj8JOmn8n+w2rJbDT0LLfVDTLb1ZFeKDh3AiNELgCMUw175IJHSkLl74hG0M0VLsvx+gag==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -291,8 +291,8 @@ packages:
     resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/types@7.29.8':
-    resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
+  '@babel/types@7.29.11':
+    resolution: {integrity: sha512-WCsemW40Cpc6gouC1SrY6PBaZ+oLRlEVY9XBvZBI7il/HyUrb2nJ505wE1MHEFyDZNnrWDEuy4jL50WVHfTTSQ==}
     engines: {node: '>=6.9.0'}
 
   '@cacheable/memory@2.2.0':
@@ -580,8 +580,8 @@ packages:
     peerDependencies:
       vue: '>= 3.3.13 < 4'
 
-  '@kong-ui-public/monaco-editor@0.26.6':
-    resolution: {integrity: sha512-NlN0H68f3goWR0P5kA2wJUkh7awcbx3gKEQp+rJfAH0Fvg/PpvDdX2FMw5hV3RQ1xtvyGuZGpP+kg70iVLfAvg==}
+  '@kong-ui-public/monaco-editor@0.27.1':
+    resolution: {integrity: sha512-SQ2nkJBqcP5oa6eNNHjRLj00i6tTDSIgA1TcKotMHCSOAAdLK8/R+0OMiVfsizNf+rakzMdSsSYrdcviOkyvpQ==}
     peerDependencies:
       '@kong-ui-public/i18n': ^2.5.1
       '@kong/icons': ^1.58.0
@@ -619,246 +619,246 @@ packages:
   '@oxc-project/types@0.152.0':
     resolution: {integrity: sha512-oM/5rLBm2tPkg0iBgkH/FOeR3PCDpY19GTgAZjMFM8h9WI9VW7cLgzp6nwtarYKmovavIQZ+Fe/RKX/8C8O/Rw==}
 
-  '@oxfmt/binding-android-arm-eabi@0.73.0':
-    resolution: {integrity: sha512-dhunAdMbi/4o0Y66/+Wl6rpsNqpvE4i26Qw6bB77A97L2lJoktWg6m+X9QOon8iOEEqzD9rEZqFi5uZ4oIzhCA==}
+  '@oxfmt/binding-android-arm-eabi@0.74.0':
+    resolution: {integrity: sha512-xxQwrf5EPI5zxvuCTW8r6tzCTjPQ+h6+HqJ0iRKRy2zS1yBllt/xLVjoIyUc+FnR7g0a5g1SZv2yyDYhTItLbA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [android]
 
-  '@oxfmt/binding-android-arm64@0.73.0':
-    resolution: {integrity: sha512-dBoypjC2/xeyKyIhN2waX0/XeoccH9k0lVVe+sGRc4X8HSJVRtqyZDoXdr7bGY9A75c51dX0z0dLDpGQKwCdCg==}
+  '@oxfmt/binding-android-arm64@0.74.0':
+    resolution: {integrity: sha512-FJW3sATVvrWbV64al8xofCPZj4500Z/1W0ad7Tg1rcCUyh0EMbuSrsf3jsZS7CEbwQ5fQ0mRhmkc129GFgofSQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [android]
 
-  '@oxfmt/binding-darwin-arm64@0.73.0':
-    resolution: {integrity: sha512-Tn7Y+qWIpCQK+qdYwBcn6YvqeBuPiuG3tcNlYg16a5QL2o3rSmrgBB1nCyYqo0uvc1LNrfQW9/CK2tzFuID/Fg==}
+  '@oxfmt/binding-darwin-arm64@0.74.0':
+    resolution: {integrity: sha512-TfmNKBD30dGyMu9GCLiaw2rt/z7fms9LS+5cKcNOyWst0QgAs8oZs6wPxMbVaaDVE0/PCdCosgWM1vbu6f5NUg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxfmt/binding-darwin-x64@0.73.0':
-    resolution: {integrity: sha512-yVb0E0tg/+9Xc9YJCBq66qF1DC/aN5mhb5nnHz0k4ikwkMANtSul2VPDSwjYdXR6/DFimc+pPUgLBqkIa5Ctuw==}
+  '@oxfmt/binding-darwin-x64@0.74.0':
+    resolution: {integrity: sha512-5Usf8+DfC4Q3o/MD8FkN47GrI6y0KbhQ4KhZ2HGzMZcXjcW1AeldwbUn51aKih+1TVuJFF9qkNm6X1nzm6NYng==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [darwin]
 
-  '@oxfmt/binding-freebsd-x64@0.73.0':
-    resolution: {integrity: sha512-IKR4lFnBkYNL9Uqdxa5GMTQLvnLj+3sDwTvh2atHCzah0xeo+1xR5bigRU8uyXlOsA4VpXUn0UAimq4E4RBGmQ==}
+  '@oxfmt/binding-freebsd-x64@0.74.0':
+    resolution: {integrity: sha512-eL+1O3gykw1XihbZh2MRAciQvU2988LByrnjhyo/dmNG74X4oZ7XzigRoWPRFLfJCp8hzRkp/LbEhwe7uuT2eA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [freebsd]
 
-  '@oxfmt/binding-linux-arm-gnueabihf@0.73.0':
-    resolution: {integrity: sha512-7qnZ4g0ZCO3aZevOOQpZIABYwwXJW1lLDo2elviGdPQ0i11255xKEMFsi97fC1/nauQFseCJfELUy/k2JoOP+g==}
+  '@oxfmt/binding-linux-arm-gnueabihf@0.74.0':
+    resolution: {integrity: sha512-Xt0QtO2hJ4stnul8IL4LJGVLyp0xnc6ccN9fZ30yuubv8FWSRYxWwd1Za62KsEqAfmPSazoS/cLSUUJpja6npA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [linux]
 
-  '@oxfmt/binding-linux-arm-musleabihf@0.73.0':
-    resolution: {integrity: sha512-36eBico2j/WPB84gb4FYd/jjqGCKOwU4M+TWLBUIqlnzTozQueLy0joA5BwsSp2OZFVkOlpCwvA3ndPamdiyLw==}
+  '@oxfmt/binding-linux-arm-musleabihf@0.74.0':
+    resolution: {integrity: sha512-/4wYQ0gZl4vUR0QoBTGaay73FmQ1GAjUa9z9101TR2xbGNrg4a+grazlR0yzEOe3/E+PJr5BGfj66MMzm/54vg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [linux]
 
-  '@oxfmt/binding-linux-arm64-gnu@0.73.0':
-    resolution: {integrity: sha512-VZ3cSgCAT18knKo52DcACmAuIoqG6qVEyeZRFbJd0xmYQ8GyYjuBc6IAh6MZHijT6q7p4/HPI+6ZWsCuhdV6iw==}
+  '@oxfmt/binding-linux-arm64-gnu@0.74.0':
+    resolution: {integrity: sha512-846bKzF+HJd+JkOFh3rxzmYvSq4Cm+GMT+p+mW7S13ZYo6GAAGv8bL8cAOi/XcdeMqxEJDCIMTVQLVBXHMCdig==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@oxfmt/binding-linux-arm64-musl@0.73.0':
-    resolution: {integrity: sha512-8YVzH59XSHcqwXNgc5qK851zCqwpmBgOifARXEPPe5/xTsIbHceYoPZAyqfpYV0CfKmzSaEDBgYHFza4rhx+Zw==}
+  '@oxfmt/binding-linux-arm64-musl@0.74.0':
+    resolution: {integrity: sha512-nI5FJwZ4Flo6CBdscpwxymZXxO3m3IErQJX55ZS6h+ObfGXu8FostL85L/RWPFaCLnIVE4/WfLw+2q8XvVEeUA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@oxfmt/binding-linux-ppc64-gnu@0.73.0':
-    resolution: {integrity: sha512-MqRJnmCys0rwOgpWyEidSA7v/bvOqfNDJhPkQoR9mPVYrvSmMaW2Xhdpl28cbTA+brOM1is62GjIvJplVlUVpw==}
+  '@oxfmt/binding-linux-ppc64-gnu@0.74.0':
+    resolution: {integrity: sha512-BoQYKuqUdsKAFAkK6DLBvkdv4+t0hppSm79sB0wIcE2o/eOwNj+6Z3OlKY4q3Eta/tlssP65FaS9vHn8TeF7vQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ppc64]
     os: [linux]
     libc: [glibc]
 
-  '@oxfmt/binding-linux-riscv64-gnu@0.73.0':
-    resolution: {integrity: sha512-4t2F3SWJSK/O/kRRFnL0elJzn75fJGGu71gs1HtiWcS80SmJOpkHiwwLnTp9suGdns8VHEPxYS0GTcyVwHKWBA==}
+  '@oxfmt/binding-linux-riscv64-gnu@0.74.0':
+    resolution: {integrity: sha512-FSroRrM12+jCdSQklF9aOxsKpI6wFs4ZCo/1cSYG80RWZS6z4LV+l9tXRMT8lDGu+yohIZBwi9M76FzGPFDE2A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [riscv64]
     os: [linux]
     libc: [glibc]
 
-  '@oxfmt/binding-linux-riscv64-musl@0.73.0':
-    resolution: {integrity: sha512-D8b4I8I1kLdJQFwdFXNV+cwh3xWSiNKofjdGUk0nDpc0AHOds8T+poGbP9RWQMvgsvMb9OMgp/aV7ahBR37TbQ==}
+  '@oxfmt/binding-linux-riscv64-musl@0.74.0':
+    resolution: {integrity: sha512-0VLQD0dhGBLY9Ik/w+otMvD81D0YXi4VDwql65macV+O9UzmSWmUr6CKf+dMtysDeC0PnG3y6kBkRO08BJx52g==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [riscv64]
     os: [linux]
     libc: [musl]
 
-  '@oxfmt/binding-linux-s390x-gnu@0.73.0':
-    resolution: {integrity: sha512-QrC1S5VL1+N5rvorB15jH7CPvjVHA7GyUI5oVEd8Bd9m5605RDBQYTxDQ920DuylRoZOh2V7/xXpfCtFUrojUQ==}
+  '@oxfmt/binding-linux-s390x-gnu@0.74.0':
+    resolution: {integrity: sha512-6X7BbZNz34+OHM6Oqjf6TRcUyRn6aRcB4VtIDZAF/uQRyeVhg+G2hv6MlMvmnRekVSyTJ/8rG/u8W2dRFW6glg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [s390x]
     os: [linux]
     libc: [glibc]
 
-  '@oxfmt/binding-linux-x64-gnu@0.73.0':
-    resolution: {integrity: sha512-dFcUKQPltCEPa+YlkF3zqufn6nJPZdG73LpnjBvZFFsU3laCMssDXSYB99mVaj43FqdEgjpz5TO6gbYXcczd9g==}
+  '@oxfmt/binding-linux-x64-gnu@0.74.0':
+    resolution: {integrity: sha512-4kYIQK53yJXrxwxSzx8H2bojlf6/KezLGYLRXzV9QCCkoiCsvBTCid9Bg83dUPTLPa3g9K0730f6MKDbck1+OA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@oxfmt/binding-linux-x64-musl@0.73.0':
-    resolution: {integrity: sha512-LmQe+nV8e+eUwfPNCxDF+owbsg88toBiR/8rZRgVOeKQP3MaGefXZRvBoc1UG37iWEQ/9JlCXG9Mc4nf4N3agw==}
+  '@oxfmt/binding-linux-x64-musl@0.74.0':
+    resolution: {integrity: sha512-MfWz4wDREjp/JQDmuxtKieix4FHGa1z5rBvB3betdcPwZvf5fqeQrlCm1mmoyuUVQOh9Pt3M61HwN94kJCxw7Q==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@oxfmt/binding-openharmony-arm64@0.73.0':
-    resolution: {integrity: sha512-8weOr1OKknE0G2DbR6ejJUT9AOsoBU6cXlsetmbihHv1K+bK7qP61T6lJxY0k/aAO7GyOJiRGNlL+04r4eH8Xg==}
+  '@oxfmt/binding-openharmony-arm64@0.74.0':
+    resolution: {integrity: sha512-6rmAApkq5s1kbDjvNI6Nl5A+JqQkLORb2sR941pf5HWsrd01WGKyagK/B4vX9+kh1FfvRkNgEu59FHvVk4H8cQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [openharmony]
 
-  '@oxfmt/binding-win32-arm64-msvc@0.73.0':
-    resolution: {integrity: sha512-mZV+QxXYgb8E18gzAFItb937VIsE4dqWdStrD3tRRC52UubOYEuU+e7NaIqUsGdB5YsJqNeuck3Ue/af2r9wyA==}
+  '@oxfmt/binding-win32-arm64-msvc@0.74.0':
+    resolution: {integrity: sha512-+5SpRUnZNGeXTyumHnpHa791tQtt04qZs076WT8eTcGF2OJ631VLnf7S0kQSPuDG+PtJM0phadEB2WAr5n1w9g==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [win32]
 
-  '@oxfmt/binding-win32-ia32-msvc@0.73.0':
-    resolution: {integrity: sha512-QJPUsbgUb97ZPPMkFUq6VQq0fLhC4Np19KL9aB/qKVwXnpKE6MIiILXqzhKnQ/UbnEDjKJ7Xv1d6zH4bYPCUdQ==}
+  '@oxfmt/binding-win32-ia32-msvc@0.74.0':
+    resolution: {integrity: sha512-1Fg+wYBO3Dsti1QX+/6EYHjeQzLC84tLOAqPu/r7ah3UJlUs9C/DB703Ay9Vcg+8VMzqZA2P5VGhzJraVUD4OQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ia32]
     os: [win32]
 
-  '@oxfmt/binding-win32-x64-msvc@0.73.0':
-    resolution: {integrity: sha512-cGcze2fu+ykIaFtkEvZlkZ3HvnCLk+WISthtq99zWTWn0x13t5L9TxvGdLZMUMvtfYR+ICkiCwKnguVubdcw0w==}
+  '@oxfmt/binding-win32-x64-msvc@0.74.0':
+    resolution: {integrity: sha512-y9jXUgPBm2TZIWbQhMYRRYAQM57+r4fbykgc+j24ICIIZl+pcuoNhnq1CRGm3oFiHnEUnZO00qOtSPGQdJ2ziQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
 
-  '@oxlint/binding-android-arm-eabi@1.88.0':
-    resolution: {integrity: sha512-k6Fgkf86ubfeH4GvqYsRolfuVAp0pfYVZvifSlXNHPdMaWUOfxUrmLEeDD7hF6U2oJuhsVxhSWq86/xCJ+9MmA==}
+  '@oxlint/binding-android-arm-eabi@1.89.0':
+    resolution: {integrity: sha512-Pflpba5F3gRAQ12sWglRxvWTHEdAusNDvmi4Y5N1T5SY1AGkM7AixOnET8qkrnLJ/F32qAlNokO6eCknT8tmnw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [android]
 
-  '@oxlint/binding-android-arm64@1.88.0':
-    resolution: {integrity: sha512-AsIyhl9o1ejwtac7NMbhKpMdSml6NWR0ljKjZERxC8OHYDAW8o/Om9n1QHVLi4VCEUo42Zte2/Op9kyoGpJZMg==}
+  '@oxlint/binding-android-arm64@1.89.0':
+    resolution: {integrity: sha512-dYmyD1x7LaPlb79vZWUcpTShk8dI9z1I+IubtqrBxWNJaDhQdPHwcsvg7q5StTU4xWyd9AwPfLaTYFZY8NZgtQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [android]
 
-  '@oxlint/binding-darwin-arm64@1.88.0':
-    resolution: {integrity: sha512-qgBjB7eEKcCB4RqjXGuoSZq74g0wD09fWFJ+HWcCJcKaga8TeUHtb+BY0SsxdleSLBgx4RZ7qmgo0EzqEq7JoQ==}
+  '@oxlint/binding-darwin-arm64@1.89.0':
+    resolution: {integrity: sha512-Z/oxOPiIqiS7fItRdxaaOEC+6GD3OpGi0IxoR0dMefzQHolsKLzScw2DNcu/5gUPok3tv+G9mslvYB5bo3i0qg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint/binding-darwin-x64@1.88.0':
-    resolution: {integrity: sha512-sCz3X5Mw/xdzEzn4fsCt1Iq8NKJnGNfhR+b9B5k+4DysYAHsmIhYoocnBPiQ9kvY3+pUun2A0Z8Vtun/Nv6YoQ==}
+  '@oxlint/binding-darwin-x64@1.89.0':
+    resolution: {integrity: sha512-eAjTkHSjAxrdCPJxO6y5sPQL5pYLKb2kvxZz9UU7tXnOZk9I/HLtkvx9S7GHY883k+AmL/eC7mqFt+w7WCwk0w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint/binding-freebsd-x64@1.88.0':
-    resolution: {integrity: sha512-xTOdYOIqCufgIj0knvxu86FBfovP6QBiD7ngNva01gb8xPQCD5gXkE5APGczH35zStim1O3zqvFbLQmY85xXRg==}
+  '@oxlint/binding-freebsd-x64@1.89.0':
+    resolution: {integrity: sha512-0lNCA9Tl1n1FKpqy2/9ckp0kIuSrtJ/l9bMRgaEhOtM7TsOHshFuwOcvW8oA9teXLMOJT61LjEKWiaHDFGxF/w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [freebsd]
 
-  '@oxlint/binding-linux-arm-gnueabihf@1.88.0':
-    resolution: {integrity: sha512-BLadtw88NdYJBrAtC1dYzrPfSP2d5zgx6iuZycdD0YmZBJ2Nqbit9Z4PSaIb6gxK25dweArGMPbOmq/0ugwUPg==}
+  '@oxlint/binding-linux-arm-gnueabihf@1.89.0':
+    resolution: {integrity: sha512-OTFEvi9W+JczaZD1Caj17SGCoW8H7TE+fvx0D7ATEWa1Lohn91UMxFQ6r145SiGy/yCxeIwptMys/RAM7gSVSQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [linux]
 
-  '@oxlint/binding-linux-arm-musleabihf@1.88.0':
-    resolution: {integrity: sha512-wILSczl/DaZsCcf7j7tvNbssp8hxEHIJxrv4j7+JjI3TAL1U/JTWbeUtoJJC/vo8+2hkTmHLYoKJjmiNbijdXw==}
+  '@oxlint/binding-linux-arm-musleabihf@1.89.0':
+    resolution: {integrity: sha512-fRxgNHvBLswj6MrhW2uBq5UDhPRQlCbHeq/Nf8yuG9zOxhDsXqX/mi2PX1axgsQxMm88el7HLiJAzglAnflYxw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm]
     os: [linux]
 
-  '@oxlint/binding-linux-arm64-gnu@1.88.0':
-    resolution: {integrity: sha512-jutT2Hy8JCuZuMwIFHo2HtyxfOfBJHyQxlBHBK1SL9W2f8n/WhjAP0FnDMz9d/mjhv9+QA0mx5AdQ9fDjsrFFg==}
+  '@oxlint/binding-linux-arm64-gnu@1.89.0':
+    resolution: {integrity: sha512-v9ENzHvwrQoYSWTtviH1pOYc7R9UovDxVofnck50cNmPihRRTcrg5X0UlRbLOZ7IVtxPOlh2hb7kDO+FpE8SfQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@oxlint/binding-linux-arm64-musl@1.88.0':
-    resolution: {integrity: sha512-8N8iGV9hh4Lkeuq7QsEkjoXNRRflqR1G2qyoGYXcA0k5qllrdqmfylKEXyHIVERxqNDyMO4StqDQ0uLxXcBQAg==}
+  '@oxlint/binding-linux-arm64-musl@1.89.0':
+    resolution: {integrity: sha512-vfffe8mQ484AzVadlUOFpgL+JDwhvs9hrzxTgQP1FVfi4ZEUUYeffXlzC9dFV7Dgnu5s/KrNKvfmG6HxBd/ISQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@oxlint/binding-linux-ppc64-gnu@1.88.0':
-    resolution: {integrity: sha512-5ydcQt3znNQ/rGEWYRvpS2cK9+T18P2VYgnyJ+eloEAwi9YUmsXy5VGrRqNWIK6qzWwHGnEE3ojVqqQNo+f0hA==}
+  '@oxlint/binding-linux-ppc64-gnu@1.89.0':
+    resolution: {integrity: sha512-Buonlp4hVS7RGNP5M7bPpGNQrenyzA2C64JcO/oz9C1c6dGOXJ7VEAnaiAMY7voou0JYyCJdvDVlFQc5DZX3DQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ppc64]
     os: [linux]
     libc: [glibc]
 
-  '@oxlint/binding-linux-riscv64-gnu@1.88.0':
-    resolution: {integrity: sha512-iGx0uvFT54b/5DPJdEBCxYIrVB3v0uTy+JhRh3CyEp8/22BXDkG8rffkFwREdLsdj9mOrPbJYVOZw8ipcBuzjw==}
+  '@oxlint/binding-linux-riscv64-gnu@1.89.0':
+    resolution: {integrity: sha512-1eVwJJrJ3lYIPT+cm7BcBBZZXY6IQZP/oyonaruTor/MrVyWOpvnwt1oD5CLdsHg5aVBIxXodQSvt+1gK6ck5w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [riscv64]
     os: [linux]
     libc: [glibc]
 
-  '@oxlint/binding-linux-riscv64-musl@1.88.0':
-    resolution: {integrity: sha512-Wt47mKMWelVjRjuR7BCFxXkB0m79K1sTEbqMHRWciKUgo5iv7sWsF4RXSOyFYHD9zerNrkRZblnN273rhwOA1Q==}
+  '@oxlint/binding-linux-riscv64-musl@1.89.0':
+    resolution: {integrity: sha512-fRQQsKUGShdEL5Fl9o9uhj3grkZbeXKLv0icQ5tspUCNYSDy8wzzEcP1WC2bKdTQ0rSszbKlO3iiHORxV22DLg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [riscv64]
     os: [linux]
     libc: [musl]
 
-  '@oxlint/binding-linux-s390x-gnu@1.88.0':
-    resolution: {integrity: sha512-g3L12KCS4+1gtUt3RbJ4F+Yxx4LNmmZLEPfhd8rAHEJjJk2lAgNfnjGoP/phJyhG5WS6VbNYbJtadJelNfvTMA==}
+  '@oxlint/binding-linux-s390x-gnu@1.89.0':
+    resolution: {integrity: sha512-dEtYjIy6+fHcjKklsmtmMkZRhwHr2UbzjmpvuPtQYSeN9awQ2hx5JLms5Wvri+8P/NZtD8v5hfgHALUql+/Ycg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [s390x]
     os: [linux]
     libc: [glibc]
 
-  '@oxlint/binding-linux-x64-gnu@1.88.0':
-    resolution: {integrity: sha512-og/XHVDOD9ZJgRiZkT9DgzQd4sr+JZW7e4l17Q/jVMZiIbeEd4uIu9iAoUbTF1gIvVZoRc4QDOxyVUvQGp4WHg==}
+  '@oxlint/binding-linux-x64-gnu@1.89.0':
+    resolution: {integrity: sha512-hqjwIj5KOYM8Wjef/p7IruNi1iByLhSzbMBk62y22P/E8q7Jj0Pp+DeUTKTRYyZYCDtU1wEGlnWOnttHbyNIww==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@oxlint/binding-linux-x64-musl@1.88.0':
-    resolution: {integrity: sha512-EmhBsp+xuKb6YbZNEMLBo80Xw71AZOIm18do8ni/GLX/Lw1XzNhVYpbxO1KasYtoAvrGtCOdCPULRlIE0bPbTQ==}
+  '@oxlint/binding-linux-x64-musl@1.89.0':
+    resolution: {integrity: sha512-iAQN3e6o9UgUCcdGwqRx/jYcKbG3HK7ur3rH6lTqVcQeNGZ85AeWIg6cgn/edwFQ0ofEZZItMwkzyCVTahnvEA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@oxlint/binding-openharmony-arm64@1.88.0':
-    resolution: {integrity: sha512-DBUcx/KwYdg1DAz+G01P/GFv512J04EsZadbHptx2FTpWT/MWRg21ZToNHt9pnsfQRBQ3et/g+vqzbvrdAVbuA==}
+  '@oxlint/binding-openharmony-arm64@1.89.0':
+    resolution: {integrity: sha512-MNxjEByz3N/7Q4qFQuPWvc14TpN9LoD3pECEDsJTZbP/wyB7U+hduUXEl7QAbbgVezFwsb9sWtNUO6XVBndOhg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [openharmony]
 
-  '@oxlint/binding-win32-arm64-msvc@1.88.0':
-    resolution: {integrity: sha512-xeVd0n4XG5HvynxfYvXi6uB+JvZbVZataowPS8cYpMbYg9mwE4sSyElFQd4LVJFifq8bRLDSR18XgEildmcXAg==}
+  '@oxlint/binding-win32-arm64-msvc@1.89.0':
+    resolution: {integrity: sha512-xxe+i9wfuFso/VnoL4mfj0UlzE+cfCFiUB06vkXCMyQdgVVmItF5FfAF4tATAktSU6uHruWR+FjqvAT9cHZZzg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint/binding-win32-ia32-msvc@1.88.0':
-    resolution: {integrity: sha512-MA6iOw//amleaz2mVMsZrA7NHlEexjTrhIxSMFCXQi6IUuQO+3Od00GZhr2iCYw6RFzMW36jkKK/WHBXMsoQAw==}
+  '@oxlint/binding-win32-ia32-msvc@1.89.0':
+    resolution: {integrity: sha512-saFy07cO94E664glwgLmKLI40HgTL1PY86y4T6+ud4niX4H0Kdqjcmqmjps7mQNdBytV5guGbXDdyQtRfeLbLA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ia32]
     os: [win32]
 
-  '@oxlint/binding-win32-x64-msvc@1.88.0':
-    resolution: {integrity: sha512-3Sz6rVWe8Dy+ufsXurFN1GX2dX43F/lQMSLelK9gFjiba7nHvLlqlhR5cHlWVnCpSqUY1hN9pyCX9XToe6ve6g==}
+  '@oxlint/binding-win32-x64-msvc@1.89.0':
+    resolution: {integrity: sha512-hLFJ/o0f/dTJh/EW0vmcbREYSQO9tYgfiAAlsOkiLFiJuRRWvYtFELUXN5o2ijpSo/tlO1n+YlWN58tZwPG18A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
@@ -1212,20 +1212,20 @@ packages:
       typescript:
         optional: true
 
-  '@vue/compiler-core@3.6.0-rc.11':
-    resolution: {integrity: sha512-Y/te7PzzfHF8ELysNiJ+AQoSuuZgortB+OXHa89g/rSI2ehLSk+BkTG0WgomizjfcGSMtN4JEHasbFe1+udyFQ==}
+  '@vue/compiler-core@3.6.0-rc.12':
+    resolution: {integrity: sha512-+Rv+ZJ+9BaJ5HcO6W2KL+1/ow+gEkzc99HW4gcCS+8SrtxZ7Nww05Zry2kBmSWeaRGU/jQUpIb6s9msNsqtCyQ==}
 
-  '@vue/compiler-dom@3.6.0-rc.11':
-    resolution: {integrity: sha512-WPnTw/h7UMpvhwBmRi7KgfYPbe7ikkJqafyqj/dt6++sLUqVwCvM6sfUSg45nvgvGgfAeBPIrRt+DPj+f2OS/A==}
+  '@vue/compiler-dom@3.6.0-rc.12':
+    resolution: {integrity: sha512-ad/A6H9LjNiFfTvU4JcJhaEyDpJJd4dWoa+cbUvUttq0VhAxUINmhllD3ft4LAwYAGnTuGW4r4m1vVBU8lUYvQ==}
 
-  '@vue/compiler-sfc@3.6.0-rc.11':
-    resolution: {integrity: sha512-xxx9GpyldjuXM6XpuBsp0JwZ4576WRmPWj+EiKQUhymk92nOmHpzDLr+TyWc2Cz7avWepiRMFMX3UsMwqMwGHg==}
+  '@vue/compiler-sfc@3.6.0-rc.12':
+    resolution: {integrity: sha512-8ZUKt+q0WxDkux/sb87onQWoQhlD/lFp5ejeRZ4z+7DLYu/Fr8qYygUT6jfv3NQB4TOGm8967VIOMv6DwcOM1w==}
 
-  '@vue/compiler-ssr@3.6.0-rc.11':
-    resolution: {integrity: sha512-YQuBWv0e1kolQ0EdnEMdxZtm1Q7oBI4XVvP13qpI/IjaPkLRuM7y1uz9WKEIRPHtFjHe9q23tgNL4r+aujQl7w==}
+  '@vue/compiler-ssr@3.6.0-rc.12':
+    resolution: {integrity: sha512-EvJQrNQUHVRnL2ZJB1OvaFdWGtoxN4bgh5FB0KueoooaeuIJ3Ki3jLQjsYHD+xaBu+HtrNQR2ncOMmfeB8nH1w==}
 
-  '@vue/compiler-vapor@3.6.0-rc.11':
-    resolution: {integrity: sha512-xsPGzte9ncJnea9sL2aetYp7++6+HEMiY5GQDR27jVeHLG6YFYLtAX6v/2HGNGzOPvOAB32gDOOVEgI51j2XgQ==}
+  '@vue/compiler-vapor@3.6.0-rc.12':
+    resolution: {integrity: sha512-kaJj8A36pr/+VlhaCsU55dd9hpPQGHdO3EqnsOpmAegQ/AVQkM/GB/rx4x9DrE0OYg94VebKjtJnKkM19iuQ+w==}
 
   '@vue/devtools-api@6.6.4':
     resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
@@ -1245,25 +1245,25 @@ packages:
   '@vue/language-core@3.3.13':
     resolution: {integrity: sha512-axA0Xemn5LuUKuKWob0/kVq7xQ2mJJM6VqA9Exvt35nM9yRC31goWVve/G/Zb2ZCLsXC8FHYjjfXlnshknSCew==}
 
-  '@vue/reactivity@3.6.0-rc.11':
-    resolution: {integrity: sha512-JkIptRqOw4tQgRBh42wp+ZypiedOusxqO/awTFxetwtfBIZf5zLMaSkKNlRLzp2wxxjyUKCVx6GOMHkpmLWDqQ==}
+  '@vue/reactivity@3.6.0-rc.12':
+    resolution: {integrity: sha512-clivElcJ56eCxZgSEOOn18xIy5rb7wAlmOUJ/8jTkkEnk9Geu60pjOsVKIlLJRww9WA2MUtB+4svmZIVYm4TLQ==}
 
-  '@vue/runtime-core@3.6.0-rc.11':
-    resolution: {integrity: sha512-oeUUAWdU/vxMExvfUnUAAQ6hX9bhfY3NZcJ5dsDKz+DrOkG83zbIqfce+8USUEgeTgdITlUKkrZ9oSkgltkxyg==}
+  '@vue/runtime-core@3.6.0-rc.12':
+    resolution: {integrity: sha512-7XC+SV3+C3jHdTOPgm6//mUE+z8daSvo+U1ATRLQQIaobbxwCsVSbRFSsWgritlYvbYHloU7tynDBdDGnzIPgg==}
 
-  '@vue/runtime-dom@3.6.0-rc.11':
-    resolution: {integrity: sha512-8mSzZ7J1gOZg2LvyZDb6+P7r1ErHjYJhEqw/7cMH0xrrkpNzXpBYeWRzacXNF+9w2tRQHIwSzHjp+t5sMbIkYw==}
+  '@vue/runtime-dom@3.6.0-rc.12':
+    resolution: {integrity: sha512-Ckchu8q/gWdivNIkvIh9P0WcY1kk/TL6wLoIzzSXnyhrixHpC09OcXl2cr7a9mXTUZE4czy/9mS+kcTyWocfJA==}
 
-  '@vue/runtime-vapor@3.6.0-rc.11':
-    resolution: {integrity: sha512-mmNsoZiG7ZHD+X/+SPWA90WnD48arzGxwVno+troxgLeHuRs0bAuL6XRHm1c18ZzSopYYWadbM1HCkED3nQcYw==}
+  '@vue/runtime-vapor@3.6.0-rc.12':
+    resolution: {integrity: sha512-a8Exv/o996bvatzPtkDOaYguXeb+detG2b5XXoEYmRTOgLOqWcnHaNZKq3WhVb/FWDPht6R8zgP+y1hrl8LuiQ==}
     peerDependencies:
-      '@vue/runtime-dom': 3.6.0-rc.11
+      '@vue/runtime-dom': 3.6.0-rc.12
 
-  '@vue/server-renderer@3.6.0-rc.11':
-    resolution: {integrity: sha512-McgOhSx52QmBWapQR7PPz4vUUe4atNrfWJDWzde8u3HyAU24974Bt4uJKeMDWgSIw2ASdeMoV5fiWfu1dH+/NQ==}
+  '@vue/server-renderer@3.6.0-rc.12':
+    resolution: {integrity: sha512-XMlrwb+iK64cZtqV7cmZz7ZNmHOtd5dB4L4aWGklJnF+sVtQY8coPNB8V7yV4F3Ka9nYwx2goni292eRQ6lEZg==}
 
-  '@vue/shared@3.6.0-rc.11':
-    resolution: {integrity: sha512-Wh+Vvf0qqM/GVSDVA606bDq+fATrkp/sCNXXK2bmDgoC0WKdr+xpY8YKJ4uVBnYlSqqp+gLd/2vZOC/B04U10w==}
+  '@vue/shared@3.6.0-rc.12':
+    resolution: {integrity: sha512-xk8fOMESfa00AINIQrwqX9l35xDpi2sE7uTSlt6RWt64TU2FE9SnmqJu3hjdE4dGB1lQ6EwalhowPp4ZOKp1Dw==}
 
   '@vue/tsconfig@0.9.1':
     resolution: {integrity: sha512-buvjm+9NzLCJL29KY1j1991YYJ5e6275OiK+G4jtmfIb+z4POywbdm0wXusT9adVWqe0xqg70TbI7+mRx4uU9w==}
@@ -1440,10 +1440,10 @@ packages:
     peerDependencies:
       eslint: '>=7.0.0'
 
-  eslint-plugin-oxlint@1.88.0:
-    resolution: {integrity: sha512-5njQn7i07e3mTMzoj4acolSZZXqnd3H1S3JcV8lUJfpavoB2UvRKNiq9fZXYFLY4iHvsckUK2yQxnJn44ImjnA==}
+  eslint-plugin-oxlint@1.89.0:
+    resolution: {integrity: sha512-zFi2wOFo9vRyTOptE7DLXuBnoB0VcQFtPS+/ppqmTTJ7ZLUv0xmCtllce9D5e1vlC+crhQYGgKyZex1X7PaVyA==}
     peerDependencies:
-      oxlint: ~1.88.0
+      oxlint: ~1.89.0
 
   eslint-plugin-vue@10.11.1:
     resolution: {integrity: sha512-pasVXhl7wUmIvhujoqs/m0mJ9r59QW1IR9XXYKGR0FETzSM+Hhlf4qKIYgWiDDP+9YKv4YfbwskD7LqIdVcgQw==}
@@ -1471,8 +1471,8 @@ packages:
     resolution: {integrity: sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  eslint@10.12.0:
-    resolution: {integrity: sha512-npHjrHb2o4ehH3mE+YuxABR+0gyb0aVWCIolgJDArwCiHEIsonBm3ZKjel5b0U5+a+MbEvIyRCGCzD3eKKK2NA==}
+  eslint@10.13.0:
+    resolution: {integrity: sha512-UohDjD4zSzEwhf58M3O7vc/ycc8O1I7dNlhtD0WxE8Px8EHNJKtUwzBqrzeGhisRuv2ag4sAYswszCJRgKXYUg==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -1853,11 +1853,6 @@ packages:
   muggle-string@0.4.1:
     resolution: {integrity: sha512-VNTrAak/KhO2i8dqqnqnAHOa3cYBwXEZe9h+D5h/1ZqFSTEFHdM65lR7RoIqq3tBBYavsOXV84NoHXZ0AkPyqQ==}
 
-  nanoid@3.3.18:
-    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
   nanoid@3.3.20:
     resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -1896,8 +1891,8 @@ packages:
   overlayscrollbars@2.16.0:
     resolution: {integrity: sha512-N03oje/q7j93D0aLZtoCdsDSYLmhheSsv8H7oSLE7HhdV9P/bmCURtLV/KbPye7P/bpfyt/obSfDpGUYoJ0OWg==}
 
-  oxfmt@0.73.0:
-    resolution: {integrity: sha512-Ke4xbpuzqIBP4bkd48q815RhqWNJqOBzxVA9199M4qcF0y0LtpUv7UTg1dJ5ea6jw0RBUDZvX3qOUMNmmxfxbw==}
+  oxfmt@0.74.0:
+    resolution: {integrity: sha512-G4OP7FgwGYZR5ttRpCOOfJdyRsSyvtn34vSXnjDq6Oqed5Dufg5mB44mank+51nAdHOKuTJ0lj0mksY7L+N61A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -1912,8 +1907,8 @@ packages:
       vite-plus:
         optional: true
 
-  oxlint@1.88.0:
-    resolution: {integrity: sha512-uIcFgw8BmqvFRGzH5+r7d2zJMEexwNSrEmM6WQNnGh3VkO0XYTEFoyxyNE6tjKMUib9Cue4XJA2DoWruO5D6aw==}
+  oxlint@1.89.0:
+    resolution: {integrity: sha512-a25hkfo61okGPvJz432fRIPoxlKtNnOVy9w4rzrmGgNm4iVTPwpSQlmdqNWnp6p9QyyPVfAZRgnf5XvSBZFk/A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -1967,10 +1962,6 @@ packages:
   postcss-selector-parser@7.1.5:
     resolution: {integrity: sha512-KvvtD7SrlBP7dlgkBghEE3r84CABm5SmV2aNcG4oCA+qDnJ/tvKonFVvwWAyyWUEwxuNawdfEAZKP9zM3oZ2Uw==}
     engines: {node: '>=4'}
-
-  postcss@8.5.28:
-    resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
-    engines: {node: ^10 || ^12 || >=14}
 
   postcss@8.5.31:
     resolution: {integrity: sha512-YUbWYCgErwnMAVkjUnYa+KlMBzGpHwiIt/DE7f0G33AuX2LH9UcTk6KgWxd3zRU+pN3u/C+Xl3EnMLM4Hea7Sg==}
@@ -2056,10 +2047,6 @@ packages:
 
   sortablejs@1.15.7:
     resolution: {integrity: sha512-Kk8wLQPlS+yi1ZEf48a4+fzHa4yxjC30M/Sr2AnQu+f/MPwvvX9XjZ6OWejiz8crBsLwSq8GHqaxaET7u6ux0A==}
-
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
-    engines: {node: '>=0.10.0'}
 
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
@@ -2270,8 +2257,8 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  vue@3.6.0-rc.11:
-    resolution: {integrity: sha512-huo6YaaLtlz3vFYHddXz2Yuz9FmurGUBL/cH0eERmWeRUlB7tH8KoSiRVLrBE8jrW5LKWSLbOwR5VyOX4Th8iA==}
+  vue@3.6.0-rc.12:
+    resolution: {integrity: sha512-fWOI0E0ZVX42RP81NmJ8OPPc7FxjvKnawFPfCkmUP4C/QfUKC7OE70LIguJKt6ueGWVtgAg9oW7L8p+U8Kfxzg==}
     peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
@@ -2308,19 +2295,19 @@ packages:
 
 snapshots:
 
-  '@babel/helper-string-parser@7.29.7': {}
+  '@babel/helper-string-parser@7.29.11': {}
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
-  '@babel/parser@7.29.8':
+  '@babel/parser@7.29.11':
     dependencies:
-      '@babel/types': 7.29.8
+      '@babel/types': 7.29.11
 
   '@babel/runtime@7.29.7': {}
 
-  '@babel/types@7.29.8':
+  '@babel/types@7.29.11':
     dependencies:
-      '@babel/helper-string-parser': 7.29.7
+      '@babel/helper-string-parser': 7.29.11
       '@babel/helper-validator-identifier': 7.29.7
 
   '@cacheable/memory@2.2.0':
@@ -2413,9 +2400,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.0':
     optional: true
 
-  '@eslint-community/eslint-utils@4.9.1(eslint@10.12.0(jiti@2.7.0))':
+  '@eslint-community/eslint-utils@4.9.1(eslint@10.13.0(jiti@2.7.0))':
     dependencies:
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
@@ -2454,11 +2441,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@floating-ui/vue@1.1.11(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@floating-ui/vue@1.1.11(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@floating-ui/utils': 0.2.11
-      vue-demi: 0.14.10(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue-demi: 0.14.10(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
@@ -2564,51 +2551,51 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
       '@formatjs/intl': 2.10.15(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       flat: 6.0.1
       intl-messageformat: 10.7.18
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
     transitivePeerDependencies:
       - typescript
 
-  '@kong-ui-public/monaco-editor@0.26.6(@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/icons@1.62.1(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(monaco-editor@0.55.1)(shiki@4.5.0)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(zod@4.6.5)':
+  '@kong-ui-public/monaco-editor@0.27.1(@kong-ui-public/i18n@2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/icons@1.62.1(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(monaco-editor@0.55.1)(shiki@4.5.0)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(zod@4.6.5)':
     dependencies:
-      '@kong-ui-public/i18n': 2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      '@kong/icons': 1.62.1(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      '@kong/kongponents': 9.64.14(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@kong-ui-public/i18n': 2.5.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@kong/icons': 1.62.1(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@kong/kongponents': 9.64.14(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       '@shikijs/monaco': 4.5.0
-      '@vueuse/core': 14.4.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@vueuse/core': 14.4.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       monaco-editor: 0.55.1
       shiki: 4.5.0
       shiki-codegen: 4.4.3
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       zod: 4.6.5
 
-  '@kong/icons@1.62.1(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@kong/icons@1.62.1(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  '@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@kong/kongponents@9.64.14(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
-      '@floating-ui/vue': 1.1.11(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      '@kong/icons': 1.62.1(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@floating-ui/vue': 1.1.11(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      '@kong/icons': 1.62.1(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       '@popperjs/core': 2.11.8
       date-fns: 2.30.0
       date-fns-tz: 2.0.1(date-fns@2.30.0)
       focus-trap: 7.8.0
-      focus-trap-vue: 4.1.0(focus-trap@7.8.0)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      focus-trap-vue: 4.1.0(focus-trap@7.8.0)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
       lodash-es: 4.18.1
       nanoid: 5.1.16
       sortablejs: 1.15.7
-      swrv: 1.2.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      v-calendar: 3.1.2(@popperjs/core@2.11.8)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      virtua: 0.49.3(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      vue-clamp: 1.6.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      vue-draggable-next: 2.3.0(sortablejs@1.15.7)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      vue-router: 4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      swrv: 1.2.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      v-calendar: 3.1.2(@popperjs/core@2.11.8)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      virtua: 0.49.3(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue-clamp: 1.6.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue-draggable-next: 2.3.0(sortablejs@1.15.7)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue-router: 4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - react
@@ -2630,118 +2617,118 @@ snapshots:
 
   '@oxc-project/types@0.152.0': {}
 
-  '@oxfmt/binding-android-arm-eabi@0.73.0':
+  '@oxfmt/binding-android-arm-eabi@0.74.0':
     optional: true
 
-  '@oxfmt/binding-android-arm64@0.73.0':
+  '@oxfmt/binding-android-arm64@0.74.0':
     optional: true
 
-  '@oxfmt/binding-darwin-arm64@0.73.0':
+  '@oxfmt/binding-darwin-arm64@0.74.0':
     optional: true
 
-  '@oxfmt/binding-darwin-x64@0.73.0':
+  '@oxfmt/binding-darwin-x64@0.74.0':
     optional: true
 
-  '@oxfmt/binding-freebsd-x64@0.73.0':
+  '@oxfmt/binding-freebsd-x64@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-arm-gnueabihf@0.73.0':
+  '@oxfmt/binding-linux-arm-gnueabihf@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-arm-musleabihf@0.73.0':
+  '@oxfmt/binding-linux-arm-musleabihf@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-arm64-gnu@0.73.0':
+  '@oxfmt/binding-linux-arm64-gnu@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-arm64-musl@0.73.0':
+  '@oxfmt/binding-linux-arm64-musl@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-ppc64-gnu@0.73.0':
+  '@oxfmt/binding-linux-ppc64-gnu@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-riscv64-gnu@0.73.0':
+  '@oxfmt/binding-linux-riscv64-gnu@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-riscv64-musl@0.73.0':
+  '@oxfmt/binding-linux-riscv64-musl@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-s390x-gnu@0.73.0':
+  '@oxfmt/binding-linux-s390x-gnu@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-x64-gnu@0.73.0':
+  '@oxfmt/binding-linux-x64-gnu@0.74.0':
     optional: true
 
-  '@oxfmt/binding-linux-x64-musl@0.73.0':
+  '@oxfmt/binding-linux-x64-musl@0.74.0':
     optional: true
 
-  '@oxfmt/binding-openharmony-arm64@0.73.0':
+  '@oxfmt/binding-openharmony-arm64@0.74.0':
     optional: true
 
-  '@oxfmt/binding-win32-arm64-msvc@0.73.0':
+  '@oxfmt/binding-win32-arm64-msvc@0.74.0':
     optional: true
 
-  '@oxfmt/binding-win32-ia32-msvc@0.73.0':
+  '@oxfmt/binding-win32-ia32-msvc@0.74.0':
     optional: true
 
-  '@oxfmt/binding-win32-x64-msvc@0.73.0':
+  '@oxfmt/binding-win32-x64-msvc@0.74.0':
     optional: true
 
-  '@oxlint/binding-android-arm-eabi@1.88.0':
+  '@oxlint/binding-android-arm-eabi@1.89.0':
     optional: true
 
-  '@oxlint/binding-android-arm64@1.88.0':
+  '@oxlint/binding-android-arm64@1.89.0':
     optional: true
 
-  '@oxlint/binding-darwin-arm64@1.88.0':
+  '@oxlint/binding-darwin-arm64@1.89.0':
     optional: true
 
-  '@oxlint/binding-darwin-x64@1.88.0':
+  '@oxlint/binding-darwin-x64@1.89.0':
     optional: true
 
-  '@oxlint/binding-freebsd-x64@1.88.0':
+  '@oxlint/binding-freebsd-x64@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-arm-gnueabihf@1.88.0':
+  '@oxlint/binding-linux-arm-gnueabihf@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-arm-musleabihf@1.88.0':
+  '@oxlint/binding-linux-arm-musleabihf@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-arm64-gnu@1.88.0':
+  '@oxlint/binding-linux-arm64-gnu@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-arm64-musl@1.88.0':
+  '@oxlint/binding-linux-arm64-musl@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-ppc64-gnu@1.88.0':
+  '@oxlint/binding-linux-ppc64-gnu@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-riscv64-gnu@1.88.0':
+  '@oxlint/binding-linux-riscv64-gnu@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-riscv64-musl@1.88.0':
+  '@oxlint/binding-linux-riscv64-musl@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-s390x-gnu@1.88.0':
+  '@oxlint/binding-linux-s390x-gnu@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-x64-gnu@1.88.0':
+  '@oxlint/binding-linux-x64-gnu@1.89.0':
     optional: true
 
-  '@oxlint/binding-linux-x64-musl@1.88.0':
+  '@oxlint/binding-linux-x64-musl@1.89.0':
     optional: true
 
-  '@oxlint/binding-openharmony-arm64@1.88.0':
+  '@oxlint/binding-openharmony-arm64@1.89.0':
     optional: true
 
-  '@oxlint/binding-win32-arm64-msvc@1.88.0':
+  '@oxlint/binding-win32-arm64-msvc@1.89.0':
     optional: true
 
-  '@oxlint/binding-win32-ia32-msvc@1.88.0':
+  '@oxlint/binding-win32-ia32-msvc@1.89.0':
     optional: true
 
-  '@oxlint/binding-win32-x64-msvc@1.88.0':
+  '@oxlint/binding-win32-x64-msvc@1.89.0':
     optional: true
 
   '@popperjs/core@2.11.8': {}
@@ -2908,15 +2895,15 @@ snapshots:
 
   '@types/web-bluetooth@0.0.21': {}
 
-  '@typescript-eslint/eslint-plugin@8.61.0(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
+  '@typescript-eslint/eslint-plugin@8.61.0(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/parser': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       '@typescript-eslint/scope-manager': 8.61.0
-      '@typescript-eslint/type-utils': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      '@typescript-eslint/utils': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/type-utils': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/utils': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       '@typescript-eslint/visitor-keys': 8.61.0
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       ignore: 7.0.5
       natural-compare: 1.4.0
       ts-api-utils: 2.5.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
@@ -2924,14 +2911,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
+  '@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.61.0
       '@typescript-eslint/types': 8.61.0
       '@typescript-eslint/typescript-estree': 8.61.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       '@typescript-eslint/visitor-keys': 8.61.0
       debug: 4.4.3
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
     transitivePeerDependencies:
       - supports-color
@@ -2954,13 +2941,13 @@ snapshots:
     dependencies:
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
 
-  '@typescript-eslint/type-utils@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
+  '@typescript-eslint/type-utils@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
     dependencies:
       '@typescript-eslint/types': 8.61.0
       '@typescript-eslint/typescript-estree': 8.61.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      '@typescript-eslint/utils': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/utils': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       debug: 4.4.3
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       ts-api-utils: 2.5.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
     transitivePeerDependencies:
@@ -2983,13 +2970,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
+  '@typescript-eslint/utils@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.1(eslint@10.12.0(jiti@2.7.0))
+      '@eslint-community/eslint-utils': 4.9.1(eslint@10.13.0(jiti@2.7.0))
       '@typescript-eslint/scope-manager': 8.61.0
       '@typescript-eslint/types': 8.61.0
       '@typescript-eslint/typescript-estree': 8.61.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
     transitivePeerDependencies:
       - supports-color
@@ -3022,16 +3009,16 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vercel/analytics@2.0.1(vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vercel/analytics@2.0.1(vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     optionalDependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      vue-router: 4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue-router: 4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
 
-  '@vitejs/plugin-vue@6.0.10(vite@8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15))(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vitejs/plugin-vue@6.0.10(vite@8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15))(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15)
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   '@volar/language-core@2.4.28':
     dependencies:
@@ -3047,55 +3034,55 @@ snapshots:
     optionalDependencies:
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
 
-  '@vue/compiler-core@3.6.0-rc.11':
+  '@vue/compiler-core@3.6.0-rc.12':
     dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/shared': 3.6.0-rc.11
+      '@babel/parser': 7.29.11
+      '@vue/shared': 3.6.0-rc.12
       entities: 7.0.1
       estree-walker: 2.0.2
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
-  '@vue/compiler-dom@3.6.0-rc.11':
+  '@vue/compiler-dom@3.6.0-rc.12':
     dependencies:
-      '@vue/compiler-core': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/compiler-core': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/compiler-sfc@3.6.0-rc.11':
+  '@vue/compiler-sfc@3.6.0-rc.12':
     dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/compiler-core': 3.6.0-rc.11
-      '@vue/compiler-dom': 3.6.0-rc.11
-      '@vue/compiler-ssr': 3.6.0-rc.11
-      '@vue/compiler-vapor': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@babel/parser': 7.29.11
+      '@vue/compiler-core': 3.6.0-rc.12
+      '@vue/compiler-dom': 3.6.0-rc.12
+      '@vue/compiler-ssr': 3.6.0-rc.12
+      '@vue/compiler-vapor': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.28
-      source-map-js: 1.2.1
+      postcss: 8.5.31
+      source-map-js: 1.2.2
 
-  '@vue/compiler-ssr@3.6.0-rc.11':
+  '@vue/compiler-ssr@3.6.0-rc.12':
     dependencies:
-      '@vue/compiler-dom': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/compiler-dom': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/compiler-vapor@3.6.0-rc.11':
+  '@vue/compiler-vapor@3.6.0-rc.12':
     dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/compiler-dom': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@babel/parser': 7.29.11
+      '@vue/compiler-dom': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
       estree-walker: 2.0.2
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   '@vue/devtools-api@6.6.4': {}
 
-  '@vue/eslint-config-typescript@14.9.0(eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0))))(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
+  '@vue/eslint-config-typescript@14.9.0(eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0))))(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)':
     dependencies:
-      '@typescript-eslint/utils': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      eslint: 10.12.0(jiti@2.7.0)
-      eslint-plugin-vue: 10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0)))
+      '@typescript-eslint/utils': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      eslint: 10.13.0(jiti@2.7.0)
+      eslint-plugin-vue: 10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0)))
       fast-glob: 3.3.3
-      typescript-eslint: 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      vue-eslint-parser: 10.4.0(eslint@10.12.0(jiti@2.7.0))
+      typescript-eslint: 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue-eslint-parser: 10.4.0(eslint@10.13.0(jiti@2.7.0))
     optionalDependencies:
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
     transitivePeerDependencies:
@@ -3104,73 +3091,73 @@ snapshots:
   '@vue/language-core@3.3.13':
     dependencies:
       '@volar/language-core': 2.4.28
-      '@vue/compiler-dom': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/compiler-dom': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
       alien-signals: 3.2.1
       muggle-string: 0.4.1
       path-browserify: 1.0.1
       picomatch: 4.0.7
 
-  '@vue/reactivity@3.6.0-rc.11':
+  '@vue/reactivity@3.6.0-rc.12':
     dependencies:
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/runtime-core@3.6.0-rc.11':
+  '@vue/runtime-core@3.6.0-rc.12':
     dependencies:
-      '@vue/reactivity': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/reactivity': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/runtime-dom@3.6.0-rc.11':
+  '@vue/runtime-dom@3.6.0-rc.12':
     dependencies:
-      '@vue/reactivity': 3.6.0-rc.11
-      '@vue/runtime-core': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/reactivity': 3.6.0-rc.12
+      '@vue/runtime-core': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
       csstype: 3.2.3
 
-  '@vue/runtime-vapor@3.6.0-rc.11(@vue/runtime-dom@3.6.0-rc.11)':
+  '@vue/runtime-vapor@3.6.0-rc.12(@vue/runtime-dom@3.6.0-rc.12)':
     dependencies:
-      '@vue/reactivity': 3.6.0-rc.11
-      '@vue/runtime-dom': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/reactivity': 3.6.0-rc.12
+      '@vue/runtime-dom': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/server-renderer@3.6.0-rc.11':
+  '@vue/server-renderer@3.6.0-rc.12':
     dependencies:
-      '@vue/compiler-ssr': 3.6.0-rc.11
-      '@vue/runtime-dom': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/compiler-ssr': 3.6.0-rc.12
+      '@vue/runtime-dom': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
 
-  '@vue/shared@3.6.0-rc.11': {}
+  '@vue/shared@3.6.0-rc.12': {}
 
-  '@vue/tsconfig@0.9.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vue/tsconfig@0.9.1(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     optionalDependencies:
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  '@vueuse/core@14.4.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vueuse/core@14.4.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
       '@vueuse/metadata': 14.4.0
-      '@vueuse/shared': 14.4.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@vueuse/shared': 14.4.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  '@vueuse/core@15.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vueuse/core@15.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
       '@vueuse/metadata': 15.0.0
-      '@vueuse/shared': 15.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@vueuse/shared': 15.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   '@vueuse/metadata@14.4.0': {}
 
   '@vueuse/metadata@15.0.0': {}
 
-  '@vueuse/shared@14.4.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vueuse/shared@14.4.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  '@vueuse/shared@15.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
+  '@vueuse/shared@15.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))':
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
@@ -3303,27 +3290,27 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-prettier@10.1.8(eslint@10.12.0(jiti@2.7.0)):
+  eslint-config-prettier@10.1.8(eslint@10.13.0(jiti@2.7.0)):
     dependencies:
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
 
-  eslint-plugin-oxlint@1.88.0(oxlint@1.88.0):
+  eslint-plugin-oxlint@1.89.0(oxlint@1.89.0):
     dependencies:
       jsonc-parser: 3.3.1
-      oxlint: 1.88.0
+      oxlint: 1.89.0
 
-  eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0))):
+  eslint-plugin-vue@10.11.1(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0))):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.1(eslint@10.12.0(jiti@2.7.0))
-      eslint: 10.12.0(jiti@2.7.0)
+      '@eslint-community/eslint-utils': 4.9.1(eslint@10.13.0(jiti@2.7.0))
+      eslint: 10.13.0(jiti@2.7.0)
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.5
       semver: 7.8.5
-      vue-eslint-parser: 10.4.0(eslint@10.12.0(jiti@2.7.0))
+      vue-eslint-parser: 10.4.0(eslint@10.13.0(jiti@2.7.0))
       xml-name-validator: 5.0.0
     optionalDependencies:
-      '@typescript-eslint/parser': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/parser': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   eslint-scope@9.1.2:
     dependencies:
@@ -3336,9 +3323,9 @@ snapshots:
 
   eslint-visitor-keys@5.0.1: {}
 
-  eslint@10.12.0(jiti@2.7.0):
+  eslint@10.13.0(jiti@2.7.0):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.1(eslint@10.12.0(jiti@2.7.0))
+      '@eslint-community/eslint-utils': 4.9.1(eslint@10.13.0(jiti@2.7.0))
       '@eslint-community/regexpp': 4.12.2
       '@eslint/config-array': 0.23.5
       '@eslint/config-helpers': 0.7.0
@@ -3438,10 +3425,10 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  focus-trap-vue@4.1.0(focus-trap@7.8.0)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  focus-trap-vue@4.1.0(focus-trap@7.8.0)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
       focus-trap: 7.8.0
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   focus-trap@7.8.0:
     dependencies:
@@ -3641,9 +3628,9 @@ snapshots:
 
   lodash@4.18.1: {}
 
-  lucide-vue-next@1.0.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  lucide-vue-next@1.0.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   magic-string@0.30.21:
     dependencies:
@@ -3702,8 +3689,6 @@ snapshots:
 
   muggle-string@0.4.1: {}
 
-  nanoid@3.3.18: {}
-
   nanoid@3.3.20: {}
 
   nanoid@5.1.16: {}
@@ -3746,51 +3731,51 @@ snapshots:
 
   overlayscrollbars@2.16.0: {}
 
-  oxfmt@0.73.0:
+  oxfmt@0.74.0:
     dependencies:
       tinypool: 2.2.0
     optionalDependencies:
-      '@oxfmt/binding-android-arm-eabi': 0.73.0
-      '@oxfmt/binding-android-arm64': 0.73.0
-      '@oxfmt/binding-darwin-arm64': 0.73.0
-      '@oxfmt/binding-darwin-x64': 0.73.0
-      '@oxfmt/binding-freebsd-x64': 0.73.0
-      '@oxfmt/binding-linux-arm-gnueabihf': 0.73.0
-      '@oxfmt/binding-linux-arm-musleabihf': 0.73.0
-      '@oxfmt/binding-linux-arm64-gnu': 0.73.0
-      '@oxfmt/binding-linux-arm64-musl': 0.73.0
-      '@oxfmt/binding-linux-ppc64-gnu': 0.73.0
-      '@oxfmt/binding-linux-riscv64-gnu': 0.73.0
-      '@oxfmt/binding-linux-riscv64-musl': 0.73.0
-      '@oxfmt/binding-linux-s390x-gnu': 0.73.0
-      '@oxfmt/binding-linux-x64-gnu': 0.73.0
-      '@oxfmt/binding-linux-x64-musl': 0.73.0
-      '@oxfmt/binding-openharmony-arm64': 0.73.0
-      '@oxfmt/binding-win32-arm64-msvc': 0.73.0
-      '@oxfmt/binding-win32-ia32-msvc': 0.73.0
-      '@oxfmt/binding-win32-x64-msvc': 0.73.0
+      '@oxfmt/binding-android-arm-eabi': 0.74.0
+      '@oxfmt/binding-android-arm64': 0.74.0
+      '@oxfmt/binding-darwin-arm64': 0.74.0
+      '@oxfmt/binding-darwin-x64': 0.74.0
+      '@oxfmt/binding-freebsd-x64': 0.74.0
+      '@oxfmt/binding-linux-arm-gnueabihf': 0.74.0
+      '@oxfmt/binding-linux-arm-musleabihf': 0.74.0
+      '@oxfmt/binding-linux-arm64-gnu': 0.74.0
+      '@oxfmt/binding-linux-arm64-musl': 0.74.0
+      '@oxfmt/binding-linux-ppc64-gnu': 0.74.0
+      '@oxfmt/binding-linux-riscv64-gnu': 0.74.0
+      '@oxfmt/binding-linux-riscv64-musl': 0.74.0
+      '@oxfmt/binding-linux-s390x-gnu': 0.74.0
+      '@oxfmt/binding-linux-x64-gnu': 0.74.0
+      '@oxfmt/binding-linux-x64-musl': 0.74.0
+      '@oxfmt/binding-openharmony-arm64': 0.74.0
+      '@oxfmt/binding-win32-arm64-msvc': 0.74.0
+      '@oxfmt/binding-win32-ia32-msvc': 0.74.0
+      '@oxfmt/binding-win32-x64-msvc': 0.74.0
 
-  oxlint@1.88.0:
+  oxlint@1.89.0:
     optionalDependencies:
-      '@oxlint/binding-android-arm-eabi': 1.88.0
-      '@oxlint/binding-android-arm64': 1.88.0
-      '@oxlint/binding-darwin-arm64': 1.88.0
-      '@oxlint/binding-darwin-x64': 1.88.0
-      '@oxlint/binding-freebsd-x64': 1.88.0
-      '@oxlint/binding-linux-arm-gnueabihf': 1.88.0
-      '@oxlint/binding-linux-arm-musleabihf': 1.88.0
-      '@oxlint/binding-linux-arm64-gnu': 1.88.0
-      '@oxlint/binding-linux-arm64-musl': 1.88.0
-      '@oxlint/binding-linux-ppc64-gnu': 1.88.0
-      '@oxlint/binding-linux-riscv64-gnu': 1.88.0
-      '@oxlint/binding-linux-riscv64-musl': 1.88.0
-      '@oxlint/binding-linux-s390x-gnu': 1.88.0
-      '@oxlint/binding-linux-x64-gnu': 1.88.0
-      '@oxlint/binding-linux-x64-musl': 1.88.0
-      '@oxlint/binding-openharmony-arm64': 1.88.0
-      '@oxlint/binding-win32-arm64-msvc': 1.88.0
-      '@oxlint/binding-win32-ia32-msvc': 1.88.0
-      '@oxlint/binding-win32-x64-msvc': 1.88.0
+      '@oxlint/binding-android-arm-eabi': 1.89.0
+      '@oxlint/binding-android-arm64': 1.89.0
+      '@oxlint/binding-darwin-arm64': 1.89.0
+      '@oxlint/binding-darwin-x64': 1.89.0
+      '@oxlint/binding-freebsd-x64': 1.89.0
+      '@oxlint/binding-linux-arm-gnueabihf': 1.89.0
+      '@oxlint/binding-linux-arm-musleabihf': 1.89.0
+      '@oxlint/binding-linux-arm64-gnu': 1.89.0
+      '@oxlint/binding-linux-arm64-musl': 1.89.0
+      '@oxlint/binding-linux-ppc64-gnu': 1.89.0
+      '@oxlint/binding-linux-riscv64-gnu': 1.89.0
+      '@oxlint/binding-linux-riscv64-musl': 1.89.0
+      '@oxlint/binding-linux-s390x-gnu': 1.89.0
+      '@oxlint/binding-linux-x64-gnu': 1.89.0
+      '@oxlint/binding-linux-x64-musl': 1.89.0
+      '@oxlint/binding-openharmony-arm64': 1.89.0
+      '@oxlint/binding-win32-arm64-msvc': 1.89.0
+      '@oxlint/binding-win32-ia32-msvc': 1.89.0
+      '@oxlint/binding-win32-x64-msvc': 1.89.0
 
   p-limit@3.1.0:
     dependencies:
@@ -3820,12 +3805,6 @@ snapshots:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
-
-  postcss@8.5.28:
-    dependencies:
-      nanoid: 3.3.18
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
 
   postcss@8.5.31:
     dependencies:
@@ -3929,8 +3908,6 @@ snapshots:
 
   sortablejs@1.15.7: {}
 
-  source-map-js@1.2.1: {}
-
   source-map-js@1.2.2: {}
 
   space-separated-tokens@2.0.2: {}
@@ -3940,9 +3917,9 @@ snapshots:
       character-entities-html4: 2.1.0
       character-entities-legacy: 3.0.0
 
-  swrv@1.2.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  swrv@1.2.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   tabbable@6.4.0: {}
 
@@ -3975,13 +3952,13 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
 
-  typescript-eslint@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2):
+  typescript-eslint@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.61.0(@typescript-eslint/parser@8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      '@typescript-eslint/parser': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/eslint-plugin': 8.61.0(@typescript-eslint/parser@8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      '@typescript-eslint/parser': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
       '@typescript-eslint/typescript-estree': 8.61.0(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      '@typescript-eslint/utils': 8.61.0(eslint@10.12.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      eslint: 10.12.0(jiti@2.7.0)
+      '@typescript-eslint/utils': 8.61.0(eslint@10.13.0(jiti@2.7.0))(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      eslint: 10.13.0(jiti@2.7.0)
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
     transitivePeerDependencies:
       - supports-color
@@ -4027,7 +4004,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  v-calendar@3.1.2(@popperjs/core@2.11.8)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  v-calendar@3.1.2(@popperjs/core@2.11.8)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
       '@popperjs/core': 2.11.8
       '@types/lodash': 4.17.24
@@ -4035,8 +4012,8 @@ snapshots:
       date-fns: 2.30.0
       date-fns-tz: 2.0.1(date-fns@2.30.0)
       lodash: 4.18.1
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
-      vue-screen-utils: 1.0.0-beta.13(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue-screen-utils: 1.0.0-beta.13(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2))
 
   vfile-message@4.0.3:
     dependencies:
@@ -4048,9 +4025,9 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  virtua@0.49.3(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  virtua@0.49.3(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     optionalDependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   vite@8.3.4(@types/node@25.9.9)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.23.15):
     dependencies:
@@ -4068,23 +4045,23 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-clamp@1.6.0(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  vue-clamp@1.6.0(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  vue-demi@0.14.10(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  vue-demi@0.14.10(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  vue-draggable-next@2.3.0(sortablejs@1.15.7)(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  vue-draggable-next@2.3.0(sortablejs@1.15.7)(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
       sortablejs: 1.15.7
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@2.7.0)):
+  vue-eslint-parser@10.4.0(eslint@10.13.0(jiti@2.7.0)):
     dependencies:
       debug: 4.4.3
-      eslint: 10.12.0(jiti@2.7.0)
+      eslint: 10.13.0(jiti@2.7.0)
       eslint-scope: 9.1.2
       eslint-visitor-keys: 5.0.1
       espree: 11.2.0
@@ -4093,14 +4070,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-router@4.6.4(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  vue-router@4.6.4(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
       '@vue/devtools-api': 6.6.4
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
-  vue-screen-utils@1.0.0-beta.13(vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
+  vue-screen-utils@1.0.0-beta.13(vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)):
     dependencies:
-      vue: 3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
+      vue: 3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2)
 
   vue-tsc@3.3.13(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2):
     dependencies:
@@ -4108,14 +4085,14 @@ snapshots:
       '@vue/language-core': 3.3.13
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
 
-  vue@3.6.0-rc.11(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2):
+  vue@3.6.0-rc.12(typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2):
     dependencies:
-      '@vue/compiler-dom': 3.6.0-rc.11
-      '@vue/compiler-sfc': 3.6.0-rc.11
-      '@vue/runtime-dom': 3.6.0-rc.11
-      '@vue/runtime-vapor': 3.6.0-rc.11(@vue/runtime-dom@3.6.0-rc.11)
-      '@vue/server-renderer': 3.6.0-rc.11
-      '@vue/shared': 3.6.0-rc.11
+      '@vue/compiler-dom': 3.6.0-rc.12
+      '@vue/compiler-sfc': 3.6.0-rc.12
+      '@vue/runtime-dom': 3.6.0-rc.12
+      '@vue/runtime-vapor': 3.6.0-rc.12(@vue/runtime-dom@3.6.0-rc.12)
+      '@vue/server-renderer': 3.6.0-rc.12
+      '@vue/shared': 3.6.0-rc.12
     optionalDependencies:
       typescript: typescript-native-bridge@6.0.3-bridge.18.tsgo.7.0.2
 
