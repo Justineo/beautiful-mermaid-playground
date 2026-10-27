@@ -42,7 +42,7 @@
     "beautiful-mermaid": "1.1.3",
     "lucide-vue-next": "^1.0.0",
     "monaco-editor": "0.55.1",
-    "overlayscrollbars": "2.16.0",
+    "overlayscrollbars": "2.17.0",
     "shiki": "4.5.0",
     "vue": "3.6.0-rc.12"
   },
