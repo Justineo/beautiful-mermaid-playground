@@ -374,8 +374,14 @@ const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, spli
   minLeftPx: DESKTOP_EDITOR_MIN_WIDTH,
   minRightPx: DESKTOP_PREVIEW_MIN_WIDTH,
 });
-const { isRendering, renderState, renderNow, renderTextByColorMode, scheduleRender } =
-  useBeautifulRenderer(codeRef, configRef, 300);
+const {
+  beautifulMermaidUnsupported,
+  isRendering,
+  renderState,
+  renderNow,
+  renderTextByColorMode,
+  scheduleRender,
+} = useBeautifulRenderer(codeRef, configRef, 300);
 const currentSvg = computed(() =>
   renderState.value.svgRenderer === state.value.config.svgRenderer ? renderState.value.svg : null,
 );
@@ -1339,6 +1345,7 @@ onUnmounted(() => {
             <MermaidPreview
               :output-mode="state.config.outputMode"
               :svg-renderer="state.config.svgRenderer"
+              :beautiful-mermaid-unsupported="beautifulMermaidUnsupported"
               :fit-request-id="previewFitRequestId"
               :mono-font-family="monoFontFamily"
               :text-warnings="textOutputWarnings"
@@ -1394,6 +1401,7 @@ onUnmounted(() => {
           <MermaidPreview
             :output-mode="state.config.outputMode"
             :svg-renderer="state.config.svgRenderer"
+            :beautiful-mermaid-unsupported="beautifulMermaidUnsupported"
             :fit-request-id="previewFitRequestId"
             :mono-font-family="monoFontFamily"
             :text-warnings="textOutputWarnings"

@@ -33,6 +33,7 @@ type ContentSize = {
 const props = defineProps<{
   outputMode: RenderOutputMode;
   svgRenderer: SvgRenderer;
+  beautifulMermaidUnsupported: boolean;
   fitRequestId: number;
   monoFontFamily: string;
   textWarnings: TextOutputWarning[];
@@ -156,20 +157,24 @@ const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
 });
 const exportTriggerIcon = "copy" as const;
 const PELE_PREVIEW_KEY = "svg-pele";
-const outputModeItems = RENDER_OUTPUT_MODE_OPTIONS.flatMap<SegmentedControlItem>(
-  ({ value, label }) =>
+const outputModeItems = computed(() =>
+  RENDER_OUTPUT_MODE_OPTIONS.flatMap<SegmentedControlItem>(({ value, label }) =>
     value === "svg"
       ? [
           {
             key: value,
             label,
-            title: "Beautiful Mermaid",
+            title: props.beautifulMermaidUnsupported
+              ? "Beautiful Mermaid can't render this diagram"
+              : "Beautiful Mermaid",
             ariaLabel: "Beautiful Mermaid SVG",
             iconSrc: lukilabsLogo,
+            labelClass: props.beautifulMermaidUnsupported ? "inactive" : undefined,
           },
           { key: PELE_PREVIEW_KEY, label, title: "Pele", ariaLabel: "Pele SVG", iconSrc: peleLogo },
         ]
       : [{ key: value, label }],
+  ),
 );
 const activeOutputModeKey = computed(() =>
   props.outputMode === "svg" && props.svgRenderer === "pele" ? PELE_PREVIEW_KEY : props.outputMode,
