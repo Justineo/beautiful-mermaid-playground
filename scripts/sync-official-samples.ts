@@ -1,8 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript";
 
 const ROOT = process.cwd();
-const SOURCE_URL = "https://agents.craft.do/mermaid";
+const SOURCE_URL =
+  "https://raw.githubusercontent.com/lukilabs/beautiful-mermaid/main/samples-data.ts";
 const OUTPUT_PATH = path.join(ROOT, "src/data/officialSamples.ts");
 
 function toPrettyJson(value) {
@@ -26,61 +28,63 @@ async function writeIfChanged(filePath, content) {
   return true;
 }
 
-function extractSamplesArrayLiteral(html) {
-  const marker = "var samples = ";
-  const markerIndex = html.indexOf(marker);
-  if (markerIndex < 0) {
-    throw new Error("Cannot find `var samples =` in official site payload.");
+type SampleLiteral =
+  | string
+  | number
+  | boolean
+  | null
+  | SampleLiteral[]
+  | {
+      [key: string]: SampleLiteral;
+    };
+
+function readLiteral(node: ts.Expression): SampleLiteral {
+  if (ts.isStringLiteralLike(node)) return node.text;
+  if (ts.isNumericLiteral(node)) return Number(node.text);
+  if (
+    ts.isPrefixUnaryExpression(node) &&
+    node.operator === ts.SyntaxKind.MinusToken &&
+    ts.isNumericLiteral(node.operand)
+  )
+    return -Number(node.operand.text);
+  if (node.kind === ts.SyntaxKind.TrueKeyword) return true;
+  if (node.kind === ts.SyntaxKind.FalseKeyword) return false;
+  if (node.kind === ts.SyntaxKind.NullKeyword) return null;
+  if (ts.isArrayLiteralExpression(node)) return node.elements.map(readLiteral);
+  if (ts.isObjectLiteralExpression(node)) {
+    return Object.fromEntries(
+      node.properties.map((property) => {
+        if (
+          !ts.isPropertyAssignment(property) ||
+          (!ts.isIdentifier(property.name) && !ts.isStringLiteral(property.name))
+        ) {
+          throw new Error("Expected a literal property in the official samples.");
+        }
+        return [property.name.text, readLiteral(property.initializer)];
+      }),
+    );
   }
+  throw new Error(`Unsupported value in the official samples: ${ts.SyntaxKind[node.kind]}.`);
+}
 
-  const startIndex = html.indexOf("[", markerIndex + marker.length);
-  if (startIndex < 0) {
-    throw new Error("Cannot locate samples array start.");
+function extractSamples(source: string): SampleLiteral[] {
+  // Read the same data as the upstream site generator without executing the downloaded module.
+  const file = ts.createSourceFile("samples-data.ts", source, ts.ScriptTarget.Latest);
+  if (
+    "parseDiagnostics" in file &&
+    Array.isArray(file.parseDiagnostics) &&
+    file.parseDiagnostics.length > 0
+  ) {
+    throw new Error("Invalid TypeScript in the official samples source.");
   }
-
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-
-  for (let index = startIndex; index < html.length; index += 1) {
-    const char = html[index];
-
-    if (inString) {
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-
-      if (char === "\\") {
-        escaped = true;
-        continue;
-      }
-
-      if (char === '"') {
-        inString = false;
-      }
-      continue;
-    }
-
-    if (char === '"') {
-      inString = true;
-      continue;
-    }
-
-    if (char === "[") {
-      depth += 1;
-      continue;
-    }
-
-    if (char === "]") {
-      depth -= 1;
-      if (depth === 0) {
-        return html.slice(startIndex, index + 1);
-      }
-    }
+  const samples = file.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((statement) => statement.declarationList.declarations)
+    .find(({ name }) => ts.isIdentifier(name) && name.text === "samples")?.initializer;
+  if (!samples || !ts.isArrayLiteralExpression(samples) || samples.elements.length === 0) {
+    throw new Error("Expected a non-empty `samples` array in the official samples source.");
   }
-
-  throw new Error("Cannot locate samples array end.");
+  return samples.elements.map(readLiteral);
 }
 
 function isPlainObject(value) {
@@ -119,7 +123,9 @@ function toOfficialSamples(samplesPayload) {
 
     const titleRaw = typeof item.title === "string" ? item.title : "";
     const descriptionRaw = typeof item.description === "string" ? item.description : "";
-    const sourceRaw = typeof item.source === "string" ? item.source : "";
+    if (typeof item.source !== "string" || !item.source.trim()) {
+      throw new Error(`Invalid sample at index ${index}: expected a Mermaid source string.`);
+    }
     const categoryRaw = typeof item.category === "string" ? item.category : "Other";
 
     const category = normalizeCategory(categoryRaw);
@@ -129,7 +135,7 @@ function toOfficialSamples(samplesPayload) {
       id: index,
       title: normalizeTitle(titleRaw, category),
       description: descriptionRaw,
-      source: normalizeSource(sourceRaw),
+      source: normalizeSource(item.source),
       category,
       options,
     };
@@ -209,16 +215,14 @@ async function main() {
     headers: {
       "user-agent": "beautiful-mermaid-playground-sync-script",
     },
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch official site: ${response.status} ${response.statusText}`);
+    throw new Error(`HTTP ${response.status} ${response.statusText} from ${response.url}.`);
   }
 
-  const html = await response.text();
-  const arrayLiteral = extractSamplesArrayLiteral(html);
-  const samplesPayload = JSON.parse(arrayLiteral);
-  const samples = toOfficialSamples(samplesPayload);
+  const samples = toOfficialSamples(extractSamples(await response.text()));
   const output = renderOfficialSamplesFile(samples);
 
   const written = await writeIfChanged(OUTPUT_PATH, output);
@@ -227,6 +231,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Failed to sync official samples from ${SOURCE_URL}: ${message}`);
   process.exitCode = 1;
 });

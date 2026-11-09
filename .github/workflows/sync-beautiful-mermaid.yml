@@ -65,7 +65,7 @@ jobs:
             Automated weekly sync:
             - update `beautiful-mermaid` to latest
             - regenerate theme tokens
-            - sync official samples from the live site
+            - sync official samples from the upstream repository
           labels: dependencies, automated
           add-paths: |
             package.json
