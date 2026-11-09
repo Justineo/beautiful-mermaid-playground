@@ -5,12 +5,23 @@ import type { RenderOptions as BeautifulRenderOptions } from "beautiful-mermaid"
 import type { Ref } from "vue";
 import { ELEMENT_COLOR_ROLES } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
+import type { PeleElementColors } from "@/utils/peleSvgStyles";
+import {
+  BORDER_DASH,
+  BORDER_WIDTH_MULTIPLIER,
+  CORNER_RADIUS_SET,
+  EDGE_DASH,
+  EDGE_LABEL_FONT_SIZE,
+  EDGE_WIDTH_MULTIPLIER,
+  subgraphPresetRules,
+} from "@/utils/svgRenderStyles";
 import type {
   BeautifulRenderConfig,
   ElementColorRole,
   ElementColorRule,
   RenderOutputMode,
   RenderState,
+  SvgRenderer,
   TextColorMode,
   ThemeToken,
 } from "@/types/playground";
@@ -78,12 +89,13 @@ function loadBeautifulMermaid(): Promise<BeautifulMermaidRuntime> {
   return beautifulMermaidRuntimePromise;
 }
 
-export async function preloadRenderer(): Promise<void> {
-  await loadBeautifulMermaid();
+export async function preloadRenderer(renderer: SvgRenderer): Promise<void> {
+  if (renderer === "pele") {
+    await import("@/utils/peleRenderer");
+  } else {
+    await loadBeautifulMermaid();
+  }
 }
-
-const SUBGRAPH_HEADER_SELECTOR =
-  ".subgraph > rect:nth-of-type(2), .subgraph > .subgraph-header-shape";
 
 const ELEMENT_ROLE_CSS_VAR: Record<ElementColorRole, string> = {
   text: "--_text",
@@ -104,71 +116,6 @@ const ELEMENT_ROLE_TEXT_THEME_FIELD: Partial<Record<ElementColorRole, keyof Asci
   connectors: "line",
   nodeStroke: "border",
 };
-
-const EDGE_WIDTH_MULTIPLIER = {
-  normal: 1,
-  bold: 1.5,
-  heavy: 2,
-} as const;
-
-const BORDER_WIDTH_MULTIPLIER = {
-  normal: 1,
-  bold: 1.35,
-  heavy: 1.8,
-} as const;
-
-const EDGE_DASH = {
-  solid: "none",
-  dashed: "8 5",
-  dotted: "2.25 4.25",
-} as const;
-
-const BORDER_DASH = {
-  solid: "none",
-  dashed: "9 4",
-  dotted: "2 3.5",
-} as const;
-
-const CORNER_RADIUS_SET = {
-  sharp: {
-    node: 0,
-    classNode: 0,
-    entity: 0,
-    subgraphOuter: 0,
-    subgraphHeader: 0,
-    actor: 0,
-    activation: 0,
-  },
-  soft: {
-    node: 5,
-    classNode: 4,
-    entity: 5,
-    subgraphOuter: 7,
-    subgraphHeader: 6,
-    actor: 6,
-    activation: 4,
-  },
-  rounded: {
-    node: 10,
-    classNode: 8,
-    entity: 10,
-    subgraphOuter: 14,
-    subgraphHeader: 11,
-    actor: 10,
-    activation: 8,
-  },
-  pill: {
-    node: -1,
-    classNode: 16,
-    entity: 14,
-    subgraphOuter: 22,
-    subgraphHeader: 16,
-    actor: -1,
-    activation: 10,
-  },
-} as const;
-
-const EDGE_LABEL_FONT_SIZE = 11;
 
 type RgbColor = {
   r: number;
@@ -253,6 +200,22 @@ function normalizeThemeChannels(base: ThemeChannels): ThemeChannels {
   };
 }
 
+const FLOW_DIRECTION_HEADER = /^\s*(graph|flowchart)\s+(TD|TB|LR|RL|BT)\b/i;
+const STATE_DIRECTION_HEADER = /^\s*stateDiagram(?:-v2)?\s*$/i;
+
+function findDirectionHeader(lines: string[]): number {
+  return lines.findIndex((line) => {
+    const trimmed = line.trim();
+    return trimmed.length > 0 && !trimmed.startsWith("%%");
+  });
+}
+
+function canOverrideDirection(source: string): boolean {
+  const lines = source.split("\n");
+  const header = lines[findDirectionHeader(lines)] ?? "";
+  return FLOW_DIRECTION_HEADER.test(header) || STATE_DIRECTION_HEADER.test(header);
+}
+
 function forceDirection(
   source: string,
   directionOverride: BeautifulRenderConfig["directionOverride"],
@@ -262,24 +225,19 @@ function forceDirection(
   }
 
   const lines = source.split("\n");
-  const firstMeaningfulIndex = lines.findIndex((line) => {
-    const trimmed = line.trim();
-    return trimmed.length > 0 && !trimmed.startsWith("%%");
-  });
+  const firstMeaningfulIndex = findDirectionHeader(lines);
 
   if (firstMeaningfulIndex < 0) {
     return source;
   }
 
   const header = lines[firstMeaningfulIndex] ?? "";
-  const flowHeader = header.match(/^\s*(graph|flowchart)\s+(TD|TB|LR|RL|BT)\b/i);
-  if (flowHeader) {
+  if (FLOW_DIRECTION_HEADER.test(header)) {
     lines[firstMeaningfulIndex] = header.replace(/\b(TD|TB|LR|RL|BT)\b/i, directionOverride);
     return lines.join("\n");
   }
 
-  const stateHeader = header.match(/^\s*stateDiagram(?:-v2)?\s*$/i);
-  if (stateHeader) {
+  if (STATE_DIRECTION_HEADER.test(header)) {
     const directionLineRegex = /^\s*direction\s+(TD|TB|LR|RL|BT)\s*$/i;
     for (let index = firstMeaningfulIndex + 1; index < lines.length; index += 1) {
       const line = lines[index];
@@ -724,209 +682,6 @@ function renderSvgWithFallback(
   };
 }
 
-function subgraphPresetRules(preset: BeautifulRenderConfig["subgraphStyle"]): string {
-  if (preset === "default") {
-    return "";
-  }
-
-  if (preset === "minimal") {
-    return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: transparent;
-    stroke-width: 1 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: transparent;
-    stroke-width: 0 !important;
-  }
-  .subgraph > text {
-    font-weight: 560;
-  }`;
-  }
-
-  if (preset === "soft") {
-    return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--fg) 2.5%, var(--bg));
-    fill-opacity: 0.96;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 9%, var(--bg));
-  }
-  .subgraph > text {
-    font-weight: 600;
-  }`;
-  }
-
-  if (preset === "outlined") {
-    return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: transparent;
-    stroke-dasharray: 6 3 !important;
-    stroke-width: 1.05 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 6%, var(--bg));
-  }
-  .subgraph > text {
-    letter-spacing: 0.01em;
-    font-weight: 580;
-  }`;
-  }
-
-  if (preset === "elevated") {
-    return `
-  .subgraph {
-    filter: drop-shadow(0 7px 16px color-mix(in srgb, var(--fg) 12%, transparent));
-  }
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--fg) 4%, var(--bg));
-    fill-opacity: 0.98;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 12%, var(--bg));
-  }
-  .subgraph > text {
-    font-weight: 620;
-  }`;
-  }
-
-  if (preset === "accent") {
-    return `
-  .subgraph {
-    filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--accent, var(--_arrow)) 40%, transparent));
-  }
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 14%, var(--bg)) !important;
-    stroke: color-mix(in srgb, var(--accent, var(--_arrow)) 72%, var(--bg)) !important;
-    stroke-width: 1.25 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 22%, var(--bg)) !important;
-    stroke: color-mix(in srgb, var(--accent, var(--_arrow)) 82%, var(--bg)) !important;
-    stroke-width: 1.25 !important;
-  }
-  .subgraph > text {
-    fill: var(--accent, var(--_arrow)) !important;
-    font-weight: 650;
-  }`;
-  }
-
-  if (preset === "brutalist") {
-    return `
-  .subgraph {
-    filter: drop-shadow(4px 4px 0 color-mix(in srgb, var(--fg) 76%, var(--bg)));
-  }
-  .subgraph > rect:nth-of-type(1) {
-    fill: var(--bg);
-    stroke: var(--fg) !important;
-    stroke-width: 2.2 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: var(--fg);
-    stroke: var(--fg) !important;
-    stroke-width: 2.2 !important;
-  }
-  .subgraph > text {
-    fill: var(--bg) !important;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }`;
-  }
-
-  if (preset === "neon") {
-    return `
-  .subgraph {
-    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent, var(--_arrow)) 55%, transparent));
-  }
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 8%, var(--bg));
-    stroke: color-mix(in srgb, var(--accent, var(--_arrow)) 95%, var(--bg)) !important;
-    stroke-width: 1.4 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 22%, var(--bg));
-    stroke: color-mix(in srgb, var(--accent, var(--_arrow)) 98%, var(--bg)) !important;
-    stroke-width: 1.4 !important;
-  }
-  .subgraph > text {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 96%, var(--bg)) !important;
-    font-weight: 660;
-    letter-spacing: 0.012em;
-  }`;
-  }
-
-  if (preset === "signal") {
-    return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--line, var(--_line)) 8%, var(--bg));
-    stroke: color-mix(in srgb, var(--line, var(--_line)) 78%, var(--bg)) !important;
-    stroke-width: 1.3 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 34%, var(--bg));
-    stroke: color-mix(in srgb, var(--accent, var(--_arrow)) 90%, var(--bg)) !important;
-    stroke-width: 1.3 !important;
-  }
-  .subgraph > text {
-    fill: color-mix(in srgb, var(--accent, var(--_arrow)) 96%, var(--bg)) !important;
-    font-weight: 640;
-  }`;
-  }
-
-  if (preset === "contrast") {
-    return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--fg) 10%, var(--bg));
-    stroke-width: 1.35 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 82%, var(--bg));
-    stroke: color-mix(in srgb, var(--fg) 88%, var(--bg)) !important;
-    stroke-width: 1.35 !important;
-  }
-  .subgraph > text {
-    fill: var(--bg) !important;
-    font-weight: 650;
-    letter-spacing: 0.015em;
-  }`;
-  }
-
-  if (preset === "glass") {
-    return `
-  .subgraph {
-    filter: drop-shadow(0 8px 18px color-mix(in srgb, var(--fg) 10%, transparent));
-  }
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--fg) 10%, var(--bg));
-    fill-opacity: 0.62;
-    stroke: color-mix(in srgb, var(--fg) 30%, var(--bg)) !important;
-    stroke-width: 1.15 !important;
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 24%, var(--bg));
-    fill-opacity: 0.78;
-    stroke: color-mix(in srgb, var(--fg) 36%, var(--bg)) !important;
-    stroke-width: 1.15 !important;
-  }
-  .subgraph > text {
-    fill: color-mix(in srgb, var(--fg) 82%, var(--bg)) !important;
-    font-weight: 620;
-  }`;
-  }
-
-  return `
-  .subgraph > rect:nth-of-type(1) {
-    fill: color-mix(in srgb, var(--fg) 2.5%, var(--bg));
-  }
-  ${SUBGRAPH_HEADER_SELECTOR} {
-    fill: color-mix(in srgb, var(--fg) 9%, var(--bg));
-  }
-  .subgraph > text {
-    font-weight: 600;
-  }`;
-}
-
 function parsePoints(pointsAttr: string): Point[] {
   return pointsAttr
     .trim()
@@ -1363,10 +1118,12 @@ export function useBeautifulRenderer(
 ) {
   const renderState = ref<RenderState>({
     svg: null,
+    svgRenderer: null,
+    peleControls: [],
     asciiHtml: null,
     textOutputMode: null,
     error: null,
-    durationMs: null,
+    startedAt: null,
     renderId: 0,
   });
 
@@ -1375,12 +1132,22 @@ export function useBeautifulRenderer(
   let latestScheduleToken = 0;
 
   async function renderNow(): Promise<void> {
+    const startedAt = performance.now();
+    cancelScheduledRender();
     const renderToken = latestRenderToken + 1;
     latestRenderToken = renderToken;
+    const { outputMode, svgRenderer } = config.value;
+
+    const isCurrentRender = () =>
+      renderToken === latestRenderToken &&
+      outputMode === config.value.outputMode &&
+      (outputMode !== "svg" || svgRenderer === config.value.svgRenderer);
 
     const { source, originalSource } = resolveRenderSource(
       code.value,
-      config.value.directionOverride,
+      outputMode === "svg" && svgRenderer === "pele" && config.value.directionOverride === "TD"
+        ? "TB"
+        : config.value.directionOverride,
     );
 
     if (!source) {
@@ -1390,34 +1157,67 @@ export function useBeautifulRenderer(
 
       renderState.value = {
         svg: null,
+        svgRenderer: null,
+        peleControls: [],
         asciiHtml: null,
         textOutputMode: null,
         error: null,
-        durationMs: 0,
+        startedAt: null,
         renderId: renderToken,
       };
+      isRendering.value = false;
       return;
     }
 
-    const previousSvg = renderState.value.svg;
-    const previousAsciiHtml = renderState.value.asciiHtml;
-    const previousTextOutputMode = renderState.value.textOutputMode;
+    const previousRender = renderState.value;
 
     try {
       isRendering.value = true;
-      const runtime = await loadBeautifulMermaid();
-      if (renderToken !== latestRenderToken) {
+      if (outputMode === "svg" && svgRenderer === "pele") {
+        const { renderPeleSvg } = await import("@/utils/peleRenderer");
+        if (!isCurrentRender()) {
+          return;
+        }
+
+        const currentConfig = config.value;
+        const tokens = resolveThemeTokenValues(currentConfig);
+        const elementColors: PeleElementColors = {};
+        for (const { role, scope } of ELEMENT_COLOR_ROLES) {
+          const rule = currentConfig.elementColors[role];
+          if (scope !== "text" && rule.source !== "default") {
+            elementColors[role] = resolveElementCustomColor(role, rule, tokens);
+          }
+        }
+        const { svg, controls: peleControls } = renderPeleSvg(source, tokens, {
+          fontFamily: resolveBaseFont(currentConfig),
+          fontFamilyMono: resolveMonoFont(currentConfig),
+          config: currentConfig,
+          elementColors,
+          canOverrideDirection: canOverrideDirection(originalSource),
+        });
+        renderState.value = {
+          ...previousRender,
+          svg,
+          svgRenderer,
+          peleControls,
+          error: null,
+          startedAt,
+          renderId: renderToken,
+        };
         return;
       }
-      const startedAt = performance.now();
 
+      const runtime = await loadBeautifulMermaid();
+      if (!isCurrentRender()) {
+        return;
+      }
       const baseTokens = resolveThemeTokenValues(config.value);
       const tokenOverrides = resolveMermaidOptionTokenOverrides(config.value, baseTokens);
       const effectiveTokens = applyOptionTokenOverrides(baseTokens, tokenOverrides);
       const scopedOverrides = resolveElementScopedOverrides(config.value, effectiveTokens);
-      const renderOptions = buildBeautifulMermaidOptions(config.value, effectiveTokens);
 
-      if (config.value.outputMode === "svg") {
+      if (outputMode === "svg") {
+        const renderOptions = buildBeautifulMermaidOptions(config.value, effectiveTokens);
         const result = renderSvgWithFallback(runtime, source, originalSource, renderOptions);
         const rawSvg = result.svg;
         const styledSvg = applyVisualOverrides(
@@ -1432,11 +1232,12 @@ export function useBeautifulRenderer(
         }
 
         renderState.value = {
+          ...previousRender,
           svg: styledSvg,
-          asciiHtml: previousAsciiHtml,
-          textOutputMode: previousTextOutputMode,
+          svgRenderer,
+          peleControls: [],
           error: null,
-          durationMs: Math.round(performance.now() - startedAt),
+          startedAt,
           renderId: renderToken,
         };
       } else {
@@ -1446,20 +1247,20 @@ export function useBeautifulRenderer(
         );
         const asciiHtml = runtime.renderMermaidASCII(
           source,
-          buildAsciiRenderOptions(config.value, asciiTheme, "html", config.value.outputMode),
+          buildAsciiRenderOptions(config.value, asciiTheme, "html", outputMode),
         );
 
         renderState.value = {
-          svg: previousSvg,
+          ...previousRender,
           asciiHtml,
-          textOutputMode: config.value.outputMode,
+          textOutputMode: outputMode,
           error: null,
-          durationMs: Math.round(performance.now() - startedAt),
+          startedAt,
           renderId: renderToken,
         };
       }
     } catch (error: unknown) {
-      if (renderToken !== latestRenderToken) {
+      if (!isCurrentRender()) {
         return;
       }
 
@@ -1467,11 +1268,10 @@ export function useBeautifulRenderer(
         ? `Failed to load renderer runtime: ${getErrorMessage(error)}`
         : getErrorMessage(error);
       renderState.value = {
-        svg: previousSvg,
-        asciiHtml: previousAsciiHtml,
-        textOutputMode: previousTextOutputMode,
+        ...previousRender,
+        peleControls: [],
         error: errorMessage,
-        durationMs: null,
+        startedAt: null,
         renderId: renderToken,
       };
     } finally {

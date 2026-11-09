@@ -34,29 +34,37 @@ import type {
   ElementColorScope,
   ElementColorSource,
   LineGeometry,
+  PeleSvgControl,
   RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
+  SvgRenderer,
   MonoFont,
   ThemeToken,
 } from "@/types/playground";
 
 type OptionsTab = "palette" | "layout" | "nodes" | "edges" | "system";
-type OptionsTabScope = "svg" | "text" | "mixed";
-const tabs: Array<{ key: OptionsTab; label: string }> = [
+const NODE_CONTROLS = {
+  subgraph: "subgraphStyle",
+  corner: "cornerStyle",
+  border: "nodeStroke",
+} as const;
+const EDGE_CONTROLS = {
+  routing: "routing",
+  stroke: "connectors",
+  label: "edgeLabels",
+} as const;
+const tabs: Array<{
+  key: OptionsTab;
+  label: string;
+  svgControls?: Readonly<Record<string, PeleSvgControl>>;
+}> = [
   { key: "palette", label: "Theme" },
   { key: "layout", label: "Layout" },
-  { key: "nodes", label: "Nodes" },
-  { key: "edges", label: "Edges" },
+  { key: "nodes", label: "Nodes", svgControls: NODE_CONTROLS },
+  { key: "edges", label: "Edges", svgControls: EDGE_CONTROLS },
   { key: "system", label: "Fonts" },
 ];
-const OPTIONS_TAB_SCOPE: Record<OptionsTab, OptionsTabScope> = {
-  palette: "mixed",
-  layout: "mixed",
-  nodes: "svg",
-  edges: "svg",
-  system: "mixed",
-};
 // Hidden for now: beautiful-mermaid currently doesn't produce reliable visual changes
 // from this control in our playground. Keep it easy to re-enable later.
 const SHOW_COMPONENT_GAP_CONTROL = false;
@@ -347,6 +355,8 @@ const ELEMENT_COLOR_ROLE_DISPLAY_ORDER: ElementColorRole[] = [
 const props = defineProps<{
   diagramTheme: DiagramTheme;
   outputMode: RenderOutputMode;
+  svgRenderer: SvgRenderer;
+  peleControls: PeleSvgControl[];
   useCustomBg: boolean;
   customBg: string;
   useCustomFg: boolean;
@@ -440,19 +450,35 @@ const emit = defineEmits<{
 
 const activeTab = ref<OptionsTab>("palette");
 const optionsScrollHostRef = ref<HTMLElement | null>(null);
+const isPeleSvg = computed(() => props.outputMode === "svg" && props.svgRenderer === "pele");
+function isPeleControlInactive(control: PeleSvgControl): boolean {
+  return isPeleSvg.value && !props.peleControls.includes(control);
+}
+
+function getPeleControlInactiveTitle(control: PeleSvgControl): string | undefined {
+  if (!isPeleControlInactive(control)) {
+    return undefined;
+  }
+  if (control === "routing") {
+    return "Pele routing presets apply to flowcharts with edges.";
+  }
+  if (control === "spacing") {
+    return "Pele node and layer gaps apply to flowcharts, state, class, and ER diagrams.";
+  }
+  return "This setting does not apply to the current diagram in Pele.";
+}
+
 const optionsTabItems = computed(() =>
-  tabs.map((tab) => {
-    const scope = OPTIONS_TAB_SCOPE[tab.key];
-    let inactive = false;
-    let title = tab.label;
-    if (scope !== "mixed" && !isScopeActive(scope)) {
-      inactive = true;
-      title = getScopeOnlyTitle(scope);
-    }
+  tabs.map(({ key, label, svgControls }) => {
+    const inactive =
+      svgControls && Object.values(svgControls).every((control) => !isScopeActive("svg", control));
     return {
-      key: tab.key,
-      label: tab.label,
-      title,
+      key,
+      label,
+      title: inactive
+        ? (getScopeInactiveTitle("svg") ??
+          "No settings in this group apply to the current diagram in Pele.")
+        : label,
       labelClass: inactive ? "inactive" : undefined,
     };
   }),
@@ -1488,28 +1514,24 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   return (value: string) => getElementOptionSwatchColor(role, value);
 }
 
-function isScopeActive(scope: ElementColorScope): boolean {
-  if (scope === "both") {
-    return true;
-  }
-
-  if (scope === "svg") {
-    return props.outputMode === "svg";
-  }
-
-  return props.outputMode !== "svg";
+function isScopeActive(scope: ElementColorScope, peleControl?: PeleSvgControl): boolean {
+  const outputScope = props.outputMode === "svg" ? "svg" : "text";
+  const matchesOutput = scope === "both" || scope === outputScope;
+  return matchesOutput && (peleControl === undefined || !isPeleControlInactive(peleControl));
 }
 
 function getScopeOnlyTitle(scope: Exclude<ElementColorScope, "both">): string {
   return scope === "svg" ? "Applies to SVG output only" : "Applies to Unicode/ASCII output only";
 }
 
-function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
-  if (scope === "both" || isScopeActive(scope)) {
-    return undefined;
+function getScopeInactiveTitle(
+  scope: ElementColorScope,
+  peleControl?: PeleSvgControl,
+): string | undefined {
+  if (scope !== "both" && !isScopeActive(scope)) {
+    return getScopeOnlyTitle(scope);
   }
-
-  return getScopeOnlyTitle(scope);
+  return peleControl === undefined ? undefined : getPeleControlInactiveTitle(peleControl);
 }
 </script>
 
@@ -1717,8 +1739,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
             >
               <span
                 class="setting-row-label"
-                :class="{ 'scope-inactive': !isScopeActive(roleMeta.scope) }"
-                :title="getScopeInactiveTitle(roleMeta.scope)"
+                :class="{ 'scope-inactive': !isScopeActive(roleMeta.scope, roleMeta.role) }"
+                :title="getScopeInactiveTitle(roleMeta.scope, roleMeta.role)"
               >
                 <span>{{ roleMeta.label }}</span>
               </span>
@@ -1736,7 +1758,12 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
 
         <div v-else-if="activeTab === 'layout'" class="setting-list">
           <div class="setting-row direction-row">
-            <span>Direction</span>
+            <span
+              :class="{ 'scope-inactive': !isScopeActive('both', 'direction') }"
+              :title="getScopeInactiveTitle('both', 'direction')"
+            >
+              Direction
+            </span>
             <BaseSegmentedControl
               class="direction-control"
               :items="directionSegmentItems"
@@ -1767,8 +1794,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', 'spacing') }"
+              :title="getScopeInactiveTitle('svg', 'spacing')"
             >
               <span>Node gap</span>
             </span>
@@ -1785,8 +1812,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', 'spacing') }"
+              :title="getScopeInactiveTitle('svg', 'spacing')"
             >
               <span>Layer gap</span>
             </span>
@@ -1800,8 +1827,13 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
             />
           </label>
 
-          <label v-if="SHOW_COMPONENT_GAP_CONTROL" class="setting-row">
-            <span>Component gap</span>
+          <label v-if="SHOW_COMPONENT_GAP_CONTROL || isPeleSvg" class="setting-row">
+            <span
+              :class="{ 'scope-inactive': isPeleSvg }"
+              :title="isPeleSvg ? 'Pele has no separate component gap setting.' : undefined"
+            >
+              Component gap
+            </span>
             <input
               type="number"
               min="4"
@@ -1871,8 +1903,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.subgraph) }"
+              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.subgraph)"
             >
               <span>Subgraph</span>
             </span>
@@ -1889,8 +1921,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.corner) }"
+              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.corner)"
             >
               <span>Corner</span>
             </span>
@@ -1906,8 +1938,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.border) }"
+              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.border)"
             >
               <span>Border pattern</span>
             </span>
@@ -1923,8 +1955,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.border) }"
+              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.border)"
             >
               <span>Border weight</span>
             </span>
@@ -1942,8 +1974,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.routing) }"
+              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.routing)"
             >
               <span>Routing</span>
             </span>
@@ -1959,8 +1991,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.stroke) }"
+              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.stroke)"
             >
               <span>Pattern</span>
             </span>
@@ -1976,8 +2008,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.stroke) }"
+              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.stroke)"
             >
               <span>Weight</span>
             </span>
@@ -1993,8 +2025,8 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
+              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.label) }"
+              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.label)"
             >
               <span>Label</span>
             </span>
@@ -2056,7 +2088,12 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
           </label>
 
           <label class="setting-row">
-            <span>Mono font</span>
+            <span
+              :class="{ 'scope-inactive': !isScopeActive('both', 'monoFont') }"
+              :title="getScopeInactiveTitle('both', 'monoFont')"
+            >
+              Mono font
+            </span>
             <BaseSelect
               v-if="!isMonoCustomInputMode"
               :value="monoFontSelectValue"
@@ -2332,6 +2369,36 @@ function getScopeInactiveTitle(scope: ElementColorScope): string | undefined {
   font-size: var(--fs-control);
   line-height: var(--lh-tight);
   border-color: color-mix(in srgb, var(--border-color) 56%, transparent);
+}
+
+.setting-row:has(> .scope-inactive) > input:enabled,
+.setting-row:has(> .scope-inactive) > :deep(.segmented-control),
+:is(.setting-row, .channel-row):has(> .scope-inactive) :deep(.ui-control-surface:enabled) {
+  border-style: dashed;
+  background-color: var(--surface-elevated);
+}
+
+:is(.setting-row, .channel-row):has(> .scope-inactive) :deep(.ui-control-surface:enabled),
+.channel-row:has(> .scope-inactive) :deep(.ui-checkbox-native:enabled + .ui-checkbox-visual) {
+  border-color: color-mix(in srgb, var(--border-color) 88%, transparent);
+}
+
+.channel-row:has(> .scope-inactive) :deep(.ui-checkbox-native:enabled + .ui-checkbox-visual) {
+  border-style: dashed;
+  background-color: var(--surface-elevated);
+}
+
+.channel-row:has(> .scope-inactive)
+  :deep(.ui-checkbox-native:enabled:checked + .ui-checkbox-visual) {
+  border-color: color-mix(in srgb, var(--text-primary) 62%, var(--border-color));
+  background-color: color-mix(in srgb, var(--text-primary) 88%, var(--surface));
+}
+
+.setting-row:has(> .scope-inactive) :deep(.segmented-control button:hover:enabled:not(.active)),
+.options-tabs :deep(button:has(> .inactive):hover:enabled:not(.active)) {
+  color: var(--text-muted);
+  border-color: transparent;
+  background-color: transparent;
 }
 
 @media (max-width: 959px) {

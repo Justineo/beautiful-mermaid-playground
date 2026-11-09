@@ -51,12 +51,23 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
             <span class="credit-separator" aria-hidden="true">&middot;</span>
             <a
               class="credit-link"
-              href="https://agents.craft.do/mermaid"
+              href="https://github.com/lukilabs/beautiful-mermaid"
               target="_blank"
               rel="noreferrer noopener"
               title="Beautiful Mermaid project"
             >
               <span>Beautiful Mermaid</span>
+              <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
+            </a>
+            <span class="credit-separator" aria-hidden="true">&middot;</span>
+            <a
+              class="credit-link"
+              href="https://pele.run/"
+              target="_blank"
+              rel="noreferrer noopener"
+              title="Pele project"
+            >
+              <span>Pele</span>
               <ExternalLink class="external-icon" :size="10" :stroke-width="1.35" />
             </a>
           </nav>
@@ -128,17 +139,19 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
   align-items: center;
   margin-left: auto;
   gap: 0.5rem;
-  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .action-group {
   display: inline-flex;
   align-items: center;
   gap: 0;
+  min-width: 0;
 }
 
 .credit-links {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.28rem;
   font-size: var(--fs-meta);
@@ -181,6 +194,16 @@ import { ExternalLink, Github, Twitter } from "lucide-vue-next";
 @media (max-width: 959px) {
   .toolbar-actions {
     margin-left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .credit-links {
+    column-gap: 0.5rem;
+  }
+
+  .credit-separator {
+    display: none;
   }
 }
 </style>

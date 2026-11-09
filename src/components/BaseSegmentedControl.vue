@@ -4,13 +4,15 @@ import type { Component } from "vue";
 import type { CSSProperties } from "vue";
 import type { ComponentPublicInstance } from "vue";
 
-type SegmentedControlItem = {
+export type SegmentedControlItem = {
   key: string;
   label: string;
   title?: string;
+  ariaLabel?: string;
   labelClass?: string;
   disabled?: boolean;
   icon?: Component;
+  iconSrc?: string;
   iconOnly?: boolean;
   previewStyle?: CSSProperties;
   previewClass?: string;
@@ -216,13 +218,21 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
       :aria-selected="props.asTabs ? isActive(item.key) : undefined"
       :aria-pressed="!props.asTabs && props.multiple ? isActive(item.key) : undefined"
       :title="item.title ?? item.label"
-      :aria-label="item.iconOnly ? item.label : undefined"
+      :aria-label="item.ariaLabel ?? (item.iconOnly ? item.label : undefined)"
       @click="onSelect(item)"
       @keydown="onButtonKeydown($event, item.key)"
     >
+      <img
+        v-if="item.iconSrc"
+        :src="item.iconSrc"
+        class="segmented-icon-image"
+        alt=""
+        width="14"
+        height="14"
+      />
       <component
         :is="item.icon"
-        v-if="item.icon"
+        v-else-if="item.icon"
         class="segmented-icon"
         :size="12"
         :stroke-width="1.8"
@@ -294,6 +304,16 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
 
 .segmented-icon {
   flex: 0 0 auto;
+}
+
+.segmented-icon-image {
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.segmented-control button:not(.icon-only) .segmented-icon-image {
+  margin-inline-end: 0.22rem;
 }
 
 .segmented-label.inactive {

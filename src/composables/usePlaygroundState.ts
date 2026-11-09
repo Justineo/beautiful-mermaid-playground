@@ -59,6 +59,7 @@ const DEFAULT_STATE: PlaygroundState = {
   code: DEFAULT_CODE,
   config: {
     outputMode: "svg",
+    svgRenderer: "beautiful-mermaid",
     diagramTheme: "github-light",
     useCustomBg: false,
     customBg: "#ffffff",
@@ -342,6 +343,7 @@ function sanitizeState(source: unknown): PlaygroundState {
       outputMode: isRenderOutputMode(rawConfig.outputMode)
         ? rawConfig.outputMode
         : DEFAULT_STATE.config.outputMode,
+      svgRenderer: rawConfig.svgRenderer === "pele" ? "pele" : DEFAULT_STATE.config.svgRenderer,
       diagramTheme: isDiagramTheme(rawConfig.diagramTheme)
         ? rawConfig.diagramTheme
         : DEFAULT_STATE.config.diagramTheme,

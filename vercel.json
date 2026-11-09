@@ -3,13 +3,13 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "beautiful-mermaid.dev" }],
-      "destination": "https://agents.craft.do/mermaid",
+      "destination": "https://github.com/lukilabs/beautiful-mermaid",
       "permanent": true
     },
     {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "beautiful-mermaid.dev" }],
-      "destination": "https://agents.craft.do/mermaid",
+      "destination": "https://github.com/lukilabs/beautiful-mermaid",
       "permanent": true
     }
   ]

@@ -36,6 +36,7 @@ import type {
   RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
+  SvgRenderer,
   TextColorMode,
   MonoFont,
   ThemeToken,
@@ -362,6 +363,14 @@ const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, spli
 });
 const { isRendering, renderState, renderNow, renderTextByColorMode, scheduleRender } =
   useBeautifulRenderer(codeRef, configRef, 300);
+const currentSvg = computed(() =>
+  renderState.value.svgRenderer === state.value.config.svgRenderer ? renderState.value.svg : null,
+);
+const previewSvg = computed(() => (isRendering.value ? renderState.value.svg : currentSvg.value));
+const previewTarget = computed(() => {
+  const { outputMode, svgRenderer } = configRef.value;
+  return outputMode === "svg" ? svgRenderer : outputMode;
+});
 const textOutputWarnings = useTextOutputWarnings(
   computed(() => renderState.value.asciiHtml),
   computed(() => state.value.config.outputMode),
@@ -404,7 +413,8 @@ function runIdlePrefetch(): void {
     return;
   }
 
-  void preloadRenderer().catch(() => {});
+  const alternateRenderer = previewTarget.value === "pele" ? "beautiful-mermaid" : "pele";
+  void preloadRenderer(alternateRenderer).catch(() => {});
 }
 
 function scheduleIdlePrefetch(): void {
@@ -531,7 +541,7 @@ watch(
       return;
     }
 
-    if (state.value.config.outputMode === "svg" && renderState.value.svg) {
+    if (state.value.config.outputMode === "svg" && currentSvg.value) {
       appliedPreviewTransparency.value = state.value.config.transparent;
     }
 
@@ -543,10 +553,13 @@ watch(
   },
 );
 
-const canExportCurrentOutput = computed(() =>
-  state.value.config.outputMode === "svg"
-    ? Boolean(renderState.value.svg)
-    : Boolean(renderState.value.asciiHtml),
+const canExportCurrentOutput = computed(
+  () =>
+    !isRendering.value &&
+    (state.value.config.outputMode === "svg"
+      ? Boolean(currentSvg.value)
+      : renderState.value.textOutputMode === state.value.config.outputMode &&
+        Boolean(renderState.value.asciiHtml)),
 );
 const isEditorVisible = computed(() =>
   isMobile.value ? state.value.mobilePane === "editor" : state.value.desktopPanes.editor,
@@ -567,7 +580,10 @@ function stripPreviewOnlyConfig(
   void transparent;
   return panelConfig;
 }
-const optionsPanelConfig = computed(() => stripPreviewOnlyConfig(state.value.config));
+const optionsPanelConfig = computed(() => ({
+  ...stripPreviewOnlyConfig(state.value.config),
+  peleControls: renderState.value.peleControls,
+}));
 const editorSplitStyle = computed(() =>
   showDesktopDivider.value
     ? { flex: `0 0 ${(state.value.splitRatio * 100).toFixed(2)}%` }
@@ -622,9 +638,13 @@ const optionsPanelListeners = {
 } as const;
 
 watch(
-  () => [state.value.code, state.value.config],
-  () => {
-    scheduleRender();
+  [codeRef, configRef, previewTarget],
+  ([, , target], [, , previousTarget]) => {
+    if (target !== previousTarget) {
+      void renderNow();
+    } else {
+      scheduleRender();
+    }
   },
   { deep: true },
 );
@@ -732,7 +752,7 @@ function getSvgSize(svg: string): { width: number; height: number } {
 }
 
 function exportSvg(): void {
-  const svg = renderState.value.svg;
+  const svg = currentSvg.value;
   if (!svg) {
     return;
   }
@@ -742,7 +762,7 @@ function exportSvg(): void {
 }
 
 async function exportPng(): Promise<void> {
-  const svg = renderState.value.svg;
+  const svg = currentSvg.value;
   if (!svg) {
     return;
   }
@@ -757,7 +777,7 @@ async function exportPng(): Promise<void> {
 }
 
 async function copyPng(): Promise<void> {
-  const svg = renderState.value.svg;
+  const svg = currentSvg.value;
   if (!svg) {
     return;
   }
@@ -780,7 +800,7 @@ async function copyPng(): Promise<void> {
 }
 
 async function copySvg(): Promise<void> {
-  const svg = renderState.value.svg;
+  const svg = currentSvg.value;
   if (!svg) {
     return;
   }
@@ -880,6 +900,11 @@ function updateCode(value: string): void {
 
 function updateOutputMode(value: RenderOutputMode): void {
   state.value.config.outputMode = value;
+}
+
+function updateSvgRenderer(value: SvgRenderer): void {
+  state.value.config.svgRenderer = value;
+  requestPreviewFitAfterRender();
 }
 
 function applySample(sampleId: number): void {
@@ -1284,18 +1309,20 @@ onUnmounted(() => {
           <div v-if="state.desktopPanes.preview" class="pane preview-pane">
             <MermaidPreview
               :output-mode="state.config.outputMode"
+              :svg-renderer="state.config.svgRenderer"
               :fit-request-id="previewFitRequestId"
               :mono-font-family="monoFontFamily"
               :text-warnings="textOutputWarnings"
-              :svg="renderState.svg"
+              :svg="previewSvg"
               :ascii-html="renderState.asciiHtml"
               :error="renderState.error"
-              :duration-ms="renderState.durationMs"
+              :render-started-at="renderState.startedAt"
               :is-rendering="isRendering"
               :can-export="canExportCurrentOutput"
               :transparent="state.config.transparent"
               :transparent-applied="appliedPreviewTransparency"
               @update:output-mode="updateOutputMode"
+              @update:svg-renderer="updateSvgRenderer"
               @update:transparent="updateTransparent"
               @export:copy-svg="copySvg"
               @export:copy-png="copyPng"
@@ -1337,18 +1364,20 @@ onUnmounted(() => {
         <div v-else class="pane mobile-pane">
           <MermaidPreview
             :output-mode="state.config.outputMode"
+            :svg-renderer="state.config.svgRenderer"
             :fit-request-id="previewFitRequestId"
             :mono-font-family="monoFontFamily"
             :text-warnings="textOutputWarnings"
-            :svg="renderState.svg"
+            :svg="previewSvg"
             :ascii-html="renderState.asciiHtml"
             :error="renderState.error"
-            :duration-ms="renderState.durationMs"
+            :render-started-at="renderState.startedAt"
             :is-rendering="isRendering"
             :can-export="canExportCurrentOutput"
             :transparent="state.config.transparent"
             :transparent-applied="appliedPreviewTransparency"
             @update:output-mode="updateOutputMode"
+            @update:svg-renderer="updateSvgRenderer"
             @update:transparent="updateTransparent"
             @export:copy-svg="copySvg"
             @export:copy-png="copyPng"

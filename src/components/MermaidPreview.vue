@@ -2,13 +2,22 @@
 import { AlertTriangle, CircleX, Info, Scan } from "lucide-vue-next";
 import { useResizeObserver } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
+import lukilabsLogo from "@/assets/lukilabs-avatar.png";
+import peleLogo from "@/assets/pele.svg";
 import BaseButton from "@/components/BaseButton.vue";
 import BaseCheckbox from "@/components/BaseCheckbox.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
-import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
+import BaseSegmentedControl, {
+  type SegmentedControlItem,
+} from "@/components/BaseSegmentedControl.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
-import type { RenderOutputMode, TextColorMode, TextOutputWarning } from "@/types/playground";
+import type {
+  RenderOutputMode,
+  SvgRenderer,
+  TextColorMode,
+  TextOutputWarning,
+} from "@/types/playground";
 
 type ViewportPoint = {
   x: number;
@@ -22,13 +31,14 @@ type ContentSize = {
 
 const props = defineProps<{
   outputMode: RenderOutputMode;
+  svgRenderer: SvgRenderer;
   fitRequestId: number;
   monoFontFamily: string;
   textWarnings: TextOutputWarning[];
   svg: string | null;
   asciiHtml: string | null;
   error: string | null;
-  durationMs: number | null;
+  renderStartedAt: number | null;
   isRendering: boolean;
   canExport: boolean;
   transparent: boolean;
@@ -44,6 +54,7 @@ const emit = defineEmits<{
   "export:download-png": [];
   "export:copy-text": [payload: { mode: TextOutputMode; colorMode: TextColorMode }];
   "update:outputMode": [value: RenderOutputMode];
+  "update:svgRenderer": [value: SvgRenderer];
   "update:transparent": [value: boolean];
 }>();
 
@@ -94,12 +105,16 @@ const hasCurrentOutput = computed(() =>
   props.outputMode === "svg" ? Boolean(props.svg) : Boolean(props.asciiHtml),
 );
 const isTransparentPreview = computed(() => props.outputMode === "svg" && props.transparentApplied);
+const previewReadyMs = ref<number | null>(null);
 const renderDurationText = computed(() => {
-  if (props.isRendering || props.error || props.durationMs === null) {
+  if (props.isRendering) {
+    return "Rendering…";
+  }
+  if (props.error || previewReadyMs.value === null || !hasCurrentOutput.value) {
     return null;
   }
 
-  return `Rendered in ${props.durationMs}ms`;
+  return `Preview ready in ${previewReadyMs.value}ms`;
 });
 const visibleWarnings = computed(() => {
   if (props.outputMode === "svg" || props.error) {
@@ -124,11 +139,24 @@ const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   }));
 });
 const exportTriggerIcon = "copy" as const;
-const outputModeItems: Array<{ key: string; label: string }> = RENDER_OUTPUT_MODE_OPTIONS.map(
-  (item) => ({
-    key: item.value,
-    label: item.label,
-  }),
+const PELE_PREVIEW_KEY = "svg-pele";
+const outputModeItems = RENDER_OUTPUT_MODE_OPTIONS.flatMap<SegmentedControlItem>(
+  ({ value, label }) =>
+    value === "svg"
+      ? [
+          {
+            key: value,
+            label,
+            title: "Beautiful Mermaid",
+            ariaLabel: "Beautiful Mermaid SVG",
+            iconSrc: lukilabsLogo,
+          },
+          { key: PELE_PREVIEW_KEY, label, title: "Pele", ariaLabel: "Pele SVG", iconSrc: peleLogo },
+        ]
+      : [{ key: value, label }],
+);
+const activeOutputModeKey = computed(() =>
+  props.outputMode === "svg" && props.svgRenderer === "pele" ? PELE_PREVIEW_KEY : props.outputMode,
 );
 
 function clamp(value: number, min: number, max: number): number {
@@ -514,12 +542,21 @@ function onGraphExportSelect(key: string): void {
   }
 }
 
-function updateOutputMode(value: RenderOutputMode): void {
-  emit("update:outputMode", value);
-}
-
-function onOutputModeSelect(value: string): void {
-  updateOutputMode(value as RenderOutputMode);
+function onOutputModeSelect(key: string): void {
+  const isPele = key === PELE_PREVIEW_KEY;
+  const mode = RENDER_OUTPUT_MODE_OPTIONS.find(({ value }) => value === (isPele ? "svg" : key));
+  if (!mode) {
+    return;
+  }
+  if (mode.value === "svg") {
+    const renderer = isPele ? "pele" : "beautiful-mermaid";
+    if (renderer !== props.svgRenderer) {
+      emit("update:svgRenderer", renderer);
+    }
+  }
+  if (mode.value !== props.outputMode) {
+    emit("update:outputMode", mode.value);
+  }
 }
 
 function syncFitWithLayout(outputMode: RenderOutputMode = props.outputMode): void {
@@ -576,6 +613,14 @@ watch(
       needsFit.value = true;
       syncFitWithLayout(outputMode);
     }
+  },
+  { immediate: true, flush: "post" },
+);
+
+watch(
+  () => props.renderStartedAt,
+  (startedAt) => {
+    previewReadyMs.value = startedAt === null ? null : Math.round(performance.now() - startedAt);
   },
   { immediate: true, flush: "post" },
 );
@@ -653,7 +698,7 @@ useResizeObserver(textCanvasRef, () => {
           <BaseSegmentedControl
             class="output-toggles"
             :items="outputModeItems"
-            :active-key="props.outputMode"
+            :active-key="activeOutputModeKey"
             :as-tabs="true"
             aria-label="Output mode"
             @select="onOutputModeSelect"
@@ -665,6 +710,7 @@ useResizeObserver(textCanvasRef, () => {
         ref="viewportRef"
         class="preview-viewport"
         :class="{ 'preview-viewport-transparent': isTransparentPreview }"
+        :aria-busy="props.isRendering"
         @pointerdown="onViewportPointerDown"
         @pointermove="onViewportPointerMove"
         @pointerup="onViewportPointerUp"
@@ -687,7 +733,10 @@ useResizeObserver(textCanvasRef, () => {
             v-html="props.asciiHtml ?? ''"
           />
         </div>
-        <p v-if="props.error" class="feedback-layer feedback-block tone-error">
+        <p
+          v-if="props.error && !props.isRendering"
+          class="feedback-layer feedback-block tone-error"
+        >
           <span class="feedback-label">
             <CircleX :size="12" :stroke-width="1.85" class="feedback-label-icon" />
           </span>
@@ -745,6 +794,12 @@ useResizeObserver(textCanvasRef, () => {
     "tnum" 1,
     "lnum" 1;
   white-space: nowrap;
+}
+
+@media (max-width: 440px) {
+  .preview-duration {
+    display: none;
+  }
 }
 
 .preview-transparent-toggle {
@@ -808,6 +863,10 @@ useResizeObserver(textCanvasRef, () => {
 }
 
 .preview-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
   position: absolute;
   top: 0.58rem;
   left: 0.6rem;
@@ -823,10 +882,6 @@ useResizeObserver(textCanvasRef, () => {
   gap: 0.2rem;
   pointer-events: auto;
   min-width: max-content;
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .preview-toolbar-right {
@@ -835,10 +890,7 @@ useResizeObserver(textCanvasRef, () => {
   justify-content: flex-end;
   pointer-events: auto;
   min-width: max-content;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  margin-inline-start: auto;
 }
 
 .output-toggles {

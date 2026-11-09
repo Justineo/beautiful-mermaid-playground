@@ -5,6 +5,15 @@ import type { UnofficialDiagramThemeName } from "@/generated/unofficialThemes";
 export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
+export type SvgRenderer = "beautiful-mermaid" | "pele";
+export type PeleSvgControl =
+  | ElementColorRole
+  | "direction"
+  | "spacing"
+  | "subgraphStyle"
+  | "cornerStyle"
+  | "routing"
+  | "monoFont";
 export type TextColorMode = "none" | "ansi16" | "ansi256" | "truecolor" | "html";
 
 export type ActiveMobilePane = "options" | "editor" | "preview";
@@ -163,6 +172,7 @@ export const ELEMENT_COLOR_ROLES: Array<{
 
 export interface BeautifulRenderConfig {
   outputMode: RenderOutputMode;
+  svgRenderer: SvgRenderer;
   diagramTheme: DiagramTheme;
   useCustomBg: boolean;
   customBg: string;
@@ -215,10 +225,12 @@ export interface PlaygroundState {
 
 export interface RenderState {
   svg: string | null;
+  svgRenderer: SvgRenderer | null;
+  peleControls: PeleSvgControl[];
   asciiHtml: string | null;
   textOutputMode: Exclude<RenderOutputMode, "svg"> | null;
   error: string | null;
-  durationMs: number | null;
+  startedAt: number | null;
   renderId: number;
 }
 
