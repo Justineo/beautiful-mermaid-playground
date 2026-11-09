@@ -23,7 +23,7 @@ const PELE_XY_STYLES = `
     stroke-width: 2;
     stroke-linecap: round;
   }
-  .playground-pele-legend { fill: var(--pele-muted); font-size: 14px; }
+  .playground-pele-legend { fill: var(--pele-muted); }
 `;
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -38,7 +38,7 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
   return element;
 }
 
-export function stylePeleXyChart(svg: SVGSVGElement): string {
+export function stylePeleXyChart(svg: SVGSVGElement, fontScale: number): string {
   if (!svg.classList.contains("pele-xychart")) {
     return "";
   }
@@ -65,13 +65,14 @@ export function stylePeleXyChart(svg: SVGSVGElement): string {
   const titleBaseline = Number(
     title?.lastElementChild?.getAttribute("y") ?? title?.getAttribute("y"),
   );
-  const legendTop = titleBaseline > y ? titleBaseline + 13 : y + 10;
-  const itemWidth = 78;
+  const legendTop = titleBaseline > y ? titleBaseline + 13 * fontScale : y + 10 * fontScale;
+  const itemWidth = 78 * fontScale;
   const columns = Math.min(entries.length, Math.max(1, Math.floor((width - 16) / itemWidth)));
-  const rowHeight = 22;
-  const bandHeight = Math.ceil(entries.length / columns) * rowHeight + 6;
+  const rowHeight = 22 * fontScale;
+  const bandHeight = Math.ceil(entries.length / columns) * rowHeight + 6 * fontScale;
   const legend = createSvgElement(svg, "g", {
     class: "playground-pele-legend",
+    "font-size": 14 * fontScale,
     transform: `translate(0,${legendTop})`,
   });
 
@@ -86,19 +87,19 @@ export function stylePeleXyChart(svg: SVGSVGElement): string {
         ? createSvgElement(svg, "rect", {
             class: "playground-pele-bar-key",
             x: 0,
-            y: 3,
-            width: 13,
-            height: 12,
+            y: 3 * fontScale,
+            width: 13 * fontScale,
+            height: 12 * fontScale,
           })
         : createSvgElement(svg, "line", {
             class: "playground-pele-line-key",
             x1: 0,
-            x2: 13,
-            y1: 9,
-            y2: 9,
+            x2: 13 * fontScale,
+            y1: 9 * fontScale,
+            y2: 9 * fontScale,
           }),
     );
-    const text = createSvgElement(svg, "text", { x: 19, y: 14 });
+    const text = createSvgElement(svg, "text", { x: 19 * fontScale, y: 14 * fontScale });
     text.textContent = label;
     item.append(text);
     legend.append(item);

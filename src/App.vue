@@ -10,6 +10,7 @@ import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
 import { useTextOutputWarnings } from "@/composables/useTextOutputWarnings";
 import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
+import { PELE_SAMPLES } from "@/data/peleSamples";
 import { BASE_FONT_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
@@ -21,6 +22,7 @@ import {
 } from "@/utils/contrast";
 import type {
   ActiveMobilePane,
+  BeautifulRenderConfig,
   BorderPattern,
   BorderWeight,
   CornerStyle,
@@ -33,6 +35,7 @@ import type {
   ElementColorRole,
   ElementColorSource,
   LineGeometry,
+  PeleFontWeight,
   RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
@@ -69,9 +72,6 @@ let noticeTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mobileMedia = window.matchMedia("(max-width: 959px)");
 const isMobile = ref(mobileMedia.matches);
-const selectedSampleId = ref<number | null>(
-  OFFICIAL_SAMPLES.find((sample) => sample.source === state.value.code)?.id ?? null,
-);
 
 function formatSampleOptionTitle(title: string): string {
   const trimmed = title.trim();
@@ -85,11 +85,24 @@ function formatSampleOptionTitle(title: string): string {
   );
 }
 
-const officialSampleItems = OFFICIAL_SAMPLES.map((sample) => ({
-  id: sample.id,
-  title: formatSampleOptionTitle(sample.title),
-  category: sample.category,
-}));
+const sampleItems = [
+  ...OFFICIAL_SAMPLES.map((sample) => ({
+    id: String(sample.id),
+    title: formatSampleOptionTitle(sample.title),
+    category: sample.category,
+    source: sample.source,
+    transparent: sample.options.transparent,
+  })),
+  ...PELE_SAMPLES.map((sample) => ({
+    ...sample,
+    category: `Pele · ${sample.category}`,
+    transparent: undefined,
+  })),
+];
+const selectedSampleId = ref<string | null>(
+  sampleItems.find((sample) => sample.source === state.value.code)?.id ?? null,
+);
+const sampleRequestId = ref(0);
 
 function syncIsMobile(event: MediaQueryListEvent): void {
   isMobile.value = event.matches;
@@ -607,6 +620,8 @@ const optionsPanelListeners = {
   "update:customBorder": updateCustomBorder,
   "update:baseFont": updateBaseFont,
   "update:customBaseFontUrl": updateCustomBaseFontUrl,
+  "update:peleFontSize": (value: number) => updatePeleFont("peleFontSize", value),
+  "update:peleFontWeight": (value: PeleFontWeight) => updatePeleFont("peleFontWeight", value),
   "update:monoFont": updateMonoFont,
   "update:customMonoFontUrl": updateCustomMonoFontUrl,
   "update:directionOverride": updateDirectionOverride,
@@ -638,9 +653,9 @@ const optionsPanelListeners = {
 } as const;
 
 watch(
-  [codeRef, configRef, previewTarget],
-  ([, , target], [, , previousTarget]) => {
-    if (target !== previousTarget) {
+  [codeRef, configRef, previewTarget, sampleRequestId],
+  ([, , target, requestId], [, , previousTarget, previousRequestId]) => {
+    if (target !== previousTarget || requestId !== previousRequestId) {
       void renderNow();
     } else {
       scheduleRender();
@@ -678,7 +693,7 @@ watch(
       return;
     }
 
-    const selected = OFFICIAL_SAMPLES.find((sample) => sample.id === selectedSampleId.value);
+    const selected = sampleItems.find((sample) => sample.id === selectedSampleId.value);
     if (!selected || selected.source !== nextCode) {
       selectedSampleId.value = null;
     }
@@ -907,8 +922,8 @@ function updateSvgRenderer(value: SvgRenderer): void {
   requestPreviewFitAfterRender();
 }
 
-function applySample(sampleId: number): void {
-  const sample = OFFICIAL_SAMPLES.find((item) => item.id === sampleId);
+function applySample(sampleId: string): void {
+  const sample = sampleItems.find((item) => item.id === sampleId);
   if (!sample) {
     return;
   }
@@ -916,14 +931,12 @@ function applySample(sampleId: number): void {
   state.value.code = sample.source;
   selectedSampleId.value = sampleId;
 
-  const transparentOption = sample.options.transparent;
-  if (typeof transparentOption === "boolean") {
-    state.value.config.transparent = transparentOption;
+  if (typeof sample.transparent === "boolean") {
+    state.value.config.transparent = sample.transparent;
   }
-
   requestPreviewFitAfterRender();
   editorFocusToEndToken.value += 1;
-  void renderNow();
+  sampleRequestId.value += 1;
 }
 
 function updateDiagramTheme(value: DiagramTheme): void {
@@ -1081,6 +1094,20 @@ function updateBorderWeight(value: BorderWeight): void {
   state.value.config.borderWeight = value;
 }
 
+function updatePeleFont<K extends "peleFontSize" | "peleFontWeight">(
+  key: K,
+  value: BeautifulRenderConfig[K],
+): void {
+  const config = state.value.config;
+  if (config[key] === value) {
+    return;
+  }
+  if (previewTarget.value === "pele") {
+    requestPreviewFitAfterRender();
+  }
+  config[key] = value;
+}
+
 function updateTextPaddingX(value: number): void {
   state.value.config.textPaddingX = clamp(value, 0, 60);
   requestPreviewFitAfterRender();
@@ -1155,6 +1182,8 @@ function resetSystemOptions(): void {
   state.value.config.baseFont = defaults.baseFont;
   state.value.config.customBaseFontUrl = defaults.customBaseFontUrl;
   state.value.config.customBaseFontFamily = defaults.customBaseFontFamily;
+  updatePeleFont("peleFontSize", defaults.peleFontSize);
+  updatePeleFont("peleFontWeight", defaults.peleFontWeight);
   state.value.config.monoFont = defaults.monoFont;
   state.value.config.customMonoFontUrl = defaults.customMonoFontUrl;
   state.value.config.customMonoFontFamily = defaults.customMonoFontFamily;
@@ -1252,7 +1281,7 @@ onUnmounted(() => {
       :mobile-pane="state.mobilePane"
       :desktop-panes="state.desktopPanes"
       :selected-sample-id="selectedSampleId"
-      :samples="officialSampleItems"
+      :samples="sampleItems"
       @update:diagram-theme="updateDiagramTheme"
       @update:mobile-pane="updateMobilePane"
       @toggle:desktop-pane="toggleDesktopPane"

@@ -6,6 +6,15 @@ export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
 export type SvgRenderer = "beautiful-mermaid" | "pele";
+export const PELE_FONT_SIZE = { default: 13, min: 8, max: 32 } as const;
+export const PELE_FONT_WEIGHT_OPTIONS = [
+  { value: 400, label: "Regular (400)" },
+  { value: 500, label: "Medium (500)" },
+  { value: 600, label: "Semibold (600)" },
+  { value: 700, label: "Bold (700)" },
+] as const;
+export type PeleFontWeight = (typeof PELE_FONT_WEIGHT_OPTIONS)[number]["value"];
+export const DEFAULT_PELE_FONT_WEIGHT: PeleFontWeight = 400;
 export type PeleSvgControl =
   | ElementColorRole
   | "direction"
@@ -190,6 +199,8 @@ export interface BeautifulRenderConfig {
   customBorder: string;
   elementColors: ElementColorConfig;
   baseFont: BaseFont;
+  peleFontSize: number;
+  peleFontWeight: PeleFontWeight;
   customBaseFontUrl: string;
   customBaseFontFamily: string;
   monoFont: MonoFont;
@@ -223,13 +234,18 @@ export interface PlaygroundState {
   mobilePane: ActiveMobilePane;
 }
 
+export interface RenderError {
+  message: string;
+  canPreviewWithPele: boolean;
+}
+
 export interface RenderState {
   svg: string | null;
   svgRenderer: SvgRenderer | null;
   peleControls: PeleSvgControl[];
   asciiHtml: string | null;
   textOutputMode: Exclude<RenderOutputMode, "svg"> | null;
-  error: string | null;
+  error: RenderError | null;
   startedAt: number | null;
   renderId: number;
 }

@@ -10,6 +10,9 @@ import {
   EDGE_WEIGHT_OPTIONS,
   ELEMENT_COLOR_ROLES,
   LINE_GEOMETRY_OPTIONS,
+  DEFAULT_PELE_FONT_WEIGHT,
+  PELE_FONT_SIZE,
+  PELE_FONT_WEIGHT_OPTIONS,
   RENDER_OUTPUT_MODE_OPTIONS,
   STROKE_PATTERN_OPTIONS,
   SUBGRAPH_STYLE_OPTIONS,
@@ -77,6 +80,8 @@ const DEFAULT_STATE: PlaygroundState = {
     customBorder: "#d4d4d8",
     elementColors: structuredClone(DEFAULT_ELEMENT_COLORS),
     baseFont: "Inter",
+    peleFontSize: PELE_FONT_SIZE.default,
+    peleFontWeight: DEFAULT_PELE_FONT_WEIGHT,
     customBaseFontUrl: "",
     customBaseFontFamily: "",
     monoFont: "JetBrains Mono",
@@ -389,6 +394,15 @@ function sanitizeState(source: unknown): PlaygroundState {
         rawConfig.customBaseFontFamily,
         parsedCustomBaseFont?.primaryFamily ?? DEFAULT_STATE.config.customBaseFontFamily,
       ),
+      peleFontSize: sanitizeNumber(
+        rawConfig.peleFontSize,
+        DEFAULT_STATE.config.peleFontSize,
+        PELE_FONT_SIZE.min,
+        PELE_FONT_SIZE.max,
+      ),
+      peleFontWeight:
+        PELE_FONT_WEIGHT_OPTIONS.find(({ value }) => value === rawConfig.peleFontWeight)?.value ??
+        DEFAULT_STATE.config.peleFontWeight,
       monoFont: isMonoFont(rawConfig.monoFont) ? rawConfig.monoFont : DEFAULT_STATE.config.monoFont,
       customMonoFontUrl: parsedCustomMonoFont?.sourceUrl ?? DEFAULT_STATE.config.customMonoFontUrl,
       customMonoFontFamily: sanitizeFontFamily(

@@ -1137,6 +1137,7 @@ export function useBeautifulRenderer(
     const renderToken = latestRenderToken + 1;
     latestRenderToken = renderToken;
     const { outputMode, svgRenderer } = config.value;
+    const usesPele = outputMode === "svg" && svgRenderer === "pele";
 
     const isCurrentRender = () =>
       renderToken === latestRenderToken &&
@@ -1145,9 +1146,7 @@ export function useBeautifulRenderer(
 
     const { source, originalSource } = resolveRenderSource(
       code.value,
-      outputMode === "svg" && svgRenderer === "pele" && config.value.directionOverride === "TD"
-        ? "TB"
-        : config.value.directionOverride,
+      usesPele && config.value.directionOverride === "TD" ? "TB" : config.value.directionOverride,
     );
 
     if (!source) {
@@ -1173,7 +1172,7 @@ export function useBeautifulRenderer(
 
     try {
       isRendering.value = true;
-      if (outputMode === "svg" && svgRenderer === "pele") {
+      if (usesPele) {
         const { renderPeleSvg } = await import("@/utils/peleRenderer");
         if (!isCurrentRender()) {
           return;
@@ -1264,13 +1263,27 @@ export function useBeautifulRenderer(
         return;
       }
 
-      const errorMessage = isRendererLoadError(error)
+      const loadFailed = isRendererLoadError(error);
+      const canPreviewWithPele =
+        !usesPele &&
+        !loadFailed &&
+        (await import("@/utils/peleRenderer").then(
+          ({ canRenderWithPele }) => canRenderWithPele(originalSource),
+          () => false,
+        ));
+      if (!isCurrentRender()) {
+        return;
+      }
+
+      const errorMessage = loadFailed
         ? `Failed to load renderer runtime: ${getErrorMessage(error)}`
         : getErrorMessage(error);
       renderState.value = {
         ...previousRender,
+        svg: canPreviewWithPele && outputMode === "svg" ? null : previousRender.svg,
+        asciiHtml: canPreviewWithPele && outputMode !== "svg" ? null : previousRender.asciiHtml,
         peleControls: [],
-        error: errorMessage,
+        error: errorMessage ? { message: errorMessage, canPreviewWithPele } : null,
         startedAt: null,
         renderId: renderToken,
       };

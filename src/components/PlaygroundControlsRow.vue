@@ -19,41 +19,34 @@ const props = defineProps<{
   isMobile: boolean;
   mobilePane: ActiveMobilePane;
   desktopPanes: Record<DesktopPaneKey, boolean>;
-  selectedSampleId: number | null;
-  samples: Array<{ id: number; title: string; category: string }>;
+  selectedSampleId: string | null;
+  samples: Array<{ id: string; title: string; category: string }>;
 }>();
 
 const emit = defineEmits<{
   "update:diagramTheme": [value: DiagramTheme];
   "update:mobilePane": [value: ActiveMobilePane];
   "toggle:desktop-pane": [pane: DesktopPaneKey];
-  "apply:sample": [sampleId: number];
+  "apply:sample": [sampleId: string];
 }>();
 
-const groupedSamples = computed(() => {
-  const groups = new Map<string, Array<{ id: number; title: string }>>();
+const sampleGroups = computed(() => {
+  const groups = new Map<string, typeof props.samples>();
 
   for (const sample of props.samples) {
-    if (sample.category === "Basic") {
-      continue;
-    }
-
     const bucket = groups.get(sample.category);
     if (bucket) {
-      bucket.push({ id: sample.id, title: sample.title });
+      bucket.push(sample);
     } else {
-      groups.set(sample.category, [{ id: sample.id, title: sample.title }]);
+      groups.set(sample.category, [sample]);
     }
   }
 
-  return [...groups.entries()].map(([category, items]) => ({ category, items }));
+  const basic = groups.get("Basic") ?? [];
+  groups.delete("Basic");
+  return { basic, groups };
 });
 
-const ungroupedSamples = computed(() =>
-  props.samples
-    .filter((sample) => sample.category === "Basic")
-    .map((sample) => ({ id: sample.id, title: sample.title })),
-);
 const desktopActivePaneKeys = computed(() =>
   PANEL_ITEMS.filter((pane) => props.desktopPanes[pane.key]).map((pane) => pane.key),
 );
@@ -63,12 +56,10 @@ function getSelectValue(event: Event): string {
 }
 
 function onSampleSelect(event: Event): void {
-  const value = Number.parseInt(getSelectValue(event), 10);
-  if (!Number.isFinite(value)) {
-    return;
+  const value = getSelectValue(event);
+  if (value) {
+    emit("apply:sample", value);
   }
-
-  emit("apply:sample", value);
 }
 
 function onPanelSelect(key: string): void {
@@ -92,11 +83,15 @@ function onPanelSelect(key: string): void {
             placeholder="Choose an example"
             @change="onSampleSelect"
           >
-            <option v-for="sample in ungroupedSamples" :key="sample.id" :value="sample.id">
+            <option v-for="sample in sampleGroups.basic" :key="sample.id" :value="sample.id">
               {{ sample.title }}
             </option>
-            <optgroup v-for="group in groupedSamples" :key="group.category" :label="group.category">
-              <option v-for="sample in group.items" :key="sample.id" :value="sample.id">
+            <optgroup
+              v-for="[category, items] in sampleGroups.groups"
+              :key="category"
+              :label="category"
+            >
+              <option v-for="sample in items" :key="sample.id" :value="sample.id">
                 {{ sample.title }}
               </option>
             </optgroup>

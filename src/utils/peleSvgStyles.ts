@@ -1,3 +1,4 @@
+import { PELE_FONT_SIZE } from "@/types/playground";
 import type {
   BeautifulRenderConfig,
   ElementColorRole,
@@ -25,6 +26,7 @@ export type PeleSvgConfig = Pick<
   | "edgePattern"
   | "edgeWeight"
   | "lineGeometry"
+  | "peleFontSize"
   | "subgraphStyle"
   | "transparent"
 >;
@@ -274,13 +276,15 @@ export function stylePeleSvg(
   if (config.lineGeometry === "orthogonal" && svg.classList.contains("pele-flowchart")) {
     squareStepCorners(svg);
   }
+  const fontScale = config.peleFontSize / PELE_FONT_SIZE.default;
   if (config.edgeLabelStyle !== "default") {
+    const fontSize = String(Math.round(EDGE_LABEL_FONT_SIZE * fontScale));
     for (const label of svg.querySelectorAll(EDGE_LABEL)) {
-      label.setAttribute("font-size", String(EDGE_LABEL_FONT_SIZE));
+      label.setAttribute("font-size", fontSize);
     }
-  }
-  if (config.edgeLabelStyle !== "default" && config.edgeLabelStyle !== "minimal") {
-    addMissingLabelBackgrounds(svg);
+    if (config.edgeLabelStyle !== "minimal") {
+      addMissingLabelBackgrounds(svg);
+    }
   }
 
   const arrow = "var(--playground-pele-arrow)";
@@ -308,7 +312,7 @@ export function stylePeleSvg(
     config.borderPattern === "default"
       ? ""
       : `${BORDER} { stroke-dasharray: ${BORDER_DASH[config.borderPattern]} !important; }`;
-  const chartRules = stylePeleXyChart(svg);
+  const chartRules = stylePeleXyChart(svg, fontScale);
   const style = svg.ownerDocument.createElementNS(SVG_NS, "style");
   style.setAttribute("data-playground-pele-style", "");
   style.textContent = `

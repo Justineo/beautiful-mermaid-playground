@@ -13,6 +13,7 @@ import BaseSegmentedControl, {
 } from "@/components/BaseSegmentedControl.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import type {
+  RenderError,
   RenderOutputMode,
   SvgRenderer,
   TextColorMode,
@@ -37,7 +38,7 @@ const props = defineProps<{
   textWarnings: TextOutputWarning[];
   svg: string | null;
   asciiHtml: string | null;
-  error: string | null;
+  error: RenderError | null;
   renderStartedAt: number | null;
   isRendering: boolean;
   canExport: boolean;
@@ -122,6 +123,21 @@ const visibleWarnings = computed(() => {
   }
 
   return props.textWarnings;
+});
+const renderFeedback = computed(() => {
+  const error = props.error;
+  if (!error || props.isRendering) {
+    return null;
+  }
+
+  return error.canPreviewWithPele
+    ? {
+        tone: "warning",
+        icon: AlertTriangle,
+        message:
+          "Beautiful Mermaid couldn't render this diagram. Select the Pele SVG tab to preview it.",
+      }
+    : { tone: "error", icon: CircleX, message: error.message };
 });
 const graphExportItems = computed<Array<{ key: string; label: string }>>(() => {
   if (props.outputMode === "svg") {
@@ -303,11 +319,6 @@ function getLocalPoint(event: PointerEvent | WheelEvent): ViewportPoint | null {
   };
 }
 
-function isFeedbackEvent(event: Event): boolean {
-  const target = event.target;
-  return target instanceof Element && Boolean(target.closest(".feedback-layer"));
-}
-
 function zoomAt(localX: number, localY: number, nextScale: number): void {
   const clampedScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
   if (Math.abs(clampedScale - scale.value) < 0.0001) {
@@ -374,10 +385,6 @@ function beginPinch(): void {
 }
 
 function onViewportPointerDown(event: PointerEvent): void {
-  if (isFeedbackEvent(event)) {
-    return;
-  }
-
   if (!hasCurrentOutput.value) {
     return;
   }
@@ -483,10 +490,6 @@ function onViewportPointerCancel(event: PointerEvent): void {
 }
 
 function onViewportWheel(event: WheelEvent): void {
-  if (isFeedbackEvent(event)) {
-    return;
-  }
-
   if (!hasCurrentOutput.value) {
     return;
   }
@@ -733,14 +736,24 @@ useResizeObserver(textCanvasRef, () => {
             v-html="props.asciiHtml ?? ''"
           />
         </div>
+      </div>
+
+      <div class="preview-bottom-overlay">
         <p
-          v-if="props.error && !props.isRendering"
-          class="feedback-layer feedback-block tone-error"
+          v-if="renderFeedback"
+          class="feedback-layer feedback-block"
+          :class="`tone-${renderFeedback.tone}`"
+          :role="renderFeedback.tone === 'warning' ? 'status' : undefined"
         >
           <span class="feedback-label">
-            <CircleX :size="12" :stroke-width="1.85" class="feedback-label-icon" />
+            <component
+              :is="renderFeedback.icon"
+              :size="12"
+              :stroke-width="1.85"
+              class="feedback-label-icon"
+            />
           </span>
-          <span class="feedback-message">{{ props.error }}</span>
+          <span class="feedback-message">{{ renderFeedback.message }}</span>
         </p>
         <div v-else-if="visibleWarnings.length > 0" class="feedback-layer feedback-stack">
           <p
@@ -761,10 +774,7 @@ useResizeObserver(textCanvasRef, () => {
             <span class="feedback-message">{{ warning.message }}</span>
           </p>
         </div>
-      </div>
-
-      <div v-if="props.outputMode === 'svg'" class="preview-bottom-controls">
-        <label class="preview-transparent-toggle">
+        <label v-if="props.outputMode === 'svg'" class="preview-transparent-toggle">
           <span>Transparent background</span>
           <BaseCheckbox
             id="preview-transparent-toggle"
@@ -806,13 +816,14 @@ useResizeObserver(textCanvasRef, () => {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
+  align-self: center;
+  flex-shrink: 0;
   gap: 0.28rem;
   color: var(--preview-toolbar-control-fg);
   font-size: var(--fs-control);
   line-height: var(--lh-tight);
   white-space: nowrap;
   pointer-events: auto;
-  margin-left: 0;
   min-height: var(--ui-control-height);
   padding: 0 0.42rem;
   border-radius: 6px;
@@ -834,17 +845,20 @@ useResizeObserver(textCanvasRef, () => {
   background: var(--preview-toolbar-control-bg-hover);
 }
 
-.preview-bottom-controls {
+.preview-bottom-overlay {
   position: absolute;
-  left: 50%;
-  bottom: 0.58rem;
-  transform: translateX(-50%);
-  z-index: 6;
+  inset-inline: 0.84rem;
+  bottom: 0.84rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 60%;
   pointer-events: none;
 }
 
-.preview-bottom-controls .preview-transparent-toggle {
-  pointer-events: auto;
+.preview-bottom-overlay:has(> .preview-transparent-toggle) {
+  bottom: 0.58rem;
 }
 
 .preview-stage {
@@ -1013,7 +1027,7 @@ useResizeObserver(textCanvasRef, () => {
   --feedback-bg: color-mix(in srgb, var(--surface-elevated) 94%, var(--surface));
   --feedback-fg: var(--text-secondary);
   --feedback-label-fg: var(--text-primary);
-  margin: 0.35rem 0 0;
+  margin: 0;
   padding: 0.6rem 0.68rem;
   border: 1px solid var(--feedback-border);
   border-radius: 8px;
@@ -1028,15 +1042,6 @@ useResizeObserver(textCanvasRef, () => {
   cursor: default;
   pointer-events: auto;
   touch-action: auto;
-}
-
-.preview-viewport > .feedback-block {
-  position: absolute;
-  left: 0.84rem;
-  right: 0.84rem;
-  bottom: 0.84rem;
-  margin: 0;
-  z-index: 4;
 }
 
 .feedback-label {
@@ -1061,6 +1066,14 @@ useResizeObserver(textCanvasRef, () => {
   min-width: 0;
   cursor: text;
   white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.feedback-layer {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
 }
 
 .feedback-layer,
@@ -1070,20 +1083,10 @@ useResizeObserver(textCanvasRef, () => {
 }
 
 .feedback-stack {
-  position: absolute;
-  left: 0.84rem;
-  right: 0.84rem;
-  bottom: 0.84rem;
-  z-index: 4;
   display: grid;
   gap: 0.36rem;
-  pointer-events: auto;
   cursor: default;
   touch-action: auto;
-}
-
-.feedback-stack > .feedback-block {
-  margin: 0;
 }
 
 .feedback-block.tone-error {

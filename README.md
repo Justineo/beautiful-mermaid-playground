@@ -34,10 +34,19 @@ the Playground's element colors, chart accents, node and edge styles, and
 subgraph presets to its SVG. It also adds the multi-series XY legend, rounded
 bar styling, and dotted grid. These styles are included in SVG and PNG exports.
 
+The Example menu includes the [Pele gallery](https://pele.run/examples),
+grouped by diagram type. If Beautiful Mermaid cannot render a diagram that Pele
+can render, the preview suggests switching to Pele.
+
 In Pele SVG mode, a strikethrough marks settings that do not apply to the
 current diagram, including the tab label when all its settings are inactive.
 These settings stay editable and take effect when the diagram or renderer
 supports them.
+
+Fonts includes a base font weight and size for Pele SVG. The size defaults to
+13 px, matching Beautiful Mermaid's flowchart node labels. Both settings
+affect layout, preview, and exports. Explicitly styled labels retain their
+own weight.
 
 | Area | Remaining difference in Pele 1.13.0 |
 | --- | --- |

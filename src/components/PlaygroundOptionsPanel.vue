@@ -16,6 +16,8 @@ import {
   BASE_FONT_OPTIONS,
   EDGE_LABEL_STYLE_OPTIONS,
   ELEMENT_COLOR_ROLES,
+  PELE_FONT_SIZE,
+  PELE_FONT_WEIGHT_OPTIONS,
   SUBGRAPH_STYLE_OPTIONS,
   MONO_FONT_OPTIONS,
 } from "@/types/playground";
@@ -34,6 +36,7 @@ import type {
   ElementColorScope,
   ElementColorSource,
   LineGeometry,
+  PeleFontWeight,
   PeleSvgControl,
   RenderOutputMode,
   StrokePattern,
@@ -373,6 +376,8 @@ const props = defineProps<{
   customBorder: string;
   elementColors: ElementColorConfig;
   baseFont: BaseFont;
+  peleFontSize: number;
+  peleFontWeight: PeleFontWeight;
   customBaseFontUrl: string;
   customBaseFontFamily: string;
   isBaseCustomFontLoading: boolean;
@@ -420,6 +425,8 @@ const emit = defineEmits<{
   "update:elementColorToken": [payload: { role: ElementColorRole; token: ThemeToken }];
   "update:elementColorCustom": [payload: { role: ElementColorRole; custom: string }];
   "update:baseFont": [value: BaseFont];
+  "update:peleFontSize": [value: number];
+  "update:peleFontWeight": [value: PeleFontWeight];
   "update:customBaseFontUrl": [value: string];
   "update:monoFont": [value: MonoFont];
   "update:customMonoFontUrl": [value: string];
@@ -1206,6 +1213,24 @@ watch(
     }
   },
 );
+
+function onPeleFontSizeChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const value = input.valueAsNumber;
+  const size = Number.isFinite(value)
+    ? Math.max(PELE_FONT_SIZE.min, Math.min(PELE_FONT_SIZE.max, Math.round(value)))
+    : props.peleFontSize;
+  input.value = String(size);
+  emit("update:peleFontSize", size);
+}
+
+function onPeleFontWeightChange(event: Event): void {
+  const selected = Number(getSelectValue(event));
+  const option = PELE_FONT_WEIGHT_OPTIONS.find(({ value }) => value === selected);
+  if (option) {
+    emit("update:peleFontWeight", option.value);
+  }
+}
 
 function onNumberInput(
   event: Event,
@@ -2127,6 +2152,49 @@ function getScopeInactiveTitle(
               @keydown="onMonoCustomFontKeydown"
               @paste="onMonoCustomFontPaste"
               @blur="onMonoCustomFontBlur"
+            />
+          </label>
+
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isPeleSvg }"
+              :title="isPeleSvg ? undefined : 'Applies to Pele SVG output only'"
+            >
+              <span>Font weight</span>
+            </span>
+            <BaseSelect :value="props.peleFontWeight" @change="onPeleFontWeightChange">
+              <option
+                v-for="option in PELE_FONT_WEIGHT_OPTIONS"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+              <template #selected="{ label }">
+                <span :style="{ fontWeight: props.peleFontWeight }">{{ label }}</span>
+              </template>
+              <template #option="{ option }">
+                <span :style="{ fontWeight: option.value }">{{ option.label }}</span>
+              </template>
+            </BaseSelect>
+          </label>
+
+          <label class="setting-row">
+            <span
+              class="setting-row-label"
+              :class="{ 'scope-inactive': !isPeleSvg }"
+              :title="isPeleSvg ? undefined : 'Applies to Pele SVG output only'"
+            >
+              <span>Font size (px)</span>
+            </span>
+            <input
+              type="number"
+              :min="PELE_FONT_SIZE.min"
+              :max="PELE_FONT_SIZE.max"
+              step="1"
+              :value="props.peleFontSize"
+              @change="onPeleFontSizeChange"
             />
           </label>
         </div>
