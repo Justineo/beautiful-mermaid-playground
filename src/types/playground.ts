@@ -6,6 +6,10 @@ export type UnofficialDiagramTheme = UnofficialDiagramThemeName;
 export type DiagramTheme = ThemeName | UnofficialDiagramTheme;
 export type RenderOutputMode = "svg" | "unicode" | "ascii";
 export type SvgRenderer = "beautiful-mermaid" | "pele";
+export type PreviewTarget = SvgRenderer | Exclude<RenderOutputMode, "svg">;
+export type BeautifulMermaidIncompatibilities = Partial<
+  Record<Exclude<PreviewTarget, "pele">, string>
+>;
 export const PELE_FONT_SIZE = { default: 13, min: 8, max: 32 } as const;
 export const PELE_FONT_WEIGHT_OPTIONS = [
   { value: 400, label: "Regular (400)" },

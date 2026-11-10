@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import monacoPlugin from "@kong-ui-public/monaco-editor/vite-plugin";
+import { sampleCompatibilityPlugin } from "./scripts/sample-compatibility.ts";
 import { SHIKI_MONACO_THEMES } from "./src/constants/monacoThemes";
 
 // https://vite.dev/config/
@@ -18,6 +19,7 @@ export default defineConfig({
       },
     }),
     vue(),
+    sampleCompatibilityPlugin(),
   ],
   build: {
     // Monaco + diagram runtime are intentionally split into dedicated async chunks.

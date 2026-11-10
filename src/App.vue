@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import sampleCompatibilityFailures from "virtual:sample-compatibility";
 import MermaidEditor from "@/components/MermaidEditor.vue";
 import MermaidPreview from "@/components/MermaidPreview.vue";
 import PlaygroundControlsRow from "@/components/PlaygroundControlsRow.vue";
@@ -22,6 +23,7 @@ import {
 } from "@/utils/contrast";
 import type {
   ActiveMobilePane,
+  BeautifulMermaidIncompatibilities,
   BeautifulRenderConfig,
   BorderPattern,
   BorderWeight,
@@ -36,6 +38,7 @@ import type {
   ElementColorSource,
   LineGeometry,
   PeleFontWeight,
+  PreviewTarget,
   RenderOutputMode,
   StrokePattern,
   SubgraphStylePreset,
@@ -375,18 +378,30 @@ const { isDragging, handleDividerPointerDown } = useSplitPane(splitPaneRef, spli
   minRightPx: DESKTOP_PREVIEW_MIN_WIDTH,
 });
 const {
-  beautifulMermaidUnsupported,
+  beautifulMermaidIncompatibilities,
   isRendering,
   renderState,
   renderNow,
   renderTextByColorMode,
   scheduleRender,
 } = useBeautifulRenderer(codeRef, configRef, 300);
+const previewIncompatibilities = computed<BeautifulMermaidIncompatibilities>(() => {
+  const reasons = beautifulMermaidIncompatibilities.value;
+  const sampleId = selectedSampleId.value;
+  if (sampleId === null) return reasons;
+
+  return {
+    "beautiful-mermaid":
+      reasons["beautiful-mermaid"] ?? sampleCompatibilityFailures["beautiful-mermaid"][sampleId],
+    unicode: reasons.unicode ?? sampleCompatibilityFailures.unicode[sampleId],
+    ascii: reasons.ascii ?? sampleCompatibilityFailures.ascii[sampleId],
+  };
+});
 const currentSvg = computed(() =>
   renderState.value.svgRenderer === state.value.config.svgRenderer ? renderState.value.svg : null,
 );
 const previewSvg = computed(() => (isRendering.value ? renderState.value.svg : currentSvg.value));
-const previewTarget = computed(() => {
+const previewTarget = computed<PreviewTarget>(() => {
   const { outputMode, svgRenderer } = configRef.value;
   return outputMode === "svg" ? svgRenderer : outputMode;
 });
@@ -1288,6 +1303,7 @@ onUnmounted(() => {
       :desktop-panes="state.desktopPanes"
       :selected-sample-id="selectedSampleId"
       :samples="sampleItems"
+      :sample-incompatibilities="sampleCompatibilityFailures[previewTarget]"
       @update:diagram-theme="updateDiagramTheme"
       @update:mobile-pane="updateMobilePane"
       @toggle:desktop-pane="toggleDesktopPane"
@@ -1345,7 +1361,7 @@ onUnmounted(() => {
             <MermaidPreview
               :output-mode="state.config.outputMode"
               :svg-renderer="state.config.svgRenderer"
-              :beautiful-mermaid-unsupported="beautifulMermaidUnsupported"
+              :incompatibilities="previewIncompatibilities"
               :fit-request-id="previewFitRequestId"
               :mono-font-family="monoFontFamily"
               :text-warnings="textOutputWarnings"
@@ -1401,7 +1417,7 @@ onUnmounted(() => {
           <MermaidPreview
             :output-mode="state.config.outputMode"
             :svg-renderer="state.config.svgRenderer"
-            :beautiful-mermaid-unsupported="beautifulMermaidUnsupported"
+            :incompatibilities="previewIncompatibilities"
             :fit-request-id="previewFitRequestId"
             :mono-font-family="monoFontFamily"
             :text-warnings="textOutputWarnings"

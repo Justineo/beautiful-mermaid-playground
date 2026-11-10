@@ -13,6 +13,7 @@ import BaseSegmentedControl, {
 } from "@/components/BaseSegmentedControl.vue";
 import { RENDER_OUTPUT_MODE_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import type {
+  BeautifulMermaidIncompatibilities,
   RenderError,
   RenderOutputMode,
   SvgRenderer,
@@ -33,7 +34,7 @@ type ContentSize = {
 const props = defineProps<{
   outputMode: RenderOutputMode;
   svgRenderer: SvgRenderer;
-  beautifulMermaidUnsupported: boolean;
+  incompatibilities: BeautifulMermaidIncompatibilities;
   fitRequestId: number;
   monoFontFamily: string;
   textWarnings: TextOutputWarning[];
@@ -164,16 +165,14 @@ const outputModeItems = computed(() =>
           {
             key: value,
             label,
-            title: props.beautifulMermaidUnsupported
-              ? "Beautiful Mermaid can't render this diagram"
-              : "Beautiful Mermaid",
+            title: "Beautiful Mermaid",
             ariaLabel: "Beautiful Mermaid SVG",
             iconSrc: lukilabsLogo,
-            labelClass: props.beautifulMermaidUnsupported ? "inactive" : undefined,
+            inactiveReason: props.incompatibilities["beautiful-mermaid"],
           },
           { key: PELE_PREVIEW_KEY, label, title: "Pele", ariaLabel: "Pele SVG", iconSrc: peleLogo },
         ]
-      : [{ key: value, label }],
+      : [{ key: value, label, inactiveReason: props.incompatibilities[value] }],
   ),
 );
 const activeOutputModeKey = computed(() =>

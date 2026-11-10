@@ -1,9 +1,13 @@
-import { computed, onUnmounted, ref } from "vue";
+import { computed, onUnmounted, ref, shallowRef } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import type { AsciiRenderOptions as BeautifulAsciiRenderOptions } from "beautiful-mermaid";
 import type { RenderOptions as BeautifulRenderOptions } from "beautiful-mermaid";
 import type { Ref } from "vue";
 import { ELEMENT_COLOR_ROLES } from "@/types/playground";
+import {
+  formatBeautifulMermaidError,
+  getBeautifulMermaidHeaderReason,
+} from "@/utils/beautifulMermaidCompatibility";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import type { PeleElementColors } from "@/utils/peleSvgStyles";
 import {
@@ -16,6 +20,7 @@ import {
   subgraphPresetRules,
 } from "@/utils/svgRenderStyles";
 import type {
+  BeautifulMermaidIncompatibilities,
   BeautifulRenderConfig,
   ElementColorRole,
   ElementColorRule,
@@ -210,22 +215,34 @@ function findDirectionHeader(lines: string[]): number {
   });
 }
 
-function supportsBeautifulMermaidSvgHeader(source: string): boolean {
-  // Beautiful Mermaid routes these diagram types before its flowchart/state parser skips comments.
-  const firstLine = source.split(/[\n;]/u, 1)[0]?.trim() ?? "";
-  if (
-    /^(?:sequenceDiagram|classDiagram|erDiagram)$/iu.test(firstLine) ||
-    /^xychart(?:-beta)?\b/iu.test(firstLine)
-  ) {
-    return true;
+function getHeaderIncompatibilities(source: string): BeautifulMermaidIncompatibilities {
+  // Both renderers route these declarations before their flowchart/state parser skips comments.
+  const routedHeader = /^(?:(?:sequenceDiagram|classDiagram|erDiagram)$|xychart(?:-beta)?\b)/iu;
+  const firstLine = source.split("\n", 1)[0]?.trim() ?? "";
+  if (routedHeader.test(firstLine)) {
+    return {};
+  }
+
+  // The SVG renderer also recognizes a declaration terminated by a semicolon.
+  if (routedHeader.test(firstLine.split(";", 1)[0]?.trim() ?? "")) {
+    const reason =
+      "Beautiful Mermaid text output requires the diagram header on its own line without a semicolon.";
+    return { unicode: reason, ascii: reason };
   }
 
   const lines = source.split("\n");
   const header = lines[findDirectionHeader(lines)]?.trim() ?? "";
-  return (
+  if (
     /^(?:graph|flowchart)\s+(?:TD|TB|LR|RL|BT)$/iu.test(header) ||
     STATE_DIRECTION_HEADER.test(header)
-  );
+  ) {
+    return {};
+  }
+
+  const reason = routedHeader.test(header)
+    ? "Beautiful Mermaid requires this diagram header before any comments."
+    : getBeautifulMermaidHeaderReason(source);
+  return { "beautiful-mermaid": reason, unicode: reason, ascii: reason };
 }
 
 function canOverrideDirection(source: string): boolean {
@@ -1146,15 +1163,18 @@ export function useBeautifulRenderer(
   });
 
   const isRendering = ref(false);
-  const unsupportedBeautifulMermaid = ref<{
+  const compatibility = shallowRef<{
     code: string;
     directionOverride: BeautifulRenderConfig["directionOverride"];
+    reasons: BeautifulMermaidIncompatibilities;
   } | null>(null);
-  const beautifulMermaidUnsupported = computed(
-    () =>
-      unsupportedBeautifulMermaid.value?.code === code.value &&
-      unsupportedBeautifulMermaid.value.directionOverride === config.value.directionOverride,
+  const beautifulMermaidIncompatibilities = computed(() =>
+    compatibility.value?.code === code.value &&
+    compatibility.value.directionOverride === config.value.directionOverride
+      ? compatibility.value.reasons
+      : {},
   );
+
   let latestRenderToken = 0;
   let latestScheduleToken = 0;
 
@@ -1165,7 +1185,8 @@ export function useBeautifulRenderer(
     latestRenderToken = renderToken;
     const { outputMode, svgRenderer, directionOverride } = config.value;
     const sourceCode = code.value;
-    const usesPele = outputMode === "svg" && svgRenderer === "pele";
+    const target = outputMode === "svg" ? svgRenderer : outputMode;
+    const usesPele = target === "pele";
 
     const isCurrentRender = () =>
       renderToken === latestRenderToken &&
@@ -1176,6 +1197,23 @@ export function useBeautifulRenderer(
       sourceCode,
       usesPele && directionOverride === "TD" ? "TB" : directionOverride,
     );
+
+    function recordCompatibility(errorMessage?: string): void {
+      const previous = compatibility.value;
+      const reasons =
+        previous?.code === sourceCode && previous.directionOverride === directionOverride
+          ? { ...previous.reasons }
+          : getHeaderIncompatibilities(source);
+
+      if (target !== "pele") {
+        if (errorMessage === undefined) {
+          delete reasons[target];
+        } else {
+          reasons[target] = formatBeautifulMermaidError(errorMessage, reasons[target]);
+        }
+      }
+      compatibility.value = { code: sourceCode, directionOverride, reasons };
+    }
 
     if (!source) {
       if (renderToken !== latestRenderToken) {
@@ -1222,9 +1260,7 @@ export function useBeautifulRenderer(
           elementColors,
           canOverrideDirection: canOverrideDirection(originalSource),
         });
-        if (!supportsBeautifulMermaidSvgHeader(source)) {
-          unsupportedBeautifulMermaid.value = { code: sourceCode, directionOverride };
-        }
+        recordCompatibility();
         renderState.value = {
           ...previousRender,
           svg,
@@ -1261,7 +1297,7 @@ export function useBeautifulRenderer(
           console.warn("[playground] layout fallback applied after ELK scanline hitbox failure");
         }
 
-        unsupportedBeautifulMermaid.value = null;
+        recordCompatibility();
         renderState.value = {
           ...previousRender,
           svg: styledSvg,
@@ -1281,6 +1317,7 @@ export function useBeautifulRenderer(
           buildAsciiRenderOptions(config.value, asciiTheme, "html", outputMode),
         );
 
+        recordCompatibility();
         renderState.value = {
           ...previousRender,
           asciiHtml,
@@ -1307,15 +1344,12 @@ export function useBeautifulRenderer(
         return;
       }
 
-      if (
-        canPreviewWithPele &&
-        (outputMode === "svg" || !supportsBeautifulMermaidSvgHeader(source))
-      ) {
-        unsupportedBeautifulMermaid.value = { code: sourceCode, directionOverride };
-      }
       const errorMessage = loadFailed
         ? `Failed to load renderer runtime: ${getErrorMessage(error)}`
         : getErrorMessage(error);
+      if (canPreviewWithPele) {
+        recordCompatibility(errorMessage);
+      }
       renderState.value = {
         ...previousRender,
         svg: canPreviewWithPele && outputMode === "svg" ? null : previousRender.svg,
@@ -1371,7 +1405,7 @@ export function useBeautifulRenderer(
   });
 
   return {
-    beautifulMermaidUnsupported,
+    beautifulMermaidIncompatibilities,
     isRendering: computed(() => isRendering.value),
     renderState,
     renderNow,

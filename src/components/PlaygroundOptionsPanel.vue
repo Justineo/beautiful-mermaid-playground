@@ -458,35 +458,37 @@ const emit = defineEmits<{
 const activeTab = ref<OptionsTab>("palette");
 const optionsScrollHostRef = ref<HTMLElement | null>(null);
 const isPeleSvg = computed(() => props.outputMode === "svg" && props.svgRenderer === "pele");
-function isPeleControlInactive(control: PeleSvgControl): boolean {
-  return isPeleSvg.value && !props.peleControls.includes(control);
-}
-
-function getPeleControlInactiveTitle(control: PeleSvgControl): string | undefined {
-  if (!isPeleControlInactive(control)) {
-    return undefined;
-  }
-  if (control === "routing") {
-    return "Pele routing presets apply to flowcharts with edges.";
-  }
-  if (control === "spacing") {
-    return "Pele node and layer gaps apply to flowcharts, state, class, and ER diagrams.";
-  }
-  return "This setting does not apply to the current diagram in Pele.";
-}
+const PELE_CONTROL_INACTIVE_REASONS: Record<PeleSvgControl, string> = {
+  text: "This diagram has no text that Pele styles with this setting.",
+  secondaryText: "This diagram has no secondary text.",
+  faintText: "This diagram has no faint text.",
+  edgeLabels: "This diagram has no edge labels that Pele styles with this setting.",
+  connectors: "This diagram has no connectors that Pele styles with this setting.",
+  arrowHeads: "This diagram has no arrowheads that Pele styles with this setting.",
+  nodeFill: "This diagram has no node fills that Pele styles with this setting.",
+  groupHeader: "This diagram has no group headers.",
+  innerStrokes: "This diagram has no inner strokes that Pele styles with this setting.",
+  nodeStroke: "This diagram has no node borders that Pele styles with this setting.",
+  direction: "Direction overrides apply to flowcharts and state diagrams.",
+  spacing: "Pele node and layer gaps apply to flowcharts, state, class, and ER diagrams.",
+  subgraphStyle: "This diagram has no subgraphs that Pele styles with this setting.",
+  cornerStyle: "This diagram has no node corners that Pele styles with this setting.",
+  routing: "Pele routing presets apply to flowcharts with edges.",
+  monoFont: "This diagram has no labels that Pele renders in monospace.",
+};
 
 const optionsTabItems = computed(() =>
   tabs.map(({ key, label, svgControls }) => {
     const inactive =
-      svgControls && Object.values(svgControls).every((control) => !isScopeActive("svg", control));
+      svgControls &&
+      Object.values(svgControls).every((control) => getScopeInactiveReason("svg", control));
     return {
       key,
       label,
-      title: inactive
-        ? (getScopeInactiveTitle("svg") ??
+      inactiveReason: inactive
+        ? (getScopeInactiveReason("svg") ??
           "No settings in this group apply to the current diagram in Pele.")
-        : label,
-      labelClass: inactive ? "inactive" : undefined,
+        : undefined,
     };
   }),
 );
@@ -1539,24 +1541,26 @@ function getElementSwatchColorGetter(role: ElementColorRole): (value: string) =>
   return (value: string) => getElementOptionSwatchColor(role, value);
 }
 
-function isScopeActive(scope: ElementColorScope, peleControl?: PeleSvgControl): boolean {
-  const outputScope = props.outputMode === "svg" ? "svg" : "text";
-  const matchesOutput = scope === "both" || scope === outputScope;
-  return matchesOutput && (peleControl === undefined || !isPeleControlInactive(peleControl));
-}
-
-function getScopeOnlyTitle(scope: Exclude<ElementColorScope, "both">): string {
-  return scope === "svg" ? "Applies to SVG output only" : "Applies to Unicode/ASCII output only";
-}
-
-function getScopeInactiveTitle(
+function getScopeInactiveReason(
   scope: ElementColorScope,
   peleControl?: PeleSvgControl,
 ): string | undefined {
-  if (scope !== "both" && !isScopeActive(scope)) {
-    return getScopeOnlyTitle(scope);
+  const outputScope = props.outputMode === "svg" ? "svg" : "text";
+  if (scope !== "both" && scope !== outputScope) {
+    return scope === "svg" ? "Applies to SVG output only" : "Applies to Unicode/ASCII output only";
   }
-  return peleControl === undefined ? undefined : getPeleControlInactiveTitle(peleControl);
+  if (peleControl && isPeleSvg.value && !props.peleControls.includes(peleControl)) {
+    return PELE_CONTROL_INACTIVE_REASONS[peleControl];
+  }
+  return undefined;
+}
+
+function getInactiveLabelAttrs(reason?: string) {
+  return { class: reason ? "scope-inactive" : undefined, title: reason };
+}
+
+function getScopeLabelAttrs(scope: ElementColorScope, peleControl?: PeleSvgControl) {
+  return getInactiveLabelAttrs(getScopeInactiveReason(scope, peleControl));
 }
 </script>
 
@@ -1685,8 +1689,7 @@ function getScopeInactiveTitle(
               <label
                 for="muted-channel-toggle"
                 class="token-label"
-                :class="{ 'scope-inactive': !isScopeActive('svg') }"
-                :title="getScopeInactiveTitle('svg')"
+                v-bind="getScopeLabelAttrs('svg')"
               >
                 <span class="token-key">muted</span>
               </label>
@@ -1711,8 +1714,7 @@ function getScopeInactiveTitle(
               <label
                 for="surface-channel-toggle"
                 class="token-label"
-                :class="{ 'scope-inactive': !isScopeActive('svg') }"
-                :title="getScopeInactiveTitle('svg')"
+                v-bind="getScopeLabelAttrs('svg')"
               >
                 <span class="token-key">surface</span>
               </label>
@@ -1764,8 +1766,7 @@ function getScopeInactiveTitle(
             >
               <span
                 class="setting-row-label"
-                :class="{ 'scope-inactive': !isScopeActive(roleMeta.scope, roleMeta.role) }"
-                :title="getScopeInactiveTitle(roleMeta.scope, roleMeta.role)"
+                v-bind="getScopeLabelAttrs(roleMeta.scope, roleMeta.role)"
               >
                 <span>{{ roleMeta.label }}</span>
               </span>
@@ -1783,12 +1784,7 @@ function getScopeInactiveTitle(
 
         <div v-else-if="activeTab === 'layout'" class="setting-list">
           <div class="setting-row direction-row">
-            <span
-              :class="{ 'scope-inactive': !isScopeActive('both', 'direction') }"
-              :title="getScopeInactiveTitle('both', 'direction')"
-            >
-              Direction
-            </span>
+            <span v-bind="getScopeLabelAttrs('both', 'direction')"> Direction </span>
             <BaseSegmentedControl
               class="direction-control"
               :items="directionSegmentItems"
@@ -1799,11 +1795,7 @@ function getScopeInactiveTitle(
           </div>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('svg')">
               <span>Padding</span>
             </span>
             <input
@@ -1817,11 +1809,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', 'spacing') }"
-              :title="getScopeInactiveTitle('svg', 'spacing')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('svg', 'spacing')">
               <span>Node gap</span>
             </span>
             <input
@@ -1835,11 +1823,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', 'spacing') }"
-              :title="getScopeInactiveTitle('svg', 'spacing')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('svg', 'spacing')">
               <span>Layer gap</span>
             </span>
             <input
@@ -1854,8 +1838,11 @@ function getScopeInactiveTitle(
 
           <label v-if="SHOW_COMPONENT_GAP_CONTROL || isPeleSvg" class="setting-row">
             <span
-              :class="{ 'scope-inactive': isPeleSvg }"
-              :title="isPeleSvg ? 'Pele has no separate component gap setting.' : undefined"
+              v-bind="
+                getInactiveLabelAttrs(
+                  isPeleSvg ? 'Pele has no separate component gap setting.' : undefined,
+                )
+              "
             >
               Component gap
             </span>
@@ -1870,11 +1857,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('text') }"
-              :title="getScopeInactiveTitle('text')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('text')">
               <span>Padding X</span>
             </span>
             <input
@@ -1888,11 +1871,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('text') }"
-              :title="getScopeInactiveTitle('text')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('text')">
               <span>Padding Y</span>
             </span>
             <input
@@ -1906,11 +1885,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('text') }"
-              :title="getScopeInactiveTitle('text')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('text')">
               <span>Box padding</span>
             </span>
             <input
@@ -1928,8 +1903,7 @@ function getScopeInactiveTitle(
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.subgraph) }"
-              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.subgraph)"
+              v-bind="getScopeLabelAttrs('svg', NODE_CONTROLS.subgraph)"
             >
               <span>Subgraph</span>
             </span>
@@ -1946,8 +1920,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.corner) }"
-              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.corner)"
+              v-bind="getScopeLabelAttrs('svg', NODE_CONTROLS.corner)"
             >
               <span>Corner</span>
             </span>
@@ -1963,8 +1936,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.border) }"
-              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.border)"
+              v-bind="getScopeLabelAttrs('svg', NODE_CONTROLS.border)"
             >
               <span>Border pattern</span>
             </span>
@@ -1980,8 +1952,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', NODE_CONTROLS.border) }"
-              :title="getScopeInactiveTitle('svg', NODE_CONTROLS.border)"
+              v-bind="getScopeLabelAttrs('svg', NODE_CONTROLS.border)"
             >
               <span>Border weight</span>
             </span>
@@ -1999,8 +1970,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.routing) }"
-              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.routing)"
+              v-bind="getScopeLabelAttrs('svg', EDGE_CONTROLS.routing)"
             >
               <span>Routing</span>
             </span>
@@ -2016,8 +1986,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.stroke) }"
-              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.stroke)"
+              v-bind="getScopeLabelAttrs('svg', EDGE_CONTROLS.stroke)"
             >
               <span>Pattern</span>
             </span>
@@ -2033,8 +2002,7 @@ function getScopeInactiveTitle(
           <div class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.stroke) }"
-              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.stroke)"
+              v-bind="getScopeLabelAttrs('svg', EDGE_CONTROLS.stroke)"
             >
               <span>Weight</span>
             </span>
@@ -2048,11 +2016,7 @@ function getScopeInactiveTitle(
           </div>
 
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg', EDGE_CONTROLS.label) }"
-              :title="getScopeInactiveTitle('svg', EDGE_CONTROLS.label)"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('svg', EDGE_CONTROLS.label)">
               <span>Label</span>
             </span>
             <BaseSelect :value="props.edgeLabelStyle" @change="onEdgeLabelStyleChange">
@@ -2069,11 +2033,7 @@ function getScopeInactiveTitle(
 
         <div v-else class="setting-list">
           <label class="setting-row">
-            <span
-              class="setting-row-label"
-              :class="{ 'scope-inactive': !isScopeActive('svg') }"
-              :title="getScopeInactiveTitle('svg')"
-            >
+            <span class="setting-row-label" v-bind="getScopeLabelAttrs('svg')">
               <span>Base font</span>
             </span>
             <BaseSelect
@@ -2113,12 +2073,7 @@ function getScopeInactiveTitle(
           </label>
 
           <label class="setting-row">
-            <span
-              :class="{ 'scope-inactive': !isScopeActive('both', 'monoFont') }"
-              :title="getScopeInactiveTitle('both', 'monoFont')"
-            >
-              Mono font
-            </span>
+            <span v-bind="getScopeLabelAttrs('both', 'monoFont')"> Mono font </span>
             <BaseSelect
               v-if="!isMonoCustomInputMode"
               :value="monoFontSelectValue"
@@ -2158,8 +2113,9 @@ function getScopeInactiveTitle(
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isPeleSvg }"
-              :title="isPeleSvg ? undefined : 'Applies to Pele SVG output only'"
+              v-bind="
+                getInactiveLabelAttrs(isPeleSvg ? undefined : 'Applies to Pele SVG output only')
+              "
             >
               <span>Font weight</span>
             </span>
@@ -2183,8 +2139,9 @@ function getScopeInactiveTitle(
           <label class="setting-row">
             <span
               class="setting-row-label"
-              :class="{ 'scope-inactive': !isPeleSvg }"
-              :title="isPeleSvg ? undefined : 'Applies to Pele SVG output only'"
+              v-bind="
+                getInactiveLabelAttrs(isPeleSvg ? undefined : 'Applies to Pele SVG output only')
+              "
             >
               <span>Font size (px)</span>
             </span>

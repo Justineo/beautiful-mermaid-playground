@@ -9,7 +9,7 @@ export type SegmentedControlItem = {
   label: string;
   title?: string;
   ariaLabel?: string;
-  labelClass?: string;
+  inactiveReason?: string;
   disabled?: boolean;
   icon?: Component;
   iconSrc?: string;
@@ -217,8 +217,9 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
       :tabindex="getTabIndex(item, index)"
       :aria-selected="props.asTabs ? isActive(item.key) : undefined"
       :aria-pressed="!props.asTabs && props.multiple ? isActive(item.key) : undefined"
-      :title="item.title ?? item.label"
+      :title="item.inactiveReason ?? item.title ?? item.label"
       :aria-label="item.ariaLabel ?? (item.iconOnly ? item.label : undefined)"
+      :aria-description="item.inactiveReason"
       @click="onSelect(item)"
       @keydown="onButtonKeydown($event, item.key)"
     >
@@ -249,9 +250,12 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
           :style="item.previewInnerStyle"
         />
       </span>
-      <span v-if="!item.iconOnly" :class="['segmented-label', item.labelClass]">{{
-        item.label
-      }}</span>
+      <span
+        v-if="!item.iconOnly"
+        class="segmented-label"
+        :class="{ inactive: item.inactiveReason }"
+        >{{ item.label }}</span
+      >
     </button>
   </div>
 </template>

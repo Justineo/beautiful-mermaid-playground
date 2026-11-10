@@ -21,6 +21,7 @@ const props = defineProps<{
   desktopPanes: Record<DesktopPaneKey, boolean>;
   selectedSampleId: string | null;
   samples: Array<{ id: string; title: string; category: string }>;
+  sampleIncompatibilities: Partial<Record<string, string>>;
 }>();
 
 const emit = defineEmits<{
@@ -95,6 +96,17 @@ function onPanelSelect(key: string): void {
                 {{ sample.title }}
               </option>
             </optgroup>
+            <template #option="{ option }">
+              <span :class="{ 'sample-inactive': props.sampleIncompatibilities[option.value] }">
+                {{ option.label }}
+              </span>
+              <span
+                v-if="props.sampleIncompatibilities[option.value]"
+                class="sample-inactive-reason"
+              >
+                {{ props.sampleIncompatibilities[option.value] }}
+              </span>
+            </template>
           </BaseSelect>
         </div>
 
@@ -192,6 +204,21 @@ function onPanelSelect(key: string): void {
 .control-sample .ui-select-control {
   width: 176px;
   max-width: 100%;
+}
+
+.sample-inactive {
+  text-decoration: line-through;
+}
+
+.sample-inactive-reason {
+  display: block;
+  max-width: 34ch;
+  padding-block: 0.08rem 0.22rem;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .control-theme .ui-select-control {
