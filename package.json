@@ -31,11 +31,11 @@
     "format": "oxfmt --config .oxfmtrc.json src/"
   },
   "dependencies": {
-    "@shikijs/core": "4.5.0",
-    "@shikijs/engine-javascript": "4.5.0",
-    "@shikijs/langs": "4.5.0",
-    "@shikijs/monaco": "4.5.0",
-    "@shikijs/themes": "4.5.0",
+    "@shikijs/core": "4.6.0",
+    "@shikijs/engine-javascript": "4.6.0",
+    "@shikijs/langs": "4.6.0",
+    "@shikijs/monaco": "4.6.0",
+    "@shikijs/themes": "4.6.0",
     "@vercel/analytics": "^2.0.1",
     "@vueuse/core": "15.0.0",
     "apca-w3": "^0.1.9",
@@ -44,17 +44,17 @@
     "monaco-editor": "0.55.1",
     "overlayscrollbars": "2.17.0",
     "pele": "1.13.0",
-    "shiki": "4.5.0",
-    "vue": "3.6.0-rc.13"
+    "shiki": "4.6.0",
+    "vue": "3.6.0-rc.14"
   },
   "devDependencies": {
-    "@kong-ui-public/monaco-editor": "0.27.3",
+    "@kong-ui-public/monaco-editor": "0.27.7",
     "@tsconfig/node24": "^24.0.5",
     "@types/node": "^25.9.9",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/eslint-config-typescript": "^14.9.0",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "1.90.0",
     "eslint-plugin-vue": "~10.12.0",
@@ -66,10 +66,10 @@
     "tsx": "^4.23.15",
     "typescript": "~7.0.2",
     "vite": "8.3.5",
-    "vue-tsc": "^3.3.13"
+    "vue-tsc": "^3.3.14"
   },
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.17.0"
 }
