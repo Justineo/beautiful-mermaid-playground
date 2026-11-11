@@ -24,6 +24,41 @@
  * SOFTWARE.
  */
 
+export const PELE_SAMPLE_GROUPS: Record<string, string> = {
+  Block: "Systems & architecture",
+  C4: "Systems & architecture",
+  Class: "Systems & architecture",
+  "Entity relationship": "Systems & architecture",
+  "Event modeling": "Flow & behavior",
+  Flowchart: "Flow & behavior",
+  Gantt: "Planning & strategy",
+  "Git graph": "Development",
+  Kanban: "Planning & strategy",
+  Mindmap: "Trees & maps",
+  Packet: "Development",
+  Pie: "Charts & analysis",
+  "Quadrant chart": "Charts & analysis",
+  Requirement: "Development",
+  Sankey: "Charts & analysis",
+  Sequence: "Flow & behavior",
+  State: "Flow & behavior",
+  Timeline: "Planning & strategy",
+  "User journey": "Planning & strategy",
+  "XY chart": "Charts & analysis",
+  Agentflow: "Flow & behavior",
+  Architecture: "Systems & architecture",
+  Cynefin: "Planning & strategy",
+  Ishikawa: "Charts & analysis",
+  Radar: "Charts & analysis",
+  Railroad: "Development",
+  Swimlane: "Flow & behavior",
+  "Tree view": "Trees & maps",
+  Treemap: "Charts & analysis",
+  "Use case": "Systems & architecture",
+  Venn: "Charts & analysis",
+  "Wardley map": "Planning & strategy",
+};
+
 export const PELE_SAMPLES = [
   {
     id: "pele-block-1",

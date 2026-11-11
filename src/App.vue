@@ -11,7 +11,7 @@ import { usePlaygroundState } from "@/composables/usePlaygroundState";
 import { useSplitPane } from "@/composables/useSplitPane";
 import { useTextOutputWarnings } from "@/composables/useTextOutputWarnings";
 import { OFFICIAL_SAMPLES } from "@/data/officialSamples";
-import { PELE_SAMPLES } from "@/data/peleSamples";
+import { PELE_SAMPLE_GROUPS, PELE_SAMPLES } from "@/data/peleSamples";
 import { BASE_FONT_OPTIONS, TEXT_COLOR_MODE_OPTIONS } from "@/types/playground";
 import { resolveDiagramThemeTokens } from "@/utils/diagramTheme";
 import { parseGoogleFontsInput } from "@/utils/googleFonts";
@@ -98,7 +98,8 @@ const sampleItems = [
   })),
   ...PELE_SAMPLES.map((sample) => ({
     ...sample,
-    category: `Pele · ${sample.category}`,
+    title: `${sample.category}: ${sample.title}`,
+    category: `Pele · ${PELE_SAMPLE_GROUPS[sample.category] ?? sample.category}`,
     transparent: undefined,
   })),
 ];

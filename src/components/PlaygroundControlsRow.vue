@@ -84,7 +84,12 @@ function onPanelSelect(key: string): void {
             placeholder="Choose an example"
             @change="onSampleSelect"
           >
-            <option v-for="sample in sampleGroups.basic" :key="sample.id" :value="sample.id">
+            <option
+              v-for="sample in sampleGroups.basic"
+              :key="sample.id"
+              :value="sample.id"
+              :title="props.sampleIncompatibilities[sample.id] ? 'Not supported' : undefined"
+            >
               {{ sample.title }}
             </option>
             <optgroup
@@ -92,19 +97,18 @@ function onPanelSelect(key: string): void {
               :key="category"
               :label="category"
             >
-              <option v-for="sample in items" :key="sample.id" :value="sample.id">
+              <option
+                v-for="sample in items"
+                :key="sample.id"
+                :value="sample.id"
+                :title="props.sampleIncompatibilities[sample.id] ? 'Not supported' : undefined"
+              >
                 {{ sample.title }}
               </option>
             </optgroup>
             <template #option="{ option }">
               <span :class="{ 'sample-inactive': props.sampleIncompatibilities[option.value] }">
                 {{ option.label }}
-              </span>
-              <span
-                v-if="props.sampleIncompatibilities[option.value]"
-                class="sample-inactive-reason"
-              >
-                {{ props.sampleIncompatibilities[option.value] }}
               </span>
             </template>
           </BaseSelect>
@@ -208,17 +212,6 @@ function onPanelSelect(key: string): void {
 
 .sample-inactive {
   text-decoration: line-through;
-}
-
-.sample-inactive-reason {
-  display: block;
-  max-width: 34ch;
-  padding-block: 0.08rem 0.22rem;
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  font-weight: 400;
-  white-space: normal;
-  overflow-wrap: anywhere;
 }
 
 .control-theme .ui-select-control {

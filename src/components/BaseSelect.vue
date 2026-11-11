@@ -10,6 +10,7 @@ type SelectOptionItem = {
   label: string;
   value: string;
   disabled: boolean;
+  title?: string;
 };
 
 type SelectOptionGroup = {
@@ -127,6 +128,7 @@ function extractOptions(
       label: rawLabel,
       value: rawValue,
       disabled: Boolean(node.props?.disabled),
+      title: typeof node.props?.title === "string" ? node.props.title : undefined,
     });
     sourceIndexRef.value += 1;
   }
@@ -543,6 +545,7 @@ onBeforeUnmount(() => {
             }"
             :aria-selected="selectedValue === option.value"
             :disabled="option.disabled"
+            :title="option.title"
             :tabindex="activeIndex === option.flatIndex ? 0 : -1"
             @focus="activeIndex = option.flatIndex"
             @mouseenter="activeIndex = option.flatIndex"
