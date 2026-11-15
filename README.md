@@ -16,6 +16,8 @@ pnpm lint
 pnpm type-check
 pnpm build
 pnpm preview
+pnpm calibrate:logos
+pnpm check:logos
 ```
 
 ## Build notes
@@ -24,6 +26,25 @@ pnpm preview
   `scripts/generate-beautiful-themes.ts`.
 - Vite chunk warnings are tuned to `1500kB` because Monaco and diagram runtime
   are intentionally split into dedicated async chunks.
+
+## Logo calibration
+
+`pnpm calibrate:logos` rasterizes the two renderer SVGs at 64× resolution with
+resvg, measures alpha coverage, bounds, centroid, and RMS radius, and writes
+`src/generated/rendererLogoCalibration.json`. The shared `RendererLogo` component
+uses these values in both the Example menu and SVG preview tabs.
+
+Pele at 14 px provides the reference filled area inside a 16 px slot. Sizes are
+normalized by the square root of the area ratio, then adjusted by the reviewed
+`opticalScale` in `scripts/calibrate-renderer-logos.ts`. This correction balances
+different silhouettes; equal filled area alone does not imply equal perceived
+size. Sizes and centroid offsets snap to quarter pixels. Calibration rejects
+placements that crop the artwork and reports the resulting area and center.
+
+After changing an SVG or its optical correction, regenerate the calibration and
+review the menu and tabs in light and dark themes at their actual display size.
+`pnpm check:logos` verifies the saved values and SVG source hashes without
+rewriting files. CI runs this check and the calibration unit tests.
 
 ## Renderer compatibility
 

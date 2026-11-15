@@ -14,6 +14,8 @@
     "sync:official-samples": "run-s sync:official-samples:raw sync:official-samples:format",
     "sync:official-samples:raw": "pnpm exec tsx scripts/sync-official-samples.ts",
     "sync:official-samples:format": "oxfmt --config .oxfmtrc.json src/data/officialSamples.ts",
+    "calibrate:logos": "tsx scripts/calibrate-renderer-logos.ts",
+    "check:logos": "tsx scripts/calibrate-renderer-logos.ts --check",
     "dev": "run-s generate:themes dev:raw",
     "dev:raw": "vite",
     "build": "run-s generate:themes \"build:raw {@}\" --",
@@ -49,6 +51,7 @@
   },
   "devDependencies": {
     "@kong-ui-public/monaco-editor": "0.27.8",
+    "@resvg/resvg-js": "2.6.2",
     "@tsconfig/node24": "^24.0.5",
     "@types/node": "^25.9.9",
     "@vitejs/plugin-vue": "^6.0.10",

@@ -3,6 +3,7 @@
   "include": [
     "vite.config.ts",
     "scripts/sample-compatibility.ts",
+    "scripts/calibrate-renderer-logos.ts",
     "src/constants/monacoThemes.ts",
     "src/data/officialSamples.ts",
     "src/data/peleSamples.ts",

@@ -1,0 +1,19 @@
+{
+  "slotSize": 16,
+  "logos": {
+    "beautiful-mermaid": {
+      "size": 12.5,
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    "pele": {
+      "size": 14,
+      "offsetX": 0.25,
+      "offsetY": -0.75
+    }
+  },
+  "sourceHashes": {
+    "beautiful-mermaid": "0f35d6943a0fb89e60dc34b7135265840b5ef2ced82c09d7c0734958c3181f59",
+    "pele": "fa663167599cc8f9e78c1f3d2ff6c00194277826d8807544bb44f6c902e95d32"
+  }
+}

@@ -36,5 +36,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Check renderer logo calibration
+        run: pnpm check:logos
+
+      - name: Unit tests
+        run: pnpm test:unit
+
       - name: Type check and build
         run: pnpm run-p type-check:raw build-only:raw
