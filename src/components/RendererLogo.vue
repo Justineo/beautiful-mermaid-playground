@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import lukilabsLogo from "@/assets/lukilabs-avatar.png";
+import beautifulMermaidLogo from "@/assets/beautiful-mermaid.svg";
 import peleLogo from "@/assets/pele.svg";
 import type { SvgRenderer } from "@/types/playground";
 
@@ -17,7 +17,7 @@ const {
 <template>
   <span class="renderer-logo" :class="{ unsupported }">
     <img
-      :src="renderer === 'pele' ? peleLogo : lukilabsLogo"
+      :src="renderer === 'pele' ? peleLogo : beautifulMermaidLogo"
       :class="{ 'beautiful-mermaid': renderer === 'beautiful-mermaid' }"
       :alt="alt"
       width="14"
@@ -42,8 +42,9 @@ img {
 }
 
 .beautiful-mermaid {
-  /* Compensate for the avatar's whitespace to match Pele's visible weight. */
-  transform: translateX(0.5px) scale(1.65);
+  /* Balance the square mark's visual weight against Pele's wider silhouette. */
+  width: 13px;
+  height: 13px;
 }
 
 .unsupported {

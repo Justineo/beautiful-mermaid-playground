@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { ChevronDown } from "lucide-vue-next";
+import { Check, ChevronDown } from "lucide-vue-next";
 import { useOverlayScrollbars } from "@/composables/useOverlayScrollbars";
 import { POPOVER_ROOT_SELECTOR } from "@/constants/overlay";
 import type { ComponentPublicInstance, VNode } from "vue";
@@ -551,12 +551,14 @@ onBeforeUnmount(() => {
             @mouseenter="activeIndex = option.flatIndex"
             @click="selectByIndex(option.flatIndex)"
           >
+            <span class="ui-select-option-check" aria-hidden="true">
+              <Check v-if="selectedValue === option.value" :size="12" :stroke-width="1.8" />
+            </span>
             <span class="ui-select-option-label">
               <slot name="option" :option="option">
                 {{ option.label }}
               </slot>
             </span>
-            <span v-if="selectedValue === option.value" aria-hidden="true">✓</span>
           </button>
         </section>
       </div>
@@ -649,7 +651,6 @@ onBeforeUnmount(() => {
   padding: 0 0.44rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.4rem;
   color: var(--text-secondary);
   font-size: var(--fs-control);
@@ -660,6 +661,13 @@ onBeforeUnmount(() => {
   transition:
     background-color 120ms ease,
     border-color 120ms ease;
+}
+
+.ui-select-option-check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 12px;
+  height: 12px;
 }
 
 .ui-select-option-label {
