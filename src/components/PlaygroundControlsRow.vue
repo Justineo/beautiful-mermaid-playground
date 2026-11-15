@@ -20,11 +20,9 @@ const PANEL_ITEMS: Array<{ key: DesktopPaneKey; label: string }> = [
   { key: "preview", label: "Preview" },
 ];
 
-const SAMPLE_TARGETS = [
-  { key: "beautiful-mermaid", label: "Beautiful Mermaid SVG" },
-  { key: "pele", label: "Pele SVG" },
-  { key: "unicode", label: "Beautiful Mermaid Unicode" },
-  { key: "ascii", label: "Beautiful Mermaid ASCII" },
+const SAMPLE_RENDERERS = [
+  { key: "beautiful-mermaid", label: "Beautiful Mermaid" },
+  { key: "pele", label: "Pele" },
 ] as const;
 
 const props = defineProps<{
@@ -47,29 +45,20 @@ const emit = defineEmits<{
 
 const sampleSupport = computed(() =>
   Object.fromEntries(
-    props.samples.map(({ id }) => {
-      const targets = SAMPLE_TARGETS.map((target) => {
-        const reason = props.sampleCompatibilityFailures[target.key][id];
-        const label = `${target.label}: ${reason ? "Not supported" : "Supported"}`;
-        return {
-          ...target,
-          label,
-          unsupported: Boolean(reason),
-          title: reason ? `${label}. ${reason}` : label,
-        };
-      });
-
-      return [
-        id,
-        {
-          inactive: Boolean(props.sampleCompatibilityFailures[props.previewTarget][id]),
-          title: targets.map((target) => target.title).join("\n"),
-          renderers: targets.filter(
-            (target) => target.key === "beautiful-mermaid" || target.key === "pele",
-          ),
-        },
-      ];
-    }),
+    props.samples.map(({ id }) => [
+      id,
+      {
+        inactive: Boolean(props.sampleCompatibilityFailures[props.previewTarget][id]),
+        renderers: SAMPLE_RENDERERS.map((renderer) => {
+          const unsupported = Boolean(props.sampleCompatibilityFailures[renderer.key][id]);
+          return {
+            ...renderer,
+            unsupported,
+            label: `${renderer.label}: ${unsupported ? "Unsupported" : "Supported"}`,
+          };
+        }),
+      },
+    ]),
   ),
 );
 
@@ -126,12 +115,7 @@ function onPanelSelect(key: string): void {
             placeholder="Choose an example"
             @change="onSampleSelect"
           >
-            <option
-              v-for="sample in sampleGroups.basic"
-              :key="sample.id"
-              :value="sample.id"
-              :title="sampleSupport[sample.id]?.title"
-            >
+            <option v-for="sample in sampleGroups.basic" :key="sample.id" :value="sample.id">
               {{ sample.title }}
             </option>
             <optgroup
@@ -139,12 +123,7 @@ function onPanelSelect(key: string): void {
               :key="category"
               :label="category"
             >
-              <option
-                v-for="sample in items"
-                :key="sample.id"
-                :value="sample.id"
-                :title="sampleSupport[sample.id]?.title"
-              >
+              <option v-for="sample in items" :key="sample.id" :value="sample.id">
                 {{ sample.title }}
               </option>
             </optgroup>
@@ -162,7 +141,7 @@ function onPanelSelect(key: string): void {
                     :key="renderer.key"
                     :renderer="renderer.key"
                     :unsupported="renderer.unsupported"
-                    :title="renderer.title"
+                    :title="renderer.label"
                     :alt="renderer.label"
                   />
                 </span>

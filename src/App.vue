@@ -99,7 +99,7 @@ const sampleItems = [
   ...PELE_SAMPLES.map((sample) => ({
     ...sample,
     title: `${sample.category}: ${sample.title}`,
-    category: `Pele · ${PELE_SAMPLE_GROUPS[sample.category] ?? sample.category}`,
+    category: PELE_SAMPLE_GROUPS[sample.category] ?? sample.category,
     transparent: undefined,
   })),
 ];
