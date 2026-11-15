@@ -2,12 +2,11 @@
 import { AlertTriangle, CircleX, Info, Scan } from "lucide-vue-next";
 import { useResizeObserver } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
-import lukilabsLogo from "@/assets/lukilabs-avatar.png";
-import peleLogo from "@/assets/pele.svg";
 import BaseButton from "@/components/BaseButton.vue";
 import BaseCheckbox from "@/components/BaseCheckbox.vue";
 import BaseDropdownMenu from "@/components/BaseDropdownMenu.vue";
 import BasePanel from "@/components/BasePanel.vue";
+import RendererLogo from "@/components/RendererLogo.vue";
 import BaseSegmentedControl, {
   type SegmentedControlItem,
 } from "@/components/BaseSegmentedControl.vue";
@@ -167,10 +166,9 @@ const outputModeItems = computed(() =>
             label,
             title: "Beautiful Mermaid",
             ariaLabel: "Beautiful Mermaid SVG",
-            iconSrc: lukilabsLogo,
             inactiveReason: props.incompatibilities["beautiful-mermaid"],
           },
-          { key: PELE_PREVIEW_KEY, label, title: "Pele", ariaLabel: "Pele SVG", iconSrc: peleLogo },
+          { key: PELE_PREVIEW_KEY, label, title: "Pele", ariaLabel: "Pele SVG" },
         ]
       : [{ key: value, label, inactiveReason: props.incompatibilities[value] }],
   ),
@@ -709,7 +707,15 @@ useResizeObserver(textCanvasRef, () => {
             :as-tabs="true"
             aria-label="Output mode"
             @select="onOutputModeSelect"
-          />
+          >
+            <template #icon="{ item }">
+              <RendererLogo
+                v-if="item.key === 'svg' || item.key === PELE_PREVIEW_KEY"
+                class="preview-renderer-logo"
+                :renderer="item.key === PELE_PREVIEW_KEY ? 'pele' : 'beautiful-mermaid'"
+              />
+            </template>
+          </BaseSegmentedControl>
         </div>
       </div>
 
@@ -914,6 +920,10 @@ useResizeObserver(textCanvasRef, () => {
 .output-toggles {
   pointer-events: auto;
   max-width: 100%;
+}
+
+.preview-renderer-logo {
+  margin-inline-end: 0.22rem;
 }
 
 .zoom-toolbar-button {

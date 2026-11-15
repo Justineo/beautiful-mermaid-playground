@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import lukilabsLogo from "@/assets/lukilabs-avatar.png";
-import peleLogo from "@/assets/pele.svg";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
 import BaseSelect from "@/components/BaseSelect.vue";
+import RendererLogo from "@/components/RendererLogo.vue";
 import {
   OFFICIAL_DIAGRAM_THEME_OPTIONS,
   UNOFFICIAL_DIAGRAM_THEME_OPTIONS,
@@ -22,8 +21,8 @@ const PANEL_ITEMS: Array<{ key: DesktopPaneKey; label: string }> = [
 ];
 
 const SAMPLE_TARGETS = [
-  { key: "beautiful-mermaid", label: "Beautiful Mermaid SVG", iconSrc: lukilabsLogo },
-  { key: "pele", label: "Pele SVG", iconSrc: peleLogo },
+  { key: "beautiful-mermaid", label: "Beautiful Mermaid SVG" },
+  { key: "pele", label: "Pele SVG" },
   { key: "unicode", label: "Beautiful Mermaid Unicode" },
   { key: "ascii", label: "Beautiful Mermaid ASCII" },
 ] as const;
@@ -65,7 +64,9 @@ const sampleSupport = computed(() =>
         {
           inactive: Boolean(props.sampleCompatibilityFailures[props.previewTarget][id]),
           title: targets.map((target) => target.title).join("\n"),
-          renderers: targets.filter((target) => "iconSrc" in target),
+          renderers: targets.filter(
+            (target) => target.key === "beautiful-mermaid" || target.key === "pele",
+          ),
         },
       ];
     }),
@@ -156,21 +157,14 @@ function onPanelSelect(key: string): void {
                   {{ option.label }}
                 </span>
                 <span class="sample-renderers">
-                  <span
+                  <RendererLogo
                     v-for="renderer in sampleSupport[option.value]?.renderers"
                     :key="renderer.key"
-                    class="sample-renderer"
-                    :class="{ 'sample-renderer-unsupported': renderer.unsupported }"
+                    :renderer="renderer.key"
+                    :unsupported="renderer.unsupported"
                     :title="renderer.title"
-                  >
-                    <img
-                      :src="renderer.iconSrc"
-                      :class="renderer.key"
-                      :alt="renderer.label"
-                      width="14"
-                      height="14"
-                    />
-                  </span>
+                    :alt="renderer.label"
+                  />
                 </span>
               </span>
             </template>
@@ -295,29 +289,6 @@ function onPanelSelect(key: string): void {
   gap: 0.4rem;
   margin-left: auto;
   flex-shrink: 0;
-}
-
-.sample-renderer {
-  display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  overflow: hidden;
-}
-
-.sample-renderer img {
-  display: block;
-  object-fit: contain;
-}
-
-.sample-renderer img.beautiful-mermaid {
-  /* Compensate for the avatar's whitespace to match Pele's visible weight. */
-  transform: translateX(0.5px) scale(1.65);
-}
-
-.sample-renderer-unsupported {
-  filter: grayscale(1);
-  opacity: 0.3;
 }
 
 .control-theme .ui-select-control {

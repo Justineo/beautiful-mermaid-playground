@@ -12,7 +12,6 @@ export type SegmentedControlItem = {
   inactiveReason?: string;
   disabled?: boolean;
   icon?: Component;
-  iconSrc?: string;
   iconOnly?: boolean;
   previewStyle?: CSSProperties;
   previewClass?: string;
@@ -31,6 +30,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [key: string];
+}>();
+
+defineSlots<{
+  icon?: (props: { item: SegmentedControlItem }) => unknown;
 }>();
 
 const buttonRefs = ref<Array<HTMLButtonElement | null>>([]);
@@ -223,21 +226,15 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
       @click="onSelect(item)"
       @keydown="onButtonKeydown($event, item.key)"
     >
-      <img
-        v-if="item.iconSrc"
-        :src="item.iconSrc"
-        class="segmented-icon-image"
-        alt=""
-        width="14"
-        height="14"
-      />
-      <component
-        :is="item.icon"
-        v-else-if="item.icon"
-        class="segmented-icon"
-        :size="12"
-        :stroke-width="1.8"
-      />
+      <slot name="icon" :item="item">
+        <component
+          :is="item.icon"
+          v-if="item.icon"
+          class="segmented-icon"
+          :size="12"
+          :stroke-width="1.8"
+        />
+      </slot>
       <span
         v-if="item.previewStyle || item.previewClass"
         :class="['segmented-preview', item.previewClass]"
@@ -308,16 +305,6 @@ function getTabIndex(item: SegmentedControlItem, index: number): number {
 
 .segmented-icon {
   flex: 0 0 auto;
-}
-
-.segmented-icon-image {
-  flex: 0 0 auto;
-  object-fit: contain;
-  border-radius: 3px;
-}
-
-.segmented-control button:not(.icon-only) .segmented-icon-image {
-  margin-inline-end: 0.22rem;
 }
 
 .segmented-label.inactive {
