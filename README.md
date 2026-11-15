@@ -35,9 +35,13 @@ subgraph presets to its SVG. It also adds the multi-series XY legend, rounded
 bar styling, and dotted grid. These styles are included in SVG and PNG exports.
 
 The Example menu includes the [Pele gallery](https://pele.run/examples),
-grouped by topic, with the diagram type in each example's name. Unsupported
-examples have a strikethrough and a short tooltip. If Beautiful Mermaid cannot
-render a diagram that Pele can render, the preview suggests switching to Pele.
+grouped by topic, with the diagram type in each example's name. Each example
+shows Beautiful Mermaid and Pele SVG support with their renderer icons: color
+means supported, and pale grayscale means unsupported.
+Tooltips list support for both SVG renderers, Unicode, and ASCII, including
+failure reasons. Examples unsupported by the current preview target have a
+strikethrough and remain selectable. If Beautiful Mermaid cannot render a
+diagram that Pele can render, the preview suggests switching to Pele.
 
 In Pele SVG mode, a strikethrough marks settings that do not apply to the
 current diagram, including the tab label when all its settings are inactive.

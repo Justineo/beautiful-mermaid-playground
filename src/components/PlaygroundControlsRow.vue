@@ -1,18 +1,32 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import lukilabsLogo from "@/assets/lukilabs-avatar.png";
+import peleLogo from "@/assets/pele.svg";
 import BaseSegmentedControl from "@/components/BaseSegmentedControl.vue";
 import BaseSelect from "@/components/BaseSelect.vue";
 import {
   OFFICIAL_DIAGRAM_THEME_OPTIONS,
   UNOFFICIAL_DIAGRAM_THEME_OPTIONS,
 } from "@/types/playground";
-import type { ActiveMobilePane, DesktopPaneKey, DiagramTheme } from "@/types/playground";
+import type {
+  ActiveMobilePane,
+  DesktopPaneKey,
+  DiagramTheme,
+  PreviewTarget,
+} from "@/types/playground";
 
 const PANEL_ITEMS: Array<{ key: DesktopPaneKey; label: string }> = [
   { key: "options", label: "Options" },
   { key: "editor", label: "Editor" },
   { key: "preview", label: "Preview" },
 ];
+
+const SAMPLE_TARGETS = [
+  { key: "beautiful-mermaid", label: "Beautiful Mermaid SVG", iconSrc: lukilabsLogo },
+  { key: "pele", label: "Pele SVG", iconSrc: peleLogo },
+  { key: "unicode", label: "Beautiful Mermaid Unicode" },
+  { key: "ascii", label: "Beautiful Mermaid ASCII" },
+] as const;
 
 const props = defineProps<{
   diagramTheme: DiagramTheme;
@@ -21,7 +35,8 @@ const props = defineProps<{
   desktopPanes: Record<DesktopPaneKey, boolean>;
   selectedSampleId: string | null;
   samples: Array<{ id: string; title: string; category: string }>;
-  sampleIncompatibilities: Partial<Record<string, string>>;
+  sampleCompatibilityFailures: Record<PreviewTarget, Partial<Record<string, string>>>;
+  previewTarget: PreviewTarget;
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +45,32 @@ const emit = defineEmits<{
   "toggle:desktop-pane": [pane: DesktopPaneKey];
   "apply:sample": [sampleId: string];
 }>();
+
+const sampleSupport = computed(() =>
+  Object.fromEntries(
+    props.samples.map(({ id }) => {
+      const targets = SAMPLE_TARGETS.map((target) => {
+        const reason = props.sampleCompatibilityFailures[target.key][id];
+        const label = `${target.label}: ${reason ? "Not supported" : "Supported"}`;
+        return {
+          ...target,
+          label,
+          unsupported: Boolean(reason),
+          title: reason ? `${label}. ${reason}` : label,
+        };
+      });
+
+      return [
+        id,
+        {
+          inactive: Boolean(props.sampleCompatibilityFailures[props.previewTarget][id]),
+          title: targets.map((target) => target.title).join("\n"),
+          renderers: targets.filter((target) => "iconSrc" in target),
+        },
+      ];
+    }),
+  ),
+);
 
 const sampleGroups = computed(() => {
   const groups = new Map<string, typeof props.samples>();
@@ -88,7 +129,7 @@ function onPanelSelect(key: string): void {
               v-for="sample in sampleGroups.basic"
               :key="sample.id"
               :value="sample.id"
-              :title="props.sampleIncompatibilities[sample.id] ? 'Not supported' : undefined"
+              :title="sampleSupport[sample.id]?.title"
             >
               {{ sample.title }}
             </option>
@@ -101,14 +142,36 @@ function onPanelSelect(key: string): void {
                 v-for="sample in items"
                 :key="sample.id"
                 :value="sample.id"
-                :title="props.sampleIncompatibilities[sample.id] ? 'Not supported' : undefined"
+                :title="sampleSupport[sample.id]?.title"
               >
                 {{ sample.title }}
               </option>
             </optgroup>
             <template #option="{ option }">
-              <span :class="{ 'sample-inactive': props.sampleIncompatibilities[option.value] }">
-                {{ option.label }}
+              <span class="sample-option">
+                <span
+                  class="sample-title"
+                  :class="{ 'sample-inactive': sampleSupport[option.value]?.inactive }"
+                >
+                  {{ option.label }}
+                </span>
+                <span class="sample-renderers">
+                  <span
+                    v-for="renderer in sampleSupport[option.value]?.renderers"
+                    :key="renderer.key"
+                    class="sample-renderer"
+                    :class="{ 'sample-renderer-unsupported': renderer.unsupported }"
+                    :title="renderer.title"
+                  >
+                    <img
+                      :src="renderer.iconSrc"
+                      :class="renderer.key"
+                      :alt="renderer.label"
+                      width="14"
+                      height="14"
+                    />
+                  </span>
+                </span>
               </span>
             </template>
           </BaseSelect>
@@ -212,6 +275,49 @@ function onPanelSelect(key: string): void {
 
 .sample-inactive {
   text-decoration: line-through;
+}
+
+.sample-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sample-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sample-renderers {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.sample-renderer {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.sample-renderer img {
+  display: block;
+  object-fit: contain;
+}
+
+.sample-renderer img.beautiful-mermaid {
+  /* Compensate for the avatar's whitespace to match Pele's visible weight. */
+  transform: translateX(0.5px) scale(1.65);
+}
+
+.sample-renderer-unsupported {
+  filter: grayscale(1);
+  opacity: 0.3;
 }
 
 .control-theme .ui-select-control {
