@@ -52,7 +52,7 @@
   "devDependencies": {
     "@kong-ui-public/monaco-editor": "0.27.11",
     "@resvg/resvg-js": "2.6.2",
-    "@tsconfig/node24": "^24.0.6",
+    "@tsconfig/node26": "^26.0.0",
     "@types/node": "^25.9.9",
     "@vitejs/plugin-vue": "^6.0.11",
     "@vue/eslint-config-typescript": "^14.9.0",
